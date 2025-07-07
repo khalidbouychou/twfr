@@ -11,11 +11,11 @@ const App = () => {
   return (
     <div>
       <Navbar />
-      <HeroSection />
+      {/* <HeroSection />
       <WhatIsTawfirAI />
       <Fonctiality />
       <Features />
-      <Footer />
+      <Footer /> */}
     </div>
   );
 };
