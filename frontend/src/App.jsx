@@ -1,14 +1,23 @@
-import React from "react";
-import "./App.css";
+import React from 'react';
+import Navbar from './components/Navbar';
+import HeroSection from './components/Hero';
+import WhatIsTawfirAI from './components/WhatIsTawfirAI';
+import Features from './components/Features';
+import Pricing from './components/Pricing';
+import Footer from './components/Footer';
+import Fonctiality from './components/Fonctiality'; // Assuming this is a component you want to include
 
-function App() {
-
+const App = () => {
   return (
-
-      <div className="bg-red-500 h-screen flex  justify-center items-center">
-        <h1 className="text-2xl font-bold"> hello </h1>
-      </div>
+    <div>
+      <Navbar />
+      <HeroSection />
+      <WhatIsTawfirAI />
+      <Fonctiality />
+      <Features />
+      <Footer />
+    </div>
   );
-}
+};
 
 export default App;
