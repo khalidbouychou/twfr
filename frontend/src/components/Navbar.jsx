@@ -36,10 +36,11 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="shadow-lg top-0 z-20 w-full fixed  text-white  border-b border-solid border-[#89559F]">
+    <nav className=" top-0 w-full   text-white">
+  
       <div className="max-w-7xl mx-auto py-4 flex items-center justify-between px-4 md:px-0 ">
         {/* Logo */}
-        <img src="/logo.svg" alt="tawfirai" className="h-12 w-auto" />
+        <img src="/logo.svg" alt="tawfirai" className="h-15 w-auto" />
 
         {/* Desktop Menu */}
         <div className="hidden md:flex md:items-center md:space-x-6 flex-1 justify-center">
@@ -80,9 +81,12 @@ const Navbar = () => {
             </button>
             {isProductsMenuOpen && (
               <div id="desktop-products-dropdown" className="absolute left-0 mt-2 w-48 bg-[#23234a] rounded-md shadow-lg z-30 flex flex-col">
-                <a href="#assurance" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-t-md">Assurance</a>
-                <a href="#egange-a-vie" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors">Egange à vie</a>
-                <a href="#crypto" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">Crypto</a>
+                <a href="#Compte-sur-Carnet" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-t-md">Compte sur Carnet</a>
+                <a href="#Dépôt-à-Terme" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors">Dépôt à Terme</a>
+                <a href="#Gestion-sous-Mandat" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">Gestion sous Mandat</a>
+                <a href="#OPCVM-Monétaires" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">OPCVM Monétaires </a>
+                <a href="#OPCVM-Actions" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">OPCVM Actions</a>
+                <a href="#Produits_Structurés-Capital_Garanti" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">Produits Structurés - Capital Garanti</a>
               </div>
             )}
           </div>
@@ -159,9 +163,12 @@ const Navbar = () => {
             </button>
             {isMobileProductsOpen && (
               <div id="mobile-products-dropdown" className="flex flex-col w-10/12 mx-auto bg-[#23234a] rounded-md shadow-lg mt-1 mb-2">
-                <a href="#assurance" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-t-md">Assurance</a>
-                <a href="#egange-a-vie" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors">Egange à vie</a>
-                <a href="#crypto" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">Crypto</a>
+                <a href="#Compte-sur-Carnet" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-t-md">Compte sur Carnet</a>
+                <a href="#Dépôt-à-Terme" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors">Dépôt à Terme</a>
+                <a href="#Gestion-sous-Mandat" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">Gestion sous Mandat</a>
+                <a href="#OPCVM-Monétaires" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">OPCVM Monétaires </a>
+                <a href="#OPCVM-Actions" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">OPCVM Actions</a>
+                <a href="#Produits_Structurés-Capital_Garanti" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">Produits Structurés - Capital Garanti</a>
               </div>
             )}
             <a
