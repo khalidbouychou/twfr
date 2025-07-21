@@ -43,14 +43,14 @@ const Navbar = () => {
         <img src="/logo.svg" alt="tawfirai" className="h-15 w-auto" />
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex md:items-center md:space-x-6 flex-1 justify-center">
+        <div className=" hidden md:flex md:items-center md:space-x-6 flex-1 justify-center">
           <a
-            className={`md:p-2 px-2 py-1 rounded-full transition-colors duration-200 ${activeMenu === 'home' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F]'}`}
+            className={`md:p-2 px-2 py-1 rounded-full transition-colors duration-200 ${activeMenu === 'home' ? 'text-[#3CD4AB] font-bold' : 'hover:text-[#3cd4abc8]'}`}
             href="#home"
             onClick={() => setActiveMenu('home')}
           >Accueil</a>
           <a
-            className={`md:p-2 px-2 py-1 rounded-full transition-colors duration-200 ${activeMenu === 'about' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F]'}`}
+            className={`md:p-2 px-2 py-1 rounded-full transition-colors duration-200 ${activeMenu === 'about' ? 'text-[#3CD4AB] font-bold' : 'hover:text-[rgba(60,212,171,0.79)]'}`}
             href="#About us"
             onClick={() => setActiveMenu('about')}
           >TawfirAI ?</a>
@@ -59,7 +59,7 @@ const Navbar = () => {
             ref={productsDropdownRef}
           >
             <button
-              className={`flex items-center md:p-2 px-2 py-1 rounded-full transition-colors duration-200 focus:outline-none ${activeMenu === 'products' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F]'}`}
+              className={`flex items-center md:p-2 px-2 py-1 rounded-full transition-colors duration-200 focus:outline-none ${activeMenu === 'products' ? 'text-[#3CD4AB] font-bold' : 'hover:text-[#3cd4abcf]'}`}
               type="button"
               aria-expanded={isProductsMenuOpen}
               aria-controls="desktop-products-dropdown"
@@ -80,26 +80,26 @@ const Navbar = () => {
               </svg>
             </button>
             {isProductsMenuOpen && (
-              <div id="desktop-products-dropdown" className="absolute left-0 mt-2 w-48 bg-[#23234a] rounded-md shadow-lg z-30 flex flex-col">
-                <a href="#Compte-sur-Carnet" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-t-md">Compte sur Carnet</a>
-                <a href="#Dépôt-à-Terme" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors">Dépôt à Terme</a>
-                <a href="#Gestion-sous-Mandat" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">Gestion sous Mandat</a>
-                <a href="#OPCVM-Monétaires" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">OPCVM Monétaires </a>
-                <a href="#OPCVM-Actions" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">OPCVM Actions</a>
-                <a href="#Produits_Structurés-Capital_Garanti" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">Produits Structurés - Capital Garanti</a>
+              <div id="desktop-products-dropdown" className="absolute left-0 mt-2 w-80 bg-[#23234a] rounded-md shadow-lg z-30 flex flex-col">
+                <a href="#Compte-sur-Carnet" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors rounded-t-md">Compte sur Carnet</a>
+                <a href="#Dépôt-à-Terme" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors">Dépôt à Terme</a>
+                <a href="#Gestion-sous-Mandat" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors rounded-b-md">Gestion sous Mandat</a>
+                <a href="#OPCVM-Monétaires" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors rounded-b-md">OPCVM Monétaires </a>
+                <a href="#OPCVM-Actions" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors rounded-b-md">OPCVM Actions</a>
+                <a href="#Produits_Structurés-Capital_Garanti" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors rounded-b-md">Produits Structurés - Capital Garanti</a>
               </div>
             )}
           </div>
-          <a
+          {/* <a
             className={`md:p-2 px-2 py-1 rounded-full transition-colors duration-200 ${activeMenu === 'pricing' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F]'}`}
             href="#pricing"
             onClick={() => setActiveMenu('pricing')}
-          >Tarifs</a>
+          >Tarifs</a> */}
           <a
-            className={`md:p-2 px-2 py-1 rounded-full transition-colors duration-200 ${activeMenu === 'contact' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F]'}`}
+            className={`md:p-2 px-2 py-1 rounded-full transition-colors duration-200 ${activeMenu === 'contact' ? 'text-[#3CD4AB] font-bold' : 'hover:text-[#3cd4abdb]'}`}
             href="#contact"
             onClick={() => setActiveMenu('contact')}
-          >Contact</a>
+          >Contactez-nous</a>
         </div>
 
         {/* Desktop Buttons */}

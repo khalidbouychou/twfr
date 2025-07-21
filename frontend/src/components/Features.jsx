@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 const API_KEY = 'pub_b1bf302734f24ad3b8bdae575237c3f1';
 const NEWS_URL = `https://newsdata.io/api/1/news?category=business,world&language=fr,en&apikey=${API_KEY}`;

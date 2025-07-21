@@ -3,7 +3,7 @@ import React from "react";
 const Hero = () => {
   return (
     <section className="w-full  py-10 md:py-15 ">
-      <div className="max-w-7xl mx-auto flex flex-col  md:flex-row items-center px-6 md:px-8 gap-5" data-aos="fade-up">
+      <div className="max-w-7xl mx-auto flex flex-col  md:flex-row items-center px-6 md:px-8 gap-8" data-aos="fade-up">
         {/* Left: Text */}
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6">
@@ -58,7 +58,7 @@ const Hero = () => {
         </div>
 
         {/* Right: Illustration */}
-        <div className="flex-1 flex justify-center">
+        <div className="flex-1 justify-center">
           <video
             src="../../public/assets/00.mp4"
             autoPlay

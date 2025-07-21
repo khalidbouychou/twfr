@@ -75,7 +75,7 @@ const products = [
 
 export default function Products() {
   return (
-    <section className="py-16 px-4 bg-gray-50">
+    <section id="products" className="py-16 px-4 bg-gray-50 rounded-2xl">
       <div className="max-w-7xl mx-auto">
         <div className="mb-14 text-center">
           <h2 className="text-4xl font-bold mb-2 text-gray-900">Découvrez nos produits d'investissement</h2>

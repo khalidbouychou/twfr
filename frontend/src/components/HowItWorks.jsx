@@ -23,12 +23,12 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="w-full py-16" data-aos="fade-up">
+    <section className="w-full py-10 " data-aos="fade-up">
       <div className="max-w-2xl mx-auto px-4 text-center">
         <h2 className="text-3xl md:text-4xl font-bold mb-4 text-[#3CD4AB]">
           Comment TawfirAI vous aide à investir
         </h2>
-        <p className="text-[#e4e4e4] text-base md:text-lg mb-12 max-w-2xl mx-auto">
+        <p className="text-[#e4e4e4] text-base md:text-lg mb-12 max-w-2xl mx-auto ">
           Découvrez comment TawfirAI simplifie votre parcours d'investissement en trois étapes simples et personnalisées.
         </p>
         <div className="relative flex flex-col items-center mb-12 text-white">
