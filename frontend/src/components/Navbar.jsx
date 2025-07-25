@@ -104,9 +104,9 @@ const Navbar = () => {
 
         {/* Desktop Buttons */}
         <div className="hidden md:flex items-center space-x-4">
-          <a href="#start-simulation" className="text-[#3CD4AB] px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white  border border-solid border-[##3CD4AB]">
+          <a href="/simulation" className="text-[#3CD4AB] px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white  border border-solid border-[##3CD4AB]">
             Simuler un projet           </a>
-          <a href="#Login" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F]  border border-solid border-[#89559F]">
+          <a href="/signin" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F]  border border-solid border-[#89559F]">
             Se connecter
           </a>
         </div>
