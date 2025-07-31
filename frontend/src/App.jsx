@@ -63,18 +63,18 @@ const App = () => {
       <Routes>
         {/* Protected routes */}
         {/* <Route element={<Layout />}> */}
-          <Route path="/dashboard" element={<h1>Dashboard soon</h1>} />
-          <Route path="/profile" element={<h1>Profile soon</h1>} />
+          {/* <Route path="/dashboard" element={<h1>Dashboard soon</h1>} />
+          <Route path="/profile" element={<h1>Profile soon</h1>} /> */}
           <Route path="/simulation" element={<SimulationStepper />} />
-          <Route
+          {/* <Route
             path="/password-reset"
             element={<h1>Password Reset soon</h1>}
-          />
+          /> */}
         {/* </Route> */}
         {/* Public routes */}
-        <Route path="/" element={<LandingPage />} />
+        {/* <Route path="/" element={<LandingPage />} />
         <Route path="/signin" element={<Signin />} />
-        <Route path="/signup" element={<h1>Signup soon</h1>} />
+        <Route path="/signup" element={<h1>Signup soon</h1>} /> */}
         {/* Add more routes as needed */}
       </Routes>
     </BrowserRouter>
