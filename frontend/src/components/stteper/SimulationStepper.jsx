@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import Cat1 from './cat1';
 import Cat2 from './cat2';
 import Cat3 from './cat3';
@@ -35,26 +35,30 @@ const SimulationStepper = () => {
   const [allAnswers, setAllAnswers] = useState({});
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showHelpDropdown, setShowHelpDropdown] = useState(false);
+  const currentCategoryRef = useRef(0);
 
   // Update progress for a specific category
-  const updateProgress = (categoryIndex, newProgress, answers) => {
-    const newProgressArray = [...progress];
-    newProgressArray[categoryIndex] = newProgress;
-    setProgress(newProgressArray);
+  const updateProgress = useCallback((categoryIndex, newProgress, answers) => {
+    setProgress(prev => {
+      const newProgressArray = [...prev];
+      newProgressArray[categoryIndex] = newProgress;
+      return newProgressArray;
+    });
     
     // Store answers
     setAllAnswers(prev => ({
       ...prev,
       [categoryIndex]: answers
     }));
-  };
+  }, []);
 
   // Remove old auto-advance effect
   // const isCurrentComplete = progress[current] >= 100;
   // useEffect(() => { ... });
 
-  const handleNext = () => {
-    if (current === categories.length - 1) {
+  const handleNext = useCallback(() => {
+    if (currentCategoryRef.current === categories.length - 1) {
       setShowConfirmation(true);
     } else {
       setIsTransitioning(true);
@@ -63,7 +67,7 @@ const SimulationStepper = () => {
         setIsTransitioning(false);
       }, 300);
     }
-  };
+  }, []);
 
   const handlePrevious = () => {
     setIsTransitioning(true);
@@ -75,6 +79,34 @@ const SimulationStepper = () => {
 
   const handleBackToStepper = () => {
     setShowConfirmation(false);
+  };
+
+  const toggleHelpDropdown = () => {
+    setShowHelpDropdown(!showHelpDropdown);
+  };
+
+  // Update the ref when current changes
+  React.useEffect(() => {
+    currentCategoryRef.current = current;
+  }, [current]);
+
+  // Memoize the updateProgress callback for the current category
+  const updateProgressForCurrentCategory = useCallback((newProgress, answers) => {
+    updateProgress(currentCategoryRef.current, newProgress, answers);
+  }, [updateProgress]);
+
+  // Pass onCategoryComplete to each category
+  const renderCategory = () => {
+    if (!categories[current]) return null;
+    const CategoryComponent = categories[current].component.type;
+    
+    return (
+      <CategoryComponent
+        progress={progress[current]}
+        updateProgress={updateProgressForCurrentCategory}
+        onCategoryComplete={handleNext}
+      />
+    );
   };
 
   // Format answer for display
@@ -274,30 +306,17 @@ const SimulationStepper = () => {
     return questionMaps[categoryIndex]?.[questionId] || questionId;
   };
 
-  // Pass onCategoryComplete to each category
-  const renderCategory = () => {
-    if (!categories[current]) return null;
-    const CategoryComponent = categories[current].component.type;
-    return (
-      <CategoryComponent
-        progress={progress[current]}
-        updateProgress={(newProgress, answers) => updateProgress(current, newProgress, answers)}
-        onCategoryComplete={handleNext}
-      />
-    );
-  };
-
   if (showConfirmation) {
     return (
       <div className="min-h-screen" style={{ backgroundColor: '#0F0F19' }}>
         {/* Header */}
-        <div className="shadow-sm border-b" style={{ backgroundColor: '#0F0F19', borderColor: '#89559F' }}>
+        {/* <div className="shadow-sm border-b" style={{ backgroundColor: '#0F0F19', borderColor: '#89559F' }}>
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center text-white cursor-pointer hover:text-gray-300 transition-colors" onClick={handleBackToStepper}>
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="font-medium">Retour</span>
+              <a href="/"><span className="font-medium">Retour</span></a>
             </div>
             <div className="flex items-center">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#3CD4AB' }}>
@@ -307,7 +326,7 @@ const SimulationStepper = () => {
             </div>
             <div className="w-20"></div>
           </div>
-        </div>
+        </div> */}
 
         {/* Confirmation Content */}
         <div className="max-w-4xl mx-auto px-4 py-8">
@@ -372,73 +391,53 @@ const SimulationStepper = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#0F0F19' }}>
-      {/* Header */}
-      <div className="shadow-sm border-b" style={{ backgroundColor: '#0F0F19', borderColor: '#89559F' }}>
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center text-white cursor-pointer hover:text-gray-300 transition-colors">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            <span className="font-medium">Retour</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#3CD4AB' }}>
-              <span className="text-white font-bold text-lg">T</span>
-            </div>
-            <span className="text-xl font-bold text-white ml-2">Tawfir</span>
-          </div>
-          <div className="flex items-center text-white cursor-pointer hover:text-gray-300 transition-colors">
-            <span className="font-medium mr-2">Aide</span>
-            <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: '#3CD4AB' }}>
-              <span className="text-white text-sm font-bold">?</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Stepper */}
-        <div className="flex items-center justify-between w-full overflow-x-auto pb-6 scrollbar-hide">
-          {categories.map((cat, idx) => (
-            <React.Fragment key={cat.label}>
-              <div className="flex flex-col items-center min-w-[80px]">
-                <button
-                  className="flex items-center justify-center w-12 h-12 rounded-full border-2 font-bold text-base transition-all duration-300 focus:outline-none transform hover:scale-105"
-                  style={{
-                    backgroundColor: idx === current ? '#3CD4AB' : 
-                                   idx < current ? '#3CD4AB' : '#0F0F19',
-                    borderColor: idx === current ? 'transparent' : 
-                                idx < current ? 'transparent' : '#89559F',
-                    color: '#FFF'
-                  }}
-                  onClick={() => setCurrent(idx)}
-                  disabled={idx > current}
-                  aria-current={idx === current ? 'step' : undefined}
-                >
-                  {idx < current ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    idx + 1
-                  )}
-                </button>
-                <div className="mt-2 flex flex-col items-center transition-colors" style={{ color: idx === current ? '#3CD4AB' : idx < current ? '#3CD4AB' : '#FFF' }}>
-                  {icons[idx]}
-                  <span className="text-xs font-medium mt-1 text-center whitespace-nowrap">
-                    {cat.label}
-                  </span>
+        <div className="flex items-center justify-center w-full pb-6">
+          <div className="flex items-center justify-between w-full max-w-3xl">
+            {categories.map((cat, idx) => (
+              <React.Fragment key={cat.label}>
+                <div className="flex flex-col items-center min-w-[80px]">
+                  <button
+                    className="flex items-center justify-center w-12 h-12 rounded-full border-2 font-bold text-base transition-all duration-300 focus:outline-none transform hover:scale-105"
+                    style={{
+                      backgroundColor: idx === current ? '#3CD4AB' : 
+                                     idx < current ? '#3CD4AB' : '#0F0F19',
+                      borderColor: idx === current ? 'transparent' : 
+                                  idx < current ? 'transparent' : '#89559F',
+                      color: '#FFF'
+                    }}
+                    onClick={() => setCurrent(idx)}
+                    disabled={idx > current}
+                    aria-current={idx === current ? 'step' : undefined}
+                  >
+                    {idx < current ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      idx + 1
+                    )}
+                  </button>
+                  <div className="mt-2 flex flex-col items-center transition-colors" style={{ color: idx === current ? '#3CD4AB' : idx < current ? '#3CD4AB' : '#FFF' }}>
+                    {icons[idx]}
+                    <span className="text-xs font-medium mt-1 text-center whitespace-nowrap">
+                      {cat.label}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              {/* Connector line except after last step */}
-              {idx < categories.length - 1 && (
-                <div className="flex-1 h-1 mx-2 relative">
-                  <div className="absolute top-1/2 left-0 w-full h-1 rounded-full transition-all duration-500" style={{ backgroundColor: idx < current ? '#3CD4AB' : '#89559F' }}></div>
-                </div>
-              )}
-            </React.Fragment>
-          ))}
+                {/* Connector line except after last step */}
+                {idx < categories.length - 1 && (
+                  <div className="flex-1 h-1 mx-2 relative">
+                    <div className="absolute top-1/2 left-0 w-full h-1 rounded-full transition-all duration-500" style={{ backgroundColor: idx < current ? '#3CD4AB' : '#89559F' }}></div>
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
 
         {/* Current Category Component */}

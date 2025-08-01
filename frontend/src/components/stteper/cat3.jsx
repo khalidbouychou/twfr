@@ -66,7 +66,7 @@ const Cat3 = ({ updateProgress, onCategoryComplete }) => {
     }));
   };
 
-  // Calculate progress based on answered questions
+  // Calculate progress based on answered questions (all required)
   useEffect(() => {
     const answeredCount = Object.values(answers).filter(answer => answer !== '').length;
     const progressPercentage = (answeredCount / questions.length) * 100;
@@ -89,7 +89,7 @@ const Cat3 = ({ updateProgress, onCategoryComplete }) => {
         <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Profil Financier</h2>
         <p className="text-gray-300 text-sm md:text-base">Évaluer précisément votre capacité d'investissement et situation financière actuelle</p>
         <div className="mt-4 text-xs text-gray-400">
-          Question {currentQuestion + 1} / {questions.length}
+          Question {currentQuestion + 1} / {questions.length} <span className="text-red-400">*</span>
         </div>
       </div>
 
@@ -121,7 +121,7 @@ const Cat3 = ({ updateProgress, onCategoryComplete }) => {
                 <span className="w-8 h-8 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3" style={{ backgroundColor: '#3CD4AB' }}>
                   {currentQuestion + 1}
                 </span>
-                {q.question}
+                {q.question} <span className="text-red-400 ml-1">*</span>
               </h3>
               
               <div className="space-y-3">
@@ -135,6 +135,7 @@ const Cat3 = ({ updateProgress, onCategoryComplete }) => {
                         checked={answers[q.id] === option.value}
                         onChange={(e) => handleAnswer(q.id, e.target.value)}
                         className="sr-only"
+                        required
                       />
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
                         answers[q.id] === option.value 
@@ -170,7 +171,7 @@ const Cat3 = ({ updateProgress, onCategoryComplete }) => {
           onClick={() => {
             if (currentQuestion < questions.length - 1) setCurrentQuestion(currentQuestion + 1);
           }}
-          disabled={currentQuestion === questions.length - 1}
+          disabled={currentQuestion === questions.length - 1 || !answers[questions[currentQuestion].id]}
         >
           Suivant
         </button>
@@ -185,6 +186,9 @@ const Cat3 = ({ updateProgress, onCategoryComplete }) => {
         </h4>
         <p className="text-gray-300 text-sm md:text-base">
           Analyser les ressources disponibles et la relation au risque financier pour des solutions d'investissement adaptées.
+        </p>
+        <p className="text-xs text-gray-400 mt-2">
+          <span className="text-red-400">*</span> Tous les champs sont obligatoires
         </p>
       </div>
     </div>

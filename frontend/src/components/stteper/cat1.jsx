@@ -99,7 +99,7 @@ const Cat1 = ({ updateProgress, onCategoryComplete }) => {
     return age.toString();
   };
 
-  // Calculate progress based on answered questions (non-mandatory)
+  // Calculate progress based on answered questions (all required)
   useEffect(() => {
     const answeredCount = Object.entries(answers).filter(([key, value]) => {
       // Don't count calculatedAge in progress calculation
@@ -146,7 +146,26 @@ const Cat1 = ({ updateProgress, onCategoryComplete }) => {
         <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Connaissance Client (KYC simplifié)</h2>
         <p className="text-gray-300 text-sm md:text-base">Comprendre votre profil personnel et contexte socio-économique</p>
         <div className="mt-4 text-xs text-gray-400">
-          Question {currentQuestion + 1} / {questions.length}
+          Question {currentQuestion + 1} / {questions.length} <span className="text-red-400">*</span>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-white">Progression: {Math.round((currentQuestion / questions.length) * 100)}%</span>
+          <span className="text-sm text-gray-300">
+            {currentQuestion + 1} / {questions.length} questions
+          </span>
+        </div>
+        <div className="w-full rounded-full h-2 overflow-hidden" style={{ backgroundColor: 'rgba(137, 85, 159, 0.3)' }}>
+          <div 
+            className="h-2 rounded-full transition-all duration-500 ease-out"
+            style={{ 
+              width: `${(currentQuestion / questions.length) * 100}%`,
+              background: 'linear-gradient(90deg, #3CD4AB, #89559F)'
+            }}
+          ></div>
         </div>
       </div>
 
@@ -159,7 +178,7 @@ const Cat1 = ({ updateProgress, onCategoryComplete }) => {
                 <span className="w-8 h-8 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3" style={{ backgroundColor: '#3CD4AB' }}>
                   {currentQuestion + 1}
                 </span>
-                {q.question}
+                {q.question} <span className="text-red-400 ml-1">*</span>
               </h3>
               {q.type === 'date' && (
                 <div className="space-y-3">
@@ -175,6 +194,7 @@ const Cat1 = ({ updateProgress, onCategoryComplete }) => {
                       focusRingColor: '#3CD4AB'
                     }}
                     max={new Date().toISOString().split('T')[0]}
+                    required
                   />
                   {answers.calculatedAge && (
                     <div className="p-3 rounded-lg border" style={{ backgroundColor: 'rgba(137, 85, 159, 0.1)', borderColor: '#89559F' }}>
@@ -197,6 +217,7 @@ const Cat1 = ({ updateProgress, onCategoryComplete }) => {
                           checked={answers[q.id] === option.value}
                           onChange={(e) => handleAnswer(q.id, e.target.value)}
                           className="sr-only"
+                          required
                         />
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
                           answers[q.id] === option.value 
@@ -244,7 +265,7 @@ const Cat1 = ({ updateProgress, onCategoryComplete }) => {
           onClick={() => {
             if (currentQuestion < questions.length - 1) setCurrentQuestion(currentQuestion + 1);
           }}
-          disabled={currentQuestion === questions.length - 1}
+          disabled={currentQuestion === questions.length - 1 || !answers[questions[currentQuestion].id]}
         >
           Suivant
         </button>
@@ -259,6 +280,9 @@ const Cat1 = ({ updateProgress, onCategoryComplete }) => {
         </h4>
         <p className="text-gray-300 text-sm md:text-base">
           Établir un profil socio-démographique précis pour personnaliser l'expérience et affiner les recommandations d'investissement.
+        </p>
+        <p className="text-xs text-gray-400 mt-2">
+          <span className="text-red-400">*</span> Tous les champs sont obligatoires
         </p>
       </div>
     </div>

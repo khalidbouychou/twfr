@@ -72,9 +72,9 @@ const App = () => {
           /> */}
         {/* </Route> */}
         {/* Public routes */}
-        {/* <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/signin" element={<Signin />} />
-        <Route path="/signup" element={<h1>Signup soon</h1>} /> */}
+        <Route path="/signup" element={<h1>Signup soon</h1>} />
         {/* Add more routes as needed */}
       </Routes>
     </BrowserRouter>
