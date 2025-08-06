@@ -15,7 +15,7 @@ const Hero = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 mt-8 items-center justify-center md:justify-start">
             <a
-              href="#start-simulation"
+              href="/simulation"
               className="px-8 py-4 bg-[#3CD4AB] text-white font-semibold rounded-full text-lg shadow-2xl  hover:bg-[#89559F] hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] flex items-center gap-2"
             >
               <svg
@@ -35,7 +35,7 @@ const Hero = () => {
               Démarrer la simulation
             </a>
             <a
-              href="#devenir-partenaire"
+              href="#contact"
               className="px-8 py-4 text-white font-semibold rounded-full text-lg shadow-2xl border border-white bg-[#0F0F19] hover:bg-[#f0f0f0] hover:text-[#89559f] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] flex items-center gap-2"
             >
               <svg

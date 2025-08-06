@@ -56,9 +56,11 @@ const HowItWorks = () => {
             </React.Fragment>
           ))}
         </div>
+        <a href="/simulation">
         <button className="mt-4 px-8 py-3 bg-[#3CD4AB] text-white text-lg font-bold rounded-full shadow-lg hover:bg-[#89559F] transition-colors duration-200">
           Démarrer votre simulation
         </button>
+        </a>
       </div>
     </section>
   );
