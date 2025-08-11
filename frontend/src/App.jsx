@@ -12,7 +12,7 @@ import Reviews from "./components/Feedbacks";
 import News from "./components/News";
 import Footer from "./components/Footer";
 import Contactus from "./components/Contactus";
-import Signin from "./components/SigninSignup/Signin";
+import { AuthProvider, Login as AuthLogin, Signup as AuthSignup, ProtectedRoute } from "./components/Auth";
 import Layout from "./components/Layout";
 // import Signin_Signup from "./components/SigninSignup/Signin_Signup";
 // import SimulationStepper from "./components/stteper/SimulationStepper";
@@ -70,28 +70,23 @@ const App = () => {
 
   return (
     <UserProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Protected routes */}
-          {/* <Route element={<Layout />}> */}
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Routes without protection */}
             <Route path="/dashboard" element={<UserDashboard />} />
-            {/* <Route path="/profile" element={<h1>Profile soon</h1>} /> */}
+            <Route path="/investment" element={<InvestmentDemo />} />
             <Route path="/simulation" element={<UserProfiling />} />
-            {/* <Route path="/profiling" element={<UserProfiling />} /> */}
-            {/* <Route
-              path="/password-reset"
-              element={<h1>Password Reset soon</h1>}
-            /> */}
-          {/* </Route> */}
-          {/* Public routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/signin" element={<Signin />} />
-          <Route path="/signup" element={<h1>Signup soon</h1>} />
-          <Route path="/investment" element={<InvestmentDemo />} />
-          <Route path="/simulation" element={<InvestmentSimulation />} />
-          {/* Add more routes as needed */}
-        </Routes>
-      </BrowserRouter>
+            
+            {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/signin" element={<AuthLogin />} />
+            <Route path="/signup" element={<AuthSignup />} />
+            
+            {/* Add more routes as needed */}
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </UserProvider>
   );
 };

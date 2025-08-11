@@ -127,52 +127,33 @@ const customStyles = `
   ];
   
   const InvestmentPortfolio = () => {
-  const [activeTimeframe, setActiveTimeframe] = useState('24h');
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeSection, setActiveSection] = useState('investments'); // 'investments', 'history', 'recommended'
   const [showBuySellPopup, setShowBuySellPopup] = useState(false);
   const [buySellMode, setBuySellMode] = useState('buy'); // 'buy' or 'sell'
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedInvestment, setSelectedInvestment] = useState(null);
-  const [investmentAmount, setInvestmentAmount] = useState('');
   const [sellAmount, setSellAmount] = useState('');
-  const [accountBalance, setAccountBalance] = useState(14590.50);
-  const [userInvestments, setUserInvestments] = useState([]);
-  const [investmentHistory, setInvestmentHistory] = useState([
-    {
-      id: 1,
-      productName: "OPCVM Actions",
-      amount: 2500,
-      date: "2024-07-15",
-      status: "completed",
-      type: "buy"
-    },
-    {
-      id: 2,
-      productName: "Compte sur Carnet",
-      amount: 1500,
-      date: "2024-07-10",
-      status: "completed",
-      type: "buy"
-    },
-    {
-      id: 3,
-      productName: "Capital Garanti",
-      amount: 3000,
-      date: "2024-07-05",
-      status: "completed",
-      type: "buy"
-    },
-    {
-      id: 4,
-      productName: "OPCVM Actions",
-      amount: 800,
-      date: "2024-07-20",
-      status: "completed",
-      type: "sell"
-    }
-  ]);
+  const [accountBalance, setAccountBalance] = useState(0); // Reset to zero balance
+  const [userInvestments, setUserInvestments] = useState([]); // Reset to empty array
+  const [investmentHistory, setInvestmentHistory] = useState([]); // Reset to empty array
   const [toasts, setToasts] = useState([]);
+  const [showBalanceModal, setShowBalanceModal] = useState(false);
+  const [balanceAmount, setBalanceAmount] = useState('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('paypal');
+  const [showInvestmentModal, setShowInvestmentModal] = useState(false);
+  const [selectedInvestmentProduct, setSelectedInvestmentProduct] = useState(null);
+  const [investmentAmount, setInvestmentAmount] = useState('');
+  const [showProfitModal, setShowProfitModal] = useState(false);
+  const [profitOperation, setProfitOperation] = useState('withdraw'); // 'withdraw' or 'add'
+
+
+  // Removed automatic investment growth simulation
+
+  // Force re-render when userInvestments changes to update profit display
+  React.useEffect(() => {
+    // This will trigger a re-render when userInvestments changes
+    console.log('User investments updated:', userInvestments);
+  }, [userInvestments]);
 
   // Toast notification system
   const showToast = (message, type = 'success') => {
@@ -190,7 +171,148 @@ const customStyles = `
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
-  // Enhanced fake performance data
+  // Handle balance addition
+  const handleAddBalance = () => {
+    const amount = parseFloat(balanceAmount);
+    if (!amount || amount <= 0) {
+      showToast('Veuillez entrer un montant valide', 'error');
+      return;
+    }
+
+    const paymentMethodNames = {
+      'paypal': 'PayPal',
+      'card': 'Visa/MasterCard',
+      'usdt': 'USDT',
+      'other': 'Autre méthode'
+    };
+    const paymentMethodName = paymentMethodNames[selectedPaymentMethod] || 'PayPal';
+
+    setAccountBalance(prev => prev + amount);
+    setToasts(prev => [{
+      id: Date.now(),
+      message: `Solde ajouté: ${formatCurrency(amount)} via ${paymentMethodName}`,
+      type: 'success'
+    }, ...prev.slice(0, 2)]);
+
+    setBalanceAmount('');
+    setSelectedPaymentMethod('paypal');
+    setShowBalanceModal(false);
+  };
+
+  // Calculate total profits from investments
+  const calculateTotalProfits = () => {
+    const total = userInvestments.reduce((total, investment) => {
+      const profit = (investment.currentValue || 0) - (investment.investedAmount || 0);
+      return total + Math.max(0, profit);
+    }, 0);
+    
+    // Debug: log the calculation
+    console.log('Profit calculation:', {
+      investments: userInvestments,
+      total: total
+    });
+    
+    return total;
+  };
+
+  // Handle profit operations
+  const handleProfitOperation = () => {
+    const totalProfits = calculateTotalProfits();
+    
+    if (totalProfits <= 0) {
+      showToast('Aucun profit disponible pour le moment', 'warning');
+      return;
+    }
+
+    if (profitOperation === 'withdraw') {
+      // Withdraw profits to external account
+      const paymentMethodNames = {
+        'paypal': 'PayPal',
+        'card': 'Visa/MasterCard',
+        'usdt': 'USDT',
+        'other': 'Autre méthode'
+      };
+      const paymentMethodName = paymentMethodNames[selectedPaymentMethod] || 'PayPal';
+
+      // Reset all investment profits
+      setUserInvestments(prev => prev.map(inv => ({
+        ...inv,
+        currentValue: inv.investedAmount,
+        dailyChange: 0,
+        dailyChangePercent: 0
+      })));
+
+      showToast(`Profits retirés: ${formatCurrency(totalProfits)} via ${paymentMethodName}`, 'success');
+    } else {
+      // Add profits to main balance
+      setAccountBalance(prev => prev + totalProfits);
+      
+      // Reset all investment profits
+      setUserInvestments(prev => prev.map(inv => ({
+        ...inv,
+        currentValue: inv.investedAmount,
+        dailyChange: 0,
+        dailyChangePercent: 0
+      })));
+
+      showToast(`Profits ajoutés au solde: ${formatCurrency(totalProfits)}`, 'success');
+    }
+
+    setShowProfitModal(false);
+    setSelectedPaymentMethod('paypal');
+  };
+
+  // Handle investment
+  const handleInvestment = () => {
+    const amount = parseFloat(investmentAmount);
+    
+    if (!amount || amount <= 0) {
+      showToast('Veuillez entrer un montant valide', 'error');
+      return;
+    }
+
+    if (amount > accountBalance) {
+      showToast(`Solde insuffisant. Votre solde est de ${formatCurrency(accountBalance)}`, 'error');
+      return;
+    }
+
+    if (amount < selectedInvestmentProduct.minInvestment) {
+      showToast(`Investissement minimum pour ce produit: ${formatCurrency(selectedInvestmentProduct.minInvestment)}`, 'error');
+      return;
+    }
+
+    // Add to user investments
+    const newInvestment = {
+      ...selectedInvestmentProduct,
+      id: Date.now(),
+      investedAmount: amount,
+      currentValue: amount, // Start with same value as invested amount (no profit initially)
+      dailyChange: 0,
+      dailyChangePercent: 0,
+      investmentDate: new Date().toISOString()
+    };
+
+    // Add to investment history
+    const newHistoryEntry = {
+      id: Date.now() + 1,
+      productName: selectedInvestmentProduct.name,
+      amount: amount,
+      date: new Date().toISOString().split('T')[0],
+      status: "completed",
+      type: "buy"
+    };
+
+    setUserInvestments(prev => [...prev, newInvestment]);
+    setInvestmentHistory(prev => [newHistoryEntry, ...prev]);
+    setAccountBalance(prev => Math.max(0, prev - amount));
+    setShowInvestmentModal(false);
+    setSelectedInvestmentProduct(null);
+    setInvestmentAmount('');
+
+    showToast(`Investissement de ${formatCurrency(amount)} dans ${selectedInvestmentProduct.name} effectué avec succès!`, 'success');
+  };
+
+  // Static performance data - no automatic changes
   const performanceData = {
     '24h': [
       { time: '00:00', value: 14500, benchmark: 14400 },
@@ -225,57 +347,40 @@ const customStyles = `
     ]
   };
 
-  // Investment timeline data
-  const investmentTimeline = [
-    { month: 'Jan', invested: 2000, current: 2100 },
-    { month: 'Feb', invested: 3500, current: 3700 },
-    { month: 'Mar', invested: 5000, current: 5300 },
-    { month: 'Apr', invested: 6500, current: 6900 },
-    { month: 'May', invested: 8000, current: 8500 },
-    { month: 'Jun', invested: 10000, current: 10800 },
-    { month: 'Jul', invested: 12000, current: 12900 },
-    { month: 'Aug', invested: 14590, current: 15200 }
-  ];
-
-  // Mock data for account balance and performance
+  // Mock data for account balance and performance - Static values
   const accountData = {
     balance: accountBalance,
-    dailyChange: -10.25,
-    dailyChangePercent: -0.67,
+    dailyChange: 0, // Static value - no automatic changes
+    dailyChangePercent: 0, // Static value - no automatic changes
     lastUpdate: '4 August at 16:07',
-    performanceHistory: performanceData[activeTimeframe] || performanceData['24h']
+    performanceHistory: performanceData['24h']
   };
 
-  // Transform Tawfir products into investment format
+  // Transform Tawfir products into investment format - Static values
   const transformProductsToInvestments = () => {
     return tawfirProducts.map((product, index) => {
-      const currentValue = Math.abs(Math.random() * 5000 + 1000);
-      const dailyChange = Math.abs((Math.random() - 0.5) * 200);
-      const dailyChangePercent = Math.abs((Math.random() - 0.5) * 10);
       const minInvestment = 50; // Fixed minimum investment of 50 euros
-      const expectedReturn = Math.floor(Math.random() * 15) + 5;
-      const marketPrice = Math.abs(Math.random() * 100 + 50); // Fake market price
-      const priceChange = Math.abs((Math.random() - 0.5) * 10);
-      const priceChangePercent = Math.abs((Math.random() - 0.5) * 5);
+      const expectedReturn = 8; // Static expected return
+      const marketPrice = 75; // Static market price
       
       return {
         id: index + 1,
         name: product.nom_produit,
         symbol: product.nom_produit.split(' ').slice(0, 2).join(''),
         icon: getProductIcon(product.nom_produit),
-        currentValue: isNaN(currentValue) ? 1000 : currentValue,
-        dailyChange: isNaN(dailyChange) ? 0 : dailyChange,
-        dailyChangePercent: isNaN(dailyChangePercent) ? 0 : dailyChangePercent,
+        currentValue: 1000, // Static value
+        dailyChange: 0, // Static value
+        dailyChangePercent: 0, // Static value
         category: getProductCategory(product.nom_produit),
         risk: getValidRiskValue(product.risque),
         duration: product.duree_recommandee,
         envelope: product.enveloppe_gestion,
         avatar: product.avatar,
         minInvestment: minInvestment,
-        expectedReturn: isNaN(expectedReturn) ? 5 : expectedReturn,
-        marketPrice: isNaN(marketPrice) ? 75 : marketPrice,
-        priceChange: isNaN(priceChange) ? 0 : priceChange,
-        priceChangePercent: isNaN(priceChangePercent) ? 0 : priceChangePercent
+        expectedReturn: expectedReturn,
+        marketPrice: marketPrice,
+        priceChange: 0, // Static value
+        priceChangePercent: 0 // Static value
       };
     });
   };
@@ -340,20 +445,18 @@ const customStyles = `
   };
 
   const getFilteredInvestments = () => {
-    if (selectedCategory === 'all') {
-      return getAllInvestments();
-    }
-    return investments[selectedCategory] || [];
+    return getAllInvestments();
   };
 
   const formatCurrency = (amount) => {
     if (isNaN(amount) || amount === null || amount === undefined) {
-      return '€0,00';
+      return '0 Dhs';
     }
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'EUR'
-    }).format(amount);
+      currency: 'MAD',
+      minimumFractionDigits: 0
+    }).format(amount).replace('MAD', 'Dhs');
   };
 
   const formatPercentage = (percentage) => {
@@ -536,19 +639,32 @@ const customStyles = `
         </div>
 
         {/* Header */}
-        <div className="sticky top-0 z-50 bg-bg-dark/95 backdrop-blur-sm border-b border-gray-800">
+        <div className=" top-0 z-50 bg-bg-dark/95 backdrop-blur-sm border-b border-gray-800">
           <div className="flex items-center justify-between px-4 py-3">
             <div>
+              <div className='flex items-center space-x-10'>
+              <img src="../../../public/logo.svg" alt="Portfolio" className="w-10 h-10" />
               <h1 className="text-xl font-bold">Portefeuille</h1>
-              <p className="text-sm text-gray-400">Gestion détaillée de votre portefeuille</p>
+              </div>
+              {/* <p className="text-sm text-gray-400">Gestion détaillée de votre portefeuille</p> */}
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-xs text-gray-400">Solde disponible</p>
                 <p className="text-lg font-bold text-accent">{formatCurrency(accountBalance)}</p>
               </div>
+              {calculateTotalProfits() > 0 && (
+                <div className="text-right">
+                  <p className="text-xs text-gray-400">Profits disponibles</p>
+                  <p className="text-lg font-bold text-green-400">{formatCurrency(calculateTotalProfits())}</p>
+                </div>
+              )}
               <button 
-                onClick={() => setShowBuySellPopup(true)}
+                onClick={() => {
+                  setShowBalanceModal(true);
+                  setBalanceAmount('');
+                  setSelectedPaymentMethod('paypal');
+                }}
                 className="bg-accent text-bg-dark px-4 py-2 rounded-lg font-medium hover:bg-accent/90 transition-colors"
               >
                 + Ajouter
@@ -565,20 +681,13 @@ const customStyles = `
               <h2 className="text-2xl font-bold mb-2">
                 {formatCurrency(accountData.balance)}
               </h2>
-              <div className={`flex items-center justify-center space-x-2 mb-2 ${
-                accountData.dailyChange >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {accountData.dailyChange >= 0 ? (
-                  <IoTrendingUp className="w-4 h-4" />
-                ) : (
-                  <IoTrendingDown className="w-4 h-4" />
-                )}
+              <div className="flex items-center justify-center space-x-2 mb-2 text-gray-400">
                 <span className="text-sm">
-                  {formatCurrency(Math.abs(accountData.dailyChange))} • {formatPercentage(accountData.dailyChangePercent)}
+                  Aucune variation aujourd'hui
                 </span>
               </div>
               <p className="text-gray-400 text-xs">
-                Last update: {accountData.lastUpdate}
+                Dernière mise à jour: {accountData.lastUpdate}
               </p>
             </div>
           </div>
@@ -637,49 +746,52 @@ const customStyles = `
               </div>
             </div>
 
-            {/* Actions Rapides & Performance */}
-            <div className="space-y-4">
-              {/* Actions Rapides */}
-              <div className="bg-gray-900 rounded-2xl p-6 shadow-xl">
-                <h3 className="text-lg font-semibold mb-4">Actions Rapides</h3>
-                <div className="space-y-3">
-                  <button 
-                    onClick={() => {
-                      setBuySellMode('buy');
-                      setShowBuySellPopup(true);
-                    }}
-                    className="w-full bg-accent text-bg-dark py-3 rounded-lg font-medium hover:bg-accent/90 transition-colors"
-                  >
-                    Acheter des Actions
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setBuySellMode('sell');
-                      setShowBuySellPopup(true);
-                    }}
-                    className="w-full bg-gray-700 text-white py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors"
-                  >
-                    Vendre des Positions
-                  </button>
-                  <button className="w-full bg-gray-700 text-white py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors">
-                    Rééquilibrer
-                  </button>
-                </div>
-              </div>
-
-              {/* Performance */}
-              <div className="bg-gray-900 rounded-2xl p-6 shadow-xl">
-                <h3 className="text-lg font-semibold mb-4">Performance</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Rendement Total</span>
-                    <span className="text-green-400 font-semibold">+5.2%</span>
+            {/* Actions Rapides */}
+            <div className="bg-gray-900 rounded-2xl p-6 shadow-xl">
+              <h3 className="text-lg font-semibold mb-4">Actions Rapides</h3>
+              <div className="space-y-3">
+                <button 
+                  onClick={() => {
+                    setShowInvestmentModal(true);
+                  }}
+                  className="w-full bg-accent text-bg-dark py-3 rounded-lg font-medium hover:bg-accent/90 transition-colors"
+                >
+                  Investir
+                </button>
+                <button 
+                  onClick={() => {
+                    setBuySellMode('sell');
+                    setShowBuySellPopup(true);
+                  }}
+                  className="w-full bg-gray-700 text-white py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors"
+                >
+                  Vendre des Positions
+                </button>
+                {calculateTotalProfits() > 0 && (
+                  <div className="space-y-2">
+                    <button 
+                      onClick={() => {
+                        setProfitOperation('withdraw');
+                        setShowProfitModal(true);
+                      }}
+                      className="w-full bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors"
+                    >
+                      Retirer les Profits
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setProfitOperation('add');
+                        setShowProfitModal(true);
+                      }}
+                      className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    >
+                      Ajouter au Solde
+                    </button>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Gain/Perte</span>
-                    <span className="text-green-400 font-semibold">+520 Dhs</span>
-                  </div>
-                </div>
+                )}
+                <button className="w-full bg-gray-700 text-white py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors">
+                  Rééquilibrer
+                </button>
               </div>
             </div>
           </div>
@@ -687,7 +799,7 @@ const customStyles = `
           {/* Section Tabs */}
           <div className="flex space-x-2 overflow-x-auto pb-2 custom-scrollbar">
             {[
-              { key: 'holdings', label: 'Détail des Holdings', icon: '📊', count: getFilteredInvestments().length },
+              { key: 'holdings', label: 'Détail des Investissements', icon: '📊', count: getFilteredInvestments().length },
               { key: 'history', label: 'Historique', icon: '📈', count: investmentHistory.length },
               { key: 'opportunities', label: 'Opportunités', icon: '💡', count: recommendedProducts.length }
             ].map((section) => (
@@ -715,7 +827,7 @@ const customStyles = `
             {activeSection === 'holdings' && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Détail des Holdings</h3>
+                  <h3 className="text-lg font-semibold">Détail des Investissements</h3>
                   <IoInformationCircle className="w-5 h-5 text-gray-400" />
                 </div>
 
@@ -725,7 +837,7 @@ const customStyles = `
                     <table className="w-full text-sm">
                       <thead className="bg-gray-800">
                         <tr>
-                          <th className="text-left p-3 font-medium text-gray-300">ASSET</th>
+                          <th className="text-left p-3 font-medium text-gray-300">ACTIF</th>
                           <th className="text-center p-3 font-medium text-gray-300">QUANTITÉ</th>
                           <th className="text-center p-3 font-medium text-gray-300">PRIX D'ACHAT</th>
                           <th className="text-center p-3 font-medium text-gray-300">PRIX ACTUEL</th>
@@ -765,10 +877,10 @@ const customStyles = `
                           <div>
                             <h4 className="font-medium text-white">{investment.name}</h4>
                             <p className="text-gray-400 text-sm">{investment.symbol}</p>
-                            <p className="text-gray-500 text-xs">Risk: {investment.risk || 1} • {investment.duration || 'N/A'}</p>
+                            <p className="text-gray-500 text-xs">Risque: {investment.risk || 1} • {investment.duration || 'N/A'}</p>
                             {/* Market Price Data Label */}
                             <div className="flex items-center space-x-2 mt-1">
-                              <span className="text-xs text-gray-400">Market:</span>
+                              <span className="text-xs text-gray-400">Marché:</span>
                               <span className="text-xs font-medium text-white">{formatCurrency(investment.marketPrice || 75)}</span>
                               <div className={`flex items-center space-x-1 text-xs ${
                                 (investment.priceChangePercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'
@@ -810,18 +922,17 @@ const customStyles = `
                             }}
                             className="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
                           >
-                            Sell
+                            Vendre
                           </button>
                           <button 
                             onClick={() => {
-                              setBuySellMode('buy');
-                              setSelectedProduct(investment);
+                              setShowInvestmentModal(true);
+                              setSelectedInvestmentProduct(investment);
                               setInvestmentAmount('');
-                              setShowBuySellPopup(true);
                             }}
                             className="flex-1 bg-accent text-bg-dark py-2 rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors"
                           >
-                            Buy More
+                            Investir Plus
                           </button>
                         </div>
                       )}
@@ -829,8 +940,8 @@ const customStyles = `
                   ))}
                   {getFilteredInvestments().length === 0 && (
                     <div className="text-center py-8">
-                      <p className="text-gray-400">No investments found</p>
-                      <p className="text-gray-500 text-sm mt-1">Start investing to see your portfolio here</p>
+                      <p className="text-gray-400">Aucun investissement trouvé</p>
+                      <p className="text-gray-500 text-sm mt-1">Commencez à investir pour voir votre portefeuille ici</p>
                     </div>
                   )}
                 </div>
@@ -857,7 +968,7 @@ const customStyles = `
                           </div>
                           <div>
                             <h4 className="font-medium text-white">{history.productName}</h4>
-                            <p className="text-gray-400 text-sm capitalize">{history.type} • {history.status}</p>
+                            <p className="text-gray-400 text-sm capitalize">{history.type === 'buy' ? 'Achat' : 'Vente'} • {history.status}</p>
                             <p className="text-gray-500 text-xs">{history.date}</p>
                           </div>
                         </div>
@@ -868,7 +979,7 @@ const customStyles = `
                             {history.type === 'buy' ? '-' : '+'}{formatCurrency(history.amount)}
                           </p>
                           <p className="text-gray-400 text-sm capitalize">
-                            {history.type === 'buy' ? 'Investment' : 'Sale'}
+                            {history.type === 'buy' ? 'Investissement' : 'Vente'}
                           </p>
                         </div>
                       </div>
@@ -876,8 +987,8 @@ const customStyles = `
                   ))}
                   {investmentHistory.length === 0 && (
                     <div className="text-center py-8">
-                      <p className="text-gray-400">No transaction history</p>
-                      <p className="text-gray-500 text-sm mt-1">Your investment transactions will appear here</p>
+                      <p className="text-gray-400">Aucun historique de transaction</p>
+                      <p className="text-gray-500 text-sm mt-1">Vos transactions d'investissement apparaîtront ici</p>
                     </div>
                   )}
                 </div>
@@ -905,15 +1016,15 @@ const customStyles = `
                             <p className="text-gray-400 text-sm">{product.description}</p>
                             <div className="flex items-center space-x-4 mt-2">
                               <span className="text-green-400 text-sm font-medium">
-                                {product.expectedReturn || 5}% expected return
+                                {product.expectedReturn || 5}% rendement attendu
                               </span>
                               <span className="text-gray-400 text-sm">
-                                Risk: {product.risk || 1}
+                                Risque: {product.risk || 1}
                               </span>
                             </div>
                             {/* Market Price Data Label for Recommended Products */}
                             <div className="flex items-center space-x-2 mt-1">
-                              <span className="text-xs text-gray-400">Market:</span>
+                              <span className="text-xs text-gray-400">Marché:</span>
                               <span className="text-xs font-medium text-white">{formatCurrency(product.marketPrice || 75)}</span>
                               <div className={`flex items-center space-x-1 text-xs ${
                                 (product.priceChangePercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'
@@ -930,22 +1041,21 @@ const customStyles = `
                         </div>
                         <button 
                           onClick={() => {
-                            setBuySellMode('buy');
-                            setSelectedProduct(product);
+                            setShowInvestmentModal(true);
+                            setSelectedInvestmentProduct(product);
                             setInvestmentAmount('');
-                            setShowBuySellPopup(true);
                           }}
                           className="bg-accent text-bg-dark px-4 py-2 rounded-lg font-medium hover:bg-accent/90 transition-colors"
                         >
-                          Invest
+                          Investir
                         </button>
                       </div>
                     </div>
                   ))}
                   {recommendedProducts.length === 0 && (
                     <div className="text-center py-8">
-                      <p className="text-gray-400">No recommendations available</p>
-                      <p className="text-gray-500 text-sm mt-1">Check back later for personalized recommendations</p>
+                      <p className="text-gray-400">Aucune recommandation disponible</p>
+                      <p className="text-gray-500 text-sm mt-1">Revenez plus tard pour des recommandations personnalisées</p>
                     </div>
                   )}
                 </div>
@@ -954,12 +1064,251 @@ const customStyles = `
           </div>
         </div>
 
+        {/* Balance Modal */}
+        {showBalanceModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">Ajouter du Solde</h3>
+                <button 
+                  onClick={() => setShowBalanceModal(false)}
+                  className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <IoClose className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Montant (Dhs)
+                  </label>
+                  <input
+                    type="number"
+                    value={balanceAmount}
+                    onChange={(e) => setBalanceAmount(e.target.value)}
+                    placeholder="Entrez le montant"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-accent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Méthode de Paiement
+                  </label>
+                  <select
+                    value={selectedPaymentMethod}
+                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
+                  >
+                    <option value="paypal">PayPal</option>
+                    <option value="card">Visa/MasterCard</option>
+                    <option value="usdt">USDT</option>
+                    <option value="other">Autre méthode</option>
+                  </select>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowBalanceModal(false)}
+                    className="flex-1 bg-gray-800 text-white py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleAddBalance}
+                    className="flex-1 bg-accent text-bg-dark py-3 rounded-lg font-medium hover:bg-accent/90 transition-colors"
+                  >
+                    Confirmer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Investment Modal */}
+        {showInvestmentModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">Investir</h3>
+                <button 
+                  onClick={() => setShowInvestmentModal(false)}
+                  className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <IoClose className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {selectedInvestmentProduct && (
+                  <div className="bg-gray-800 rounded-xl p-4">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-accent rounded-xl flex items-center justify-center text-xl">
+                        {selectedInvestmentProduct.icon}
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-white">{selectedInvestmentProduct.name}</h4>
+                        <p className="text-gray-400 text-sm">{selectedInvestmentProduct.description}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-400">Niveau de Risque</p>
+                        <p className={`font-medium ${getRiskColor(selectedInvestmentProduct.risk)}`}>
+                          {getRiskLabel(selectedInvestmentProduct.risk)} ({selectedInvestmentProduct.risk}/7)
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Rendement Attendu</p>
+                        <p className="text-green-400 font-medium">{selectedInvestmentProduct.expectedReturn}%</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Investissement Min.</p>
+                        <p className="text-white font-medium">{formatCurrency(selectedInvestmentProduct.minInvestment)}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Durée</p>
+                        <p className="text-white font-medium">{selectedInvestmentProduct.duration}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Montant d'Investissement
+                  </label>
+                  <input
+                    type="number"
+                    value={investmentAmount}
+                    onChange={(e) => setInvestmentAmount(e.target.value)}
+                    placeholder={`Min: ${formatCurrency(selectedInvestmentProduct?.minInvestment || 50)}`}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-accent"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Disponible: {formatCurrency(accountBalance)}
+                  </p>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowInvestmentModal(false)}
+                    className="flex-1 bg-gray-800 text-white py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleInvestment}
+                    className="flex-1 bg-accent text-bg-dark py-3 rounded-lg font-medium hover:bg-accent/90 transition-colors"
+                  >
+                    Confirmer l'Investissement
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Profit Management Modal */}
+        {showProfitModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">
+                  {profitOperation === 'withdraw' ? 'Retirer les Profits' : 'Ajouter au Solde'}
+                </h3>
+                <button 
+                  onClick={() => setShowProfitModal(false)}
+                  className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <IoClose className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="bg-gray-800 rounded-xl p-4">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-400 mb-2">
+                      {profitOperation === 'withdraw' ? 'Montant à Retirer' : 'Montant à Ajouter au Solde'}
+                    </p>
+                    <p className="text-3xl font-bold text-green-400">{formatCurrency(calculateTotalProfits())}</p>
+                    <p className="text-xs text-gray-400 mt-1">Profits totaux disponibles</p>
+                  </div>
+                </div>
+
+                {profitOperation === 'withdraw' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Méthode de Retrait
+                    </label>
+                    <select
+                      value={selectedPaymentMethod}
+                      onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
+                    >
+                      <option value="paypal">PayPal</option>
+                      <option value="card">Visa/MasterCard</option>
+                      <option value="usdt">USDT</option>
+                      <option value="other">Autre méthode</option>
+                    </select>
+                  </div>
+                )}
+
+                {profitOperation === 'add' && (
+                  <div className="bg-green-900/20 border border-green-500/20 rounded-lg p-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm">+</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-green-300 font-medium">Ajout au Solde Principal</p>
+                        <p className="text-xs text-green-400">Votre solde passera de {formatCurrency(accountBalance)} à {formatCurrency(accountBalance + calculateTotalProfits())}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-blue-900/20 border border-blue-500/20 rounded-lg p-4">
+                  <p className="text-sm text-blue-300">
+                    {profitOperation === 'withdraw' 
+                      ? `Les profits de ${formatCurrency(calculateTotalProfits())} seront retirés vers votre compte externe et les investissements seront réinitialisés à leur valeur d'origine.`
+                      : `Les profits de ${formatCurrency(calculateTotalProfits())} seront ajoutés à votre solde principal et les investissements seront réinitialisés à leur valeur d'origine.`
+                    }
+                  </p>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowProfitModal(false)}
+                    className="flex-1 bg-gray-800 text-white py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleProfitOperation}
+                    className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
+                      profitOperation === 'withdraw' 
+                        ? 'bg-red-600 text-white hover:bg-red-700' 
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {profitOperation === 'withdraw' ? `Retirer ${formatCurrency(calculateTotalProfits())}` : `Ajouter ${formatCurrency(calculateTotalProfits())}`}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Buy / Sell Popup */}
         {showBuySellPopup && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-2xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-white">Buy / Sell</h3>
+                <h3 className="text-xl font-semibold text-white">Acheter / Vendre</h3>
                 <button 
                   onClick={() => setShowBuySellPopup(false)}
                   className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
@@ -979,7 +1328,7 @@ const customStyles = `
                         : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                     }`}
                   >
-                    Buy
+                    Acheter
                   </button>
                   <button
                     onClick={() => setBuySellMode('sell')}
@@ -989,7 +1338,7 @@ const customStyles = `
                         : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                     }`}
                   >
-                    Sell
+                    Vendre
                   </button>
                 </div>
 
@@ -997,7 +1346,7 @@ const customStyles = `
                 {buySellMode === 'buy' && (
                   <div className="space-y-4">
                     <div className="bg-gray-800 rounded-xl p-4">
-                      <h4 className="font-medium text-white mb-3">Available Products</h4>
+                      <h4 className="font-medium text-white mb-3">Produits Disponibles</h4>
                       <div className={`space-y-2 max-h-32 overflow-y-auto ${recommendedProducts.slice(0, 3).length > 3 ? 'custom-scrollbar' : ''}`}>
                         {recommendedProducts.slice(0, 3).map((product) => (
                           <div key={product.id} className="flex items-center justify-between p-2 bg-gray-700 rounded-lg">
@@ -1015,7 +1364,7 @@ const customStyles = `
                               }}
                               className="bg-accent text-bg-dark px-3 py-1 rounded text-xs font-medium hover:bg-accent/90"
                             >
-                              Select
+                              Sélectionner
                             </button>
                           </div>
                         ))}
@@ -1037,21 +1386,21 @@ const customStyles = `
                           
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                              <p className="text-gray-400">Risk Level</p>
+                              <p className="text-gray-400">Niveau de Risque</p>
                               <p className={`font-medium ${getRiskColor(selectedProduct.risk)}`}>
                                 {getRiskLabel(selectedProduct.risk)} ({selectedProduct.risk}/7)
                               </p>
                             </div>
                             <div>
-                              <p className="text-gray-400">Expected Return</p>
+                              <p className="text-gray-400">Rendement Attendu</p>
                               <p className="text-green-400 font-medium">{selectedProduct.expectedReturn}%</p>
                             </div>
                             <div>
-                              <p className="text-gray-400">Min Investment</p>
+                              <p className="text-gray-400">Investissement Min.</p>
                               <p className="text-white font-medium">{formatCurrency(selectedProduct.minInvestment)}</p>
                             </div>
                             <div>
-                              <p className="text-gray-400">Duration</p>
+                              <p className="text-gray-400">Durée</p>
                               <p className="text-white font-medium">{selectedProduct.duration}</p>
                             </div>
                           </div>
@@ -1059,7 +1408,7 @@ const customStyles = `
                         
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-2">
-                            Investment Amount
+                            Montant d'Investissement
                           </label>
                           <input
                             type="number"
@@ -1069,7 +1418,7 @@ const customStyles = `
                             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-accent"
                           />
                           <p className="text-xs text-gray-400 mt-1">
-                            Available: {formatCurrency(accountBalance)}
+                            Disponible: {formatCurrency(accountBalance)}
                           </p>
                         </div>
                         
@@ -1078,13 +1427,13 @@ const customStyles = `
                             onClick={() => setShowBuySellPopup(false)}
                             className="flex-1 bg-gray-800 text-white py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
                           >
-                            Cancel
+                            Annuler
                           </button>
                           <button
                             onClick={handleInvest}
                             className="flex-1 bg-accent text-bg-dark py-3 rounded-lg font-medium hover:bg-accent/90 transition-colors"
                           >
-                            Confirm Investment
+                            Confirmer l'Investissement
                           </button>
                         </div>
                       </div>
@@ -1096,7 +1445,7 @@ const customStyles = `
                 {buySellMode === 'sell' && (
                   <div className="space-y-4">
                     <div className="bg-gray-800 rounded-xl p-4">
-                      <h4 className="font-medium text-white mb-3">Your Investments</h4>
+                      <h4 className="font-medium text-white mb-3">Vos Investissements</h4>
                       <div className={`space-y-2 max-h-32 overflow-y-auto ${userInvestments.length > 3 ? 'custom-scrollbar' : ''}`}>
                         {userInvestments.map((investment) => (
                           <div key={investment.id} className="flex items-center justify-between p-2 bg-gray-700 rounded-lg">
@@ -1104,7 +1453,7 @@ const customStyles = `
                               <span className="text-lg">{investment.icon}</span>
                               <div>
                                 <p className="text-white text-sm font-medium">{investment.name}</p>
-                                <p className="text-gray-400 text-xs">Value: {formatCurrency(investment.currentValue)}</p>
+                                <p className="text-gray-400 text-xs">Valeur: {formatCurrency(investment.currentValue)}</p>
                               </div>
                             </div>
                             <button
@@ -1114,12 +1463,12 @@ const customStyles = `
                               }}
                               className="bg-red-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-red-700"
                             >
-                              Select
+                              Sélectionner
                             </button>
                           </div>
                         ))}
                         {userInvestments.length === 0 && (
-                          <p className="text-gray-400 text-sm text-center py-4">No investments to sell</p>
+                          <p className="text-gray-400 text-sm text-center py-4">Aucun investissement à vendre</p>
                         )}
                       </div>
                     </div>
@@ -1133,21 +1482,21 @@ const customStyles = `
                             </div>
                             <div>
                               <h4 className="font-medium text-white">{selectedInvestment.name}</h4>
-                              <p className="text-gray-400 text-sm">Current Value: {formatCurrency(selectedInvestment.currentValue)}</p>
-                              <p className="text-gray-400 text-sm">Invested: {formatCurrency(selectedInvestment.investedAmount)}</p>
+                              <p className="text-gray-400 text-sm">Valeur Actuelle: {formatCurrency(selectedInvestment.currentValue)}</p>
+                              <p className="text-gray-400 text-sm">Investi: {formatCurrency(selectedInvestment.investedAmount)}</p>
                             </div>
                           </div>
                         </div>
                         
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-2">
-                            Sell Amount
+                            Montant à Vendre
                           </label>
                           <input
                             type="number"
                             value={sellAmount}
                             onChange={(e) => setSellAmount(e.target.value)}
-                            placeholder="Enter amount to sell"
+                            placeholder="Entrez le montant à vendre"
                             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
                           />
                           <p className="text-xs text-gray-400 mt-1">
@@ -1160,13 +1509,13 @@ const customStyles = `
                             onClick={() => setShowBuySellPopup(false)}
                             className="flex-1 bg-gray-800 text-white py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
                           >
-                            Cancel
+                            Annuler
                           </button>
                           <button
                             onClick={handleSell}
                             className="flex-1 bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors"
                           >
-                            Confirm Sale
+                            Confirmer la Vente
                           </button>
                         </div>
                       </div>

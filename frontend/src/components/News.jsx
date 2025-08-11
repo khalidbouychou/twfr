@@ -4,7 +4,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation, Autoplay } from 'swiper/modules';
 
-const NEWS_API_KEY = 'b453f54e6b5840e4a3604f0f8d121168'; // Replace with your NewsAPI key
+const FINNHUB_TOKEN = 'd1ofk41r01qjadrjqv70d1ofk41r01qjadrjqv7g';
 
 const News = () => {
   const [articles, setArticles] = useState([]);
@@ -12,20 +12,99 @@ const News = () => {
   const [brokenImages, setBrokenImages] = useState([]);
 
   useEffect(() => {
-    const fetchNews = async () => {
+    const loadNews = async () => {
       try {
-        const keywords = encodeURIComponent('finance OR investissement OR bourse OR économie OR argent OR actions OR marché');
-        const url = `https://newsapi.org/v2/everything?q=${keywords}&language=fr&sortBy=publishedAt&pageSize=20&apiKey=${NEWS_API_KEY}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        setArticles(data.articles || []);
-      } catch {
-        setArticles([]);
+        // Try Finnhub first
+        const newsUrl = `https://finnhub.io/api/v1/news?category=general&token=${FINNHUB_TOKEN}`;
+        const response = await fetch(newsUrl);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.length > 0) {
+            const formattedArticles = data.slice(0, 20).map(article => ({
+              title: article.headline,
+              description: article.summary,
+              url: article.url,
+              urlToImage: article.image || 'https://via.placeholder.com/300x200?text=Actualité',
+              publishedAt: new Date(article.datetime * 1000).toISOString(),
+              source: { name: article.source }
+            }));
+            setArticles(formattedArticles);
+            setLoading(false);
+            return;
+          }
+        }
+        
+        // Fallback to GNews
+        const gnewsUrl = `https://gnews.io/api/v4/search?q=finance&lang=fr&country=fr&max=20&apikey=YOUR_GNEWS_KEY`;
+        const gnewsResponse = await fetch(gnewsUrl);
+        
+        if (gnewsResponse.ok) {
+          const gnewsData = await gnewsResponse.json();
+          if (gnewsData && gnewsData.articles && gnewsData.articles.length > 0) {
+            const formattedArticles = gnewsData.articles.map(article => ({
+              title: article.title,
+              description: article.description,
+              url: article.url,
+              urlToImage: article.image || 'https://via.placeholder.com/300x200?text=Actualité',
+              publishedAt: article.publishedAt,
+              source: { name: article.source.name }
+            }));
+            setArticles(formattedArticles);
+            setLoading(false);
+            return;
+          }
+        }
+        
+        // Final fallback - create sample articles
+        const sampleArticles = [
+          {
+            title: "Marché financier en hausse",
+            description: "Les marchés financiers montrent des signes de reprise avec une augmentation des indices principaux.",
+            url: "#",
+            urlToImage: "https://via.placeholder.com/300x200?text=Finance",
+            publishedAt: new Date().toISOString(),
+            source: { name: "TawfirAI" }
+          },
+          {
+            title: "Nouvelles opportunités d'investissement",
+            description: "Découvrez les dernières tendances et opportunités dans le monde de l'investissement.",
+            url: "#",
+            urlToImage: "https://via.placeholder.com/300x200?text=Investissement",
+            publishedAt: new Date().toISOString(),
+            source: { name: "TawfirAI" }
+          },
+          {
+            title: "Économie mondiale en évolution",
+            description: "Analyse des changements économiques globaux et leur impact sur les marchés.",
+            url: "#",
+            urlToImage: "https://via.placeholder.com/300x200?text=Économie",
+            publishedAt: new Date().toISOString(),
+            source: { name: "TawfirAI" }
+          }
+        ];
+        setArticles(sampleArticles);
+        
+      } catch (error) {
+        console.error('Error loading news:', error);
+        // Set sample articles on error
+        const sampleArticles = [
+          {
+            title: "Actualités financières",
+            description: "Restez informé des dernières nouvelles du monde financier et des opportunités d'investissement.",
+            url: "#",
+            urlToImage: "https://via.placeholder.com/300x200?text=Actualités",
+            publishedAt: new Date().toISOString(),
+            source: { name: "TawfirAI" }
+          }
+        ];
+        setArticles(sampleArticles);
       } finally {
         setLoading(false);
       }
     };
-    fetchNews();
+
+    loadNews();
   }, []);
 
   // Only articles with a non-empty image URL and not in brokenImages

@@ -100,16 +100,7 @@ const Navbar = () => {
             href="#contact"
             onClick={() => setActiveMenu('contact')}
           >Contactez-nous</a>
-          <a
-            className={`md:p-2 px-2 py-1 rounded-full transition-colors duration-200 ${activeMenu === 'investment' ? 'text-[#3CD4AB] font-bold' : 'hover:text-[#3cd4abdb]'}`}
-            href="/investment"
-            onClick={() => setActiveMenu('investment')}
-          >Portfolio</a>
-          <a
-            className={`md:p-2 px-2 py-1 rounded-full transition-colors duration-200 ${activeMenu === 'simulation' ? 'text-[#3CD4AB] font-bold' : 'hover:text-[#3cd4abdb]'}`}
-            href="/simulation"
-            onClick={() => setActiveMenu('simulation')}
-          >Simulation</a>
+        
         </div>
 
         {/* Desktop Buttons */}
@@ -194,16 +185,7 @@ const Navbar = () => {
               className={`block py-2 px-4 text-lg rounded-full transition-colors duration-200 w-11/12 ${activeMenu === 'contact' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F] text-white'}`}
               onClick={() => { setActiveMenu('contact'); closeMenu(); }}
             >Contact</a>
-            <a
-              href="/investment"
-              className={`block py-2 px-4 text-lg rounded-full transition-colors duration-200 w-11/12 ${activeMenu === 'investment' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F] text-white'}`}
-              onClick={() => { setActiveMenu('investment'); closeMenu(); }}
-            >Portfolio</a>
-            <a
-              href="/simulation"
-              className={`block py-2 px-4 text-lg rounded-full transition-colors duration-200 w-11/12 ${activeMenu === 'simulation' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F] text-white'}`}
-              onClick={() => { setActiveMenu('simulation'); closeMenu(); }}
-            >Simulation</a>
+            
           </div>
           <div className="flex flex-col items-center space-y-4 pb-8">
             <a href="/simulation" className="w-11/12 text-center text-[#3CD4AB] px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white  border border-solid border-[##3CD4AB]">
