@@ -8,14 +8,22 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
     try {
-      await signup({ email, name });
-      navigate('/dashboard');
+      const result = await signup({ email, name });
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result.error || 'Erreur lors de la création du compte.');
+      }
+    } catch (err) {
+      setError('Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
@@ -45,8 +53,16 @@ const Signup = () => {
               onChange={(e) => setEmail(e.target.value)} 
               required 
               className="w-full bg-white/10 border border-[#89559F]/30 rounded-lg px-4 py-3 text-white focus:border-[#3CD4AB] outline-none" 
+              placeholder="votre@email.com"
             />
           </div>
+          
+          {error && (
+            <div className="text-red-400 text-sm text-center bg-red-400/10 border border-red-400/30 rounded-lg p-3">
+              {error}
+            </div>
+          )}
+          
           <button 
             type="submit" 
             disabled={loading} 
