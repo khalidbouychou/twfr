@@ -1,1 +1,1 @@
-export { default as InvestmentResults } from './InvestmentResults'; 
+export { default as Resultat } from './Resultat'; 

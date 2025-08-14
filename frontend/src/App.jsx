@@ -12,18 +12,10 @@ import Reviews from "./components/Feedbacks";
 import News from "./components/News";
 import Footer from "./components/Footer";
 import Contactus from "./components/Contactus";
-import { AuthProvider, Login as AuthLogin, Signup as AuthSignup } from "./components/Auth";
-import ProtectedRoute from "./components/Auth/ProtectedRoute";
-import Layout from "./components/Layout";
-import UserProfiling from "./components/UserProfiling";
-import UserProfilingDemo from "./components/UserProfilingDemo";
 import { FinancialProfilingStepper } from './components/Profiling';
 import { UserDashboard } from './components/Dashboard';
+import InvestmentPortfolio from './components/Invest/InvestmentPortfolio';
 import { UserProvider } from './components/Context/UserContext';
-import InvestmentDemo from './components/Invest/InvestmentDemo';
-import InvestmentSimulation from './components/Invest/InvestmentSimulation';
-import InvestmentTest from './components/Invest/InvestmentTest';
-import InvestmentDebug from './components/Invest/InvestmentDebug';
 
 const LandingPage = () => (
   <>
@@ -64,44 +56,18 @@ const App = () => {
 
   return (
     <UserProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/signin" element={
-              <ProtectedRoute requireAuth={false}>
-                <AuthLogin />
-              </ProtectedRoute>
-            } />
-            <Route path="/signup" element={
-              <ProtectedRoute requireAuth={false}>
-                <AuthSignup />
-              </ProtectedRoute>
-            } />
-            
-            {/* Protected routes - require authentication */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute requireAuth={true}>
-                <UserDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/investment" element={
-              <ProtectedRoute requireAuth={true}>
-                <InvestmentDemo />
-              </ProtectedRoute>
-            } />
-            <Route path="/simulation" element={
-              <ProtectedRoute requireAuth={true}>
-                <UserProfiling />
-              </ProtectedRoute>
-            } />
-            
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/dashboard" element={<UserDashboard />} />
+          <Route path="/portfolio" element={<InvestmentPortfolio />} />
+          <Route path="/simulation" element={<FinancialProfilingStepper />} />
+          
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
     </UserProvider>
   );
 };

@@ -17,13 +17,20 @@ import {
   AreaChart,
   Area
 } from "recharts";
-import { RecommendationEngine } from "../Algo";
+import { RecommendationEngine, ROICalculator } from "../Algo";
 import { useUserContext } from "../Context/UserContext";
-import { useAuth } from '../Auth';
 
 const UserDashboard = () => {
   const { userProfileData, userResults, pendingInvestment, clearPendingInvestment } = useUserContext();
-  const { userData, logout } = useAuth();
+  
+  // Mock user data since we removed authentication
+  const userData = {
+    name: 'Utilisateur Demo',
+    email: 'demo@tawfir.ai',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DemoUser',
+    createdAt: new Date('2024-01-01')
+  };
+  
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -1065,14 +1072,31 @@ const UserDashboard = () => {
 
   const matchedInvestments = useMemo(() => {
     if (!userResults || !userResults.matchedProducts) return [];
-    return userResults.matchedProducts.map((p) => ({
-      name: p.nom_produit,
-      risk: Number(p.risque) || 3,
-      return: `${Math.max(3, Math.min(12, Math.round((p.overallCompatibility/10)+5)))}%`,
-      min: 1000,
-      description: p.duree_recommandee,
-      image: p.avatar || "/public/assets/marketstock.png"
-    }));
+    return userResults.matchedProducts.map((p) => {
+      // Calculate ROI for different investment amounts
+                          const roi1Year = ROICalculator.calculateSimpleROI(10000, p.roi_annuel !== undefined ? p.roi_annuel : 5, 1);
+                    const roi3Years = ROICalculator.calculateSimpleROI(10000, p.roi_annuel !== undefined ? p.roi_annuel : 5, 3);
+                    const roi5Years = ROICalculator.calculateSimpleROI(10000, p.roi_annuel !== undefined ? p.roi_annuel : 5, 5);
+      
+      return {
+        name: p.nom_produit,
+        risk: Number(p.risque) || 3,
+        return: `${Math.max(3, Math.min(12, Math.round((p.overallCompatibility/10)+5)))}%`,
+        min: 1000,
+        description: p.duree_recommandee,
+        image: p.avatar || "/public/assets/marketstock.png",
+        roi: {
+                                  annual: p.roi_annuel !== undefined ? p.roi_annuel : 5,
+          roi1Year: roi1Year.roiPercentage,
+          roi3Years: roi3Years.roiPercentage,
+          roi5Years: roi5Years.roiPercentage,
+          volatility: p.volatilite || 5,
+          fees: p.frais_annuels || 1,
+          dividends: p.volatilite || 0,
+          liquidity: p.liquidite || 'Standard'
+        }
+      };
+    });
   }, [userResults]);
 
   return (
@@ -1205,7 +1229,6 @@ const UserDashboard = () => {
                           onClick={() => {
                             console.log('Logout button clicked in user menu');
                             setShowUserMenu(false);
-                            logout();
                             console.log('Logout function called, navigating to signin');
                             navigate('/signin');
                           }}
@@ -1427,7 +1450,7 @@ const UserDashboard = () => {
                 </button>
                 <button
                   onClick={() => {
-                    logout();
+                    // logout();
                     navigate('/signin');
                   }}
                   className="w-full text-left px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex items-center"
@@ -2090,6 +2113,31 @@ const UserDashboard = () => {
                           {investment.description}
                         </p>
                         <div className="space-y-3">
+                          {/* ROI Information */}
+                          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                            <div className="text-xs text-blue-400 mb-2 font-medium">ROI sur 10,000 Dhs</div>
+                            <div className="grid grid-cols-3 gap-2 text-xs">
+                              <div className="text-center">
+                                <div className={`font-semibold ${ROICalculator.getROIColor(investment.roi.roi1Year)}`}>
+                                  {ROICalculator.formatROI(investment.roi.roi1Year)}
+                                </div>
+                                <div className="text-white/60">1 an</div>
+                              </div>
+                              <div className="text-center">
+                                <div className={`font-semibold ${ROICalculator.getROIColor(investment.roi.roi3Years)}`}>
+                                  {ROICalculator.formatROI(investment.roi.roi3Years)}
+                                </div>
+                                <div className="text-white/60">3 ans</div>
+                              </div>
+                              <div className="text-center">
+                                <div className={`font-semibold ${ROICalculator.getROIColor(investment.roi.roi5Years)}`}>
+                                  {ROICalculator.formatROI(investment.roi.roi5Years)}
+                                </div>
+                                <div className="text-white/60">5 ans</div>
+                              </div>
+                            </div>
+                          </div>
+                          
                           <div className="flex justify-between">
                             <span className="text-white/60">Risque</span>
                             <div className="flex items-center">
@@ -2106,6 +2154,7 @@ const UserDashboard = () => {
                               </span>
                             </div>
                           </div>
+                          
                           <div className="flex justify-between">
                             <span className="text-white/60">
                               Investissement min.
@@ -2113,6 +2162,24 @@ const UserDashboard = () => {
                             <span className="text-white">
                               {investment.min.toLocaleString()} Dhs
                             </span>
+                          </div>
+                          
+                          {/* Additional ROI Details */}
+                          <div className="text-xs text-white/60 space-y-1 pt-2 border-t border-white/10">
+                            <div className="flex justify-between">
+                              <span>ROI annuel:</span>
+                              <span className={`font-medium ${ROICalculator.getROIColor(investment.roi.annual)}`}>
+                                {investment.roi.annual}%
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Volatilité:</span>
+                              <span>{investment.roi.volatility}%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Frais:</span>
+                              <span>{investment.roi.fees}%</span>
+                            </div>
                           </div>
                         </div>
                         <button
@@ -3321,7 +3388,7 @@ const UserDashboard = () => {
                       <button
                         onClick={() => {
                           console.log('Logout button clicked in settings modal');
-                          logout();
+                          // logout();
                           console.log('Logout function called from settings, navigating to signin');
                           navigate('/signin');
                         }}

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from './Auth/useAuth';
+// import { Link, useNavigate } from 'react-router-dom';
+import { Link} from 'react-router-dom';
 
 const Navbar = () => {
-  const { isAuthenticated, userData, logout } = useAuth();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProductsMenuOpen, setIsProductsMenuOpen] = useState(false);
   const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
@@ -37,12 +36,6 @@ const Navbar = () => {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    closeMenu();
   };
 
   return (
@@ -111,34 +104,18 @@ const Navbar = () => {
 
         {/* Desktop Buttons */}
         <div className="hidden md:flex items-center space-x-4">
-          {isAuthenticated ? (
-            <>
-              <Link to="/simulation" className="text-[#3CD4AB] px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white border border-solid border-[#3CD4AB]">
-                Simuler un projet
-              </Link>
-              <Link to="/dashboard" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
-                Mon Profile
-              </Link>
-              <button 
-                onClick={handleLogout}
-                className="text-white px-6 py-2 bg-red-600 rounded-full text-lg hover:bg-red-700 border border-solid border-red-600"
-              >
-                Déconnexion
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/simulation" className="text-[#3CD4AB] px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white border border-solid border-[#3CD4AB]">
-                Simuler un projet
-              </Link>
-              <Link to="/signin" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
-                Se connecter
-              </Link>
-              <Link to="/signup" className="text-[#3CD4AB] px-6 py-2 border border-[#3CD4AB] rounded-full text-lg hover:bg-[#3CD4AB] hover:text-[#0F0F19] transition-colors">
-                S'inscrire
-              </Link>
-            </>
-          )}
+          <Link to="/simulation" className="text-[#3CD4AB] px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white border border-solid border-[#3CD4AB]">
+            Simuler un projet
+          </Link>
+          <Link to="/dashboard" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
+            Mon Profile
+          </Link>
+          <Link to="/signin" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
+            Se connecter
+          </Link>
+          <Link to="/signup" className="text-[#3CD4AB] px-6 py-2 border border-[#3CD4AB] rounded-full text-lg hover:bg-[#3CD4AB] hover:text-[#0F0F19] transition-colors">
+            S'inscrire
+          </Link>
         </div>
 
         {/* Burger menu */}
@@ -209,34 +186,18 @@ const Navbar = () => {
             
           </div>
           <div className="flex flex-col items-center space-y-4 pb-8">
-            {isAuthenticated ? (
-              <>
-                <Link to="/simulation" className="w-11/12 text-center text-[#3CD4AB] px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white border border-solid border-[#3CD4AB]">
-                  Commencez la simulation
-                </Link>
-                <Link to="/dashboard" className="w-11/12 text-center text-white px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
-                  Mon Profile
-                </Link>
-                <button 
-                  onClick={handleLogout}
-                  className="w-11/12 text-center text-white px-6 py-3 bg-red-600 rounded-full text-lg hover:bg-red-700 border border-solid border-red-600"
-                >
-                  Déconnexion
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/simulation" className="w-11/12 text-center text-[#3CD4AB] px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white border border-solid border-[#3CD4AB]">
-                  Commencez la simulation
-                </Link>
-                <Link to="/signin" className="w-11/12 text-center text-white px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
-                  Se connecter
-                </Link>
-                <Link to="/signup" className="w-11/12 text-center text-[#3CD4AB] px-6 py-3 border border-[#3CD4AB] rounded-full text-lg hover:bg-[#3CD4AB] hover:text-[#0F0F19] transition-colors">
-                  S'inscrire
-                </Link>
-              </>
-            )}
+            <Link to="/simulation" className="w-11/12 text-center text-[#3CD4AB] px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white border border-solid border-[#3CD4AB]">
+              Commencez la simulation
+            </Link>
+            <Link to="/dashboard" className="w-11/12 text-center text-white px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
+              Mon Profile
+            </Link>
+            <Link to="/signin" className="w-11/12 text-center text-white px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
+              Se connecter
+            </Link>
+            <Link to="/signup" className="w-11/12 text-center text-[#3CD4AB] px-6 py-3 border border-[#3CD4AB] rounded-full text-lg hover:bg-[#3CD4AB] hover:text-[#0F0F19] transition-colors">
+              S'inscrire
+            </Link>
           </div>
         </div>
       )}

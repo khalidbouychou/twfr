@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   IoChevronBack, 
   IoSearch, 
@@ -12,6 +12,9 @@ import {
   IoWarning,
   IoInformation
 } from 'react-icons/io5';
+import { ROICalculator, RecommendationEngine } from '../Algo';
+import { useUserContext } from '../Context/UserContext';
+import DrivenInvestmentRecommendations from './DrivenInvestmentRecommendations';
 
 // Custom CSS to hide default scrollbars
 const customStyles = `
@@ -57,77 +60,12 @@ const customStyles = `
   }
 `;
 
-  // import tawfirProducts from '../Resultat/Products/Tawfir_Products.json';
-  
-  // Hardcoded Tawfir products data
-  const tawfirProducts = [
-    {
-      "nom_produit": "Compte sur Carnet",
-      "risque": "1",
-      "duree_recommandee": "COURT",
-      "enveloppe_gestion": "compte bancaire",
-      "avatar": "https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?w=400&h=400&fit=crop&crop=center"
-    },
-    {
-      "nom_produit": "Depot a termes",
-      "risque": "1",
-      "duree_recommandee": "COURT/MOYEN/LONG TERME",
-      "enveloppe_gestion": "compte bancaire",
-      "avatar": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=400&fit=crop&crop=center"
-    },
-    {
-      "nom_produit": "OPCVM Actions",
-      "risque": "7",
-      "duree_recommandee": "LONG TERME",
-      "enveloppe_gestion": "Compte Titre/PEA/Assurance-vie/Retraite",
-      "avatar": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=400&fit=crop&crop=center"
-    },
-    {
-      "nom_produit": "Gestion sous mandat Actions",
-      "risque": "7",
-      "duree_recommandee": "LONG TERME",
-      "enveloppe_gestion": "Compte Titre ou PEA",
-      "avatar": "https://images.unsplash.com/photo-1642115958395-3f05ad94030c?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-    },
-    {
-      "nom_produit": "OPCVM Monétaires",
-      "risque": "1",
-      "duree_recommandee": "COURT TERME",
-      "enveloppe_gestion": "Compte Titre/Assurance-vie/Retraite",
-      "avatar": "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400&h=400&fit=crop&crop=center"
-    },
-    {
-      "nom_produit": "OPCVM Court Terme",
-      "risque": "2",
-      "duree_recommandee": "COURT TERME",
-      "enveloppe_gestion": "Compte Titre/Assurance-vie/Retraite",
-      "avatar": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=400&fit=crop&crop=center"
-    },
-    {
-      "nom_produit": "OPCVM OMLT",
-      "risque": "3",
-      "duree_recommandee": "MOYENLONG TERME",
-      "enveloppe_gestion": "Compte Titre/Assurance-vie/Retraite",
-      "avatar": "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400&h=400&fit=crop&crop=center"
-    },
-    {
-      "nom_produit": "Capital Garanti",
-      "risque": "2",
-      "duree_recommandee": "COURT/MOYEN/LONG TERME",
-      "enveloppe_gestion": "Compte Titre ou PEA",
-      "avatar": "https://images.unsplash.com/photo-1634128221889-82ed6efebfc3?w=400&h=400&fit=crop&crop=center"
-    },
-    {
-      "nom_produit": "Garantie partielle",
-      "risque": "3",
-      "duree_recommandee": "COURT/MOYEN/LONG TERME",
-      "enveloppe_gestion": "Compte Titre ou PEA",
-      "avatar": "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=400&h=400&fit=crop&crop=center"
-    }
-  ];
+  import tawfirProducts from '../Resultat/Products/Tawfir_Products.json';
   
   const InvestmentPortfolio = () => {
+  const { userProfile, userResults } = useUserContext();
   const [activeSection, setActiveSection] = useState('investments'); // 'investments', 'history', 'recommended'
+  const [localRecommendations, setLocalRecommendations] = useState(null);
   const [showBuySellPopup, setShowBuySellPopup] = useState(false);
   const [buySellMode, setBuySellMode] = useState('buy'); // 'buy' or 'sell'
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -148,6 +86,31 @@ const customStyles = `
 
 
   // Removed automatic investment growth simulation
+
+  // Load recommendations from localStorage on component mount
+  useEffect(() => {
+    const storedRecommendations = localStorage.getItem('tawfir_user_recommendations');
+    const storedProfile = localStorage.getItem('tawfir_user_profile');
+    
+    if (storedRecommendations) {
+      try {
+        const parsedRecommendations = JSON.parse(storedRecommendations);
+        setLocalRecommendations(parsedRecommendations);
+        console.log('Loaded recommendations from localStorage:', parsedRecommendations);
+      } catch (error) {
+        console.error('Error parsing stored recommendations:', error);
+      }
+    }
+    
+    if (storedProfile) {
+      try {
+        const parsedProfile = JSON.parse(storedProfile);
+        console.log('Loaded profile from localStorage:', parsedProfile);
+      } catch (error) {
+        console.error('Error parsing stored profile:', error);
+      }
+    }
+  }, []);
 
   // Force re-render when userInvestments changes to update profit display
   React.useEffect(() => {
@@ -216,6 +179,26 @@ const customStyles = `
   };
 
   // Handle profit operations
+  const clearLocalStorageData = () => {
+    localStorage.removeItem('tawfir_user_recommendations');
+    localStorage.removeItem('tawfir_user_profile');
+    setLocalRecommendations(null);
+    console.log('LocalStorage data cleared');
+  };
+
+  const refreshLocalRecommendations = () => {
+    const storedRecommendations = localStorage.getItem('tawfir_user_recommendations');
+    if (storedRecommendations) {
+      try {
+        const parsedRecommendations = JSON.parse(storedRecommendations);
+        setLocalRecommendations(parsedRecommendations);
+        console.log('Refreshed recommendations from localStorage:', parsedRecommendations);
+      } catch (error) {
+        console.error('Error parsing stored recommendations:', error);
+      }
+    }
+  };
+
   const handleProfitOperation = () => {
     const totalProfits = calculateTotalProfits();
     
@@ -356,11 +339,11 @@ const customStyles = `
     performanceHistory: performanceData['24h']
   };
 
-  // Transform Tawfir products into investment format - Static values
+  // Transform Tawfir products into investment format - Using actual ROI data
   const transformProductsToInvestments = () => {
     return tawfirProducts.map((product, index) => {
-      const minInvestment = 50; // Fixed minimum investment of 50 euros
-      const expectedReturn = 8; // Static expected return
+      const minInvestment = 1000; // Minimum investment in MAD
+              const expectedReturn = product.roi_annuel !== undefined ? product.roi_annuel : 5; // Use actual ROI from product data
       const marketPrice = 75; // Static market price
       
       return {
@@ -380,7 +363,16 @@ const customStyles = `
         expectedReturn: expectedReturn,
         marketPrice: marketPrice,
         priceChange: 0, // Static value
-        priceChangePercent: 0 // Static value
+        priceChangePercent: 0, // Static value
+        // Add ROI data
+        roi_annuel: product.roi_annuel,
+        roi_3_ans: product.roi_3_ans,
+        roi_5_ans: product.roi_5_ans,
+        roi_10_ans: product.roi_10_ans,
+        volatilite: product.volatilite,
+        frais_annuels: product.frais_annuels,
+        dividendes: product.dividendes,
+        liquidite: product.liquidite
       };
     });
   };
@@ -422,23 +414,78 @@ const customStyles = `
     other: [...userInvestments, ...transformProductsToInvestments()].filter(item => item.category === 'other')
   };
 
-  // Recommended products from Tawfir
-  const recommendedProducts = tawfirProducts.slice(0, 3).map((product, index) => {
-    const expectedReturn = Math.floor(Math.random() * 15) + 5;
-    const minInvestment = 50; // Fixed minimum investment of 50 euros
+  // Personalized recommended products based on user profile
+  const recommendedProducts = useMemo(() => {
+    // Priority 1: Use userResults from context (real-time)
+    if (userResults && userResults.matchedProducts) {
+      return userResults.matchedProducts.slice(0, 4).map((product, index) => ({
+        id: index + 1,
+        name: product.nom_produit,
+        description: `${product.duree_recommandee} • ${product.enveloppe_gestion}`,
+        expectedReturn: product.roi_annuel !== undefined ? product.roi_annuel : 5,
+        risk: getValidRiskValue(product.risque),
+        minInvestment: 1000,
+        category: getProductCategory(product.nom_produit),
+        icon: getProductIcon(product.nom_produit),
+        avatar: product.avatar,
+        roi_annuel: product.roi_annuel,
+        roi_3_ans: product.roi_3_ans,
+        roi_5_ans: product.roi_5_ans,
+        roi_10_ans: product.roi_10_ans,
+        volatilite: product.volatilite,
+        frais_annuels: product.frais_annuels,
+        dividendes: product.dividendes,
+        liquidite: product.liquidite,
+        overallCompatibility: product.overallCompatibility || 0
+      }));
+    }
     
-    return {
+    // Priority 2: Use localStorage recommendations (persistent)
+    if (localRecommendations && localRecommendations.matchedProducts) {
+      return localRecommendations.matchedProducts.slice(0, 4).map((product, index) => ({
+        id: index + 1,
+        name: product.nom_produit,
+        description: `${product.duree_recommandee} • ${product.enveloppe_gestion}`,
+        expectedReturn: product.roi_annuel !== undefined ? product.roi_annuel : 5,
+        risk: getValidRiskValue(product.risque),
+        minInvestment: 1000,
+        category: getProductCategory(product.nom_produit),
+        icon: getProductIcon(product.nom_produit),
+        avatar: product.avatar,
+        roi_annuel: product.roi_annuel,
+        roi_3_ans: product.roi_3_ans,
+        roi_5_ans: product.roi_5_ans,
+        roi_10_ans: product.roi_10_ans,
+        volatilite: product.volatilite,
+        frais_annuels: product.frais_annuels,
+        dividendes: product.dividendes,
+        liquidite: product.liquidite,
+        overallCompatibility: product.overallCompatibility || 0
+      }));
+    }
+
+    // Priority 3: Fallback to top 3 products if no recommendations available
+    return tawfirProducts.slice(0, 3).map((product, index) => ({
       id: index + 1,
       name: product.nom_produit,
       description: `${product.duree_recommandee} • ${product.enveloppe_gestion}`,
-      expectedReturn: isNaN(expectedReturn) ? 5 : expectedReturn,
+      expectedReturn: product.roi_annuel !== undefined ? product.roi_annuel : 5,
       risk: getValidRiskValue(product.risque),
-      minInvestment: minInvestment,
+      minInvestment: 1000,
       category: getProductCategory(product.nom_produit),
       icon: getProductIcon(product.nom_produit),
-      avatar: product.avatar
-    };
-  });
+      avatar: product.avatar,
+      roi_annuel: product.roi_annuel,
+      roi_3_ans: product.roi_3_ans,
+      roi_5_ans: product.roi_5_ans,
+      roi_10_ans: product.roi_10_ans,
+      volatilite: product.volatilite,
+      frais_annuels: product.frais_annuels,
+      dividendes: product.dividendes,
+      liquidite: product.liquidite,
+      overallCompatibility: 0
+    }));
+  }, [userResults, localRecommendations]);
 
   const getAllInvestments = () => {
     return investments.all;
@@ -565,6 +612,67 @@ const customStyles = `
     showToast(message, profitLoss >= 0 ? 'success' : 'warning');
   };
 
+  // Handle investment decisions from Driven Investment Recommendations
+  const handleInvestmentDecision = (decision) => {
+    console.log('Investment decision made:', decision);
+    
+    // Create investment history entries for each product
+    const newInvestments = decision.investments.map(investment => ({
+      id: Date.now() + Math.random(),
+      name: investment.product.nom_produit,
+      amount: investment.amount,
+      currentValue: investment.amount,
+      profit: 0,
+      date: new Date().toLocaleDateString("fr-FR"),
+      return: "+0.0%",
+      roi: {
+        annual: investment.product.roi_annuel,
+        roi1Year: investment.roi1Year,
+        roi3Years: investment.roi3Years,
+        roi5Years: investment.roi5Years,
+        roi10Years: investment.roi10Years
+      }
+    }));
+
+    // Add to investment history
+    setInvestmentHistory(prev => [...newInvestments, ...prev]);
+    
+    // Update user balance
+    setUserBalance(prev => Math.max(0, prev - decision.totalAmount));
+    
+    // Add to transaction history
+    setTransactionsHistory(prev => [
+      {
+        id: Date.now(),
+        type: "driven_investment",
+        amount: decision.totalAmount,
+        method: `Scénario: ${decision.scenario.name}`,
+        date: new Date().toLocaleString("fr-FR"),
+      },
+      ...prev,
+    ]);
+
+    // Show success notification
+    const successNotif = {
+      id: Date.now(),
+      message: `Investissement de ${decision.totalAmount.toLocaleString()} Dhs effectué avec succès`,
+      time: "À l'instant",
+      type: "success",
+      title: "Investissement Réussi",
+      details: `Votre investissement basé sur le scénario "${decision.scenario.name}" a été traité avec succès. Rendement attendu: +${decision.expectedReturn.toFixed(1)}% sur la période sélectionnée.`,
+      astuce: "💡 Astuce: Suivez régulièrement la performance de vos investissements et ajustez votre stratégie si nécessaire.",
+      isRead: false
+    };
+    setNotifications(prev => [successNotif, ...prev.slice(0, 2)]);
+    setNotificationHistory(prev => [
+      { ...successNotif, receivedAt: new Date().toLocaleString("fr-FR") },
+      ...prev,
+    ]);
+
+    // Switch to holdings view to show new investments
+    setActiveSection('holdings');
+  };
+
   const getRiskColor = (risk) => {
     const riskNum = parseInt(risk);
     if (isNaN(riskNum) || riskNum <= 2) return 'text-green-400';
@@ -603,6 +711,37 @@ const customStyles = `
       default:
         return 'bg-blue-600 border-blue-500';
     }
+  };
+
+  // Calculate ROI for investments
+  const calculateInvestmentROI = (investment) => {
+    const daysSinceInvestment = Math.floor(
+      (new Date() - new Date(investment.date)) / (1000 * 60 * 60 * 24)
+    );
+    const years = daysSinceInvestment / 365;
+    
+    if (years <= 0) return null;
+    
+    const currentValue = investment.currentValue || investment.amount;
+    const totalReturn = currentValue - investment.amount;
+    const roiPercentage = (totalReturn / investment.amount) * 100;
+    const annualizedROI = roiPercentage / years;
+    
+    return {
+      totalReturn,
+      roiPercentage: Math.round(roiPercentage * 100) / 100,
+      annualizedROI: Math.round(annualizedROI * 100) / 100,
+      years: Math.round(years * 100) / 100
+    };
+  };
+
+  // Get ROI color based on performance
+  const getROIColor = (roi) => {
+    if (roi >= 8) return 'text-green-500';
+    if (roi >= 5) return 'text-blue-500';
+    if (roi >= 2) return 'text-yellow-500';
+    if (roi >= 0) return 'text-orange-500';
+    return 'text-red-500';
   };
 
   return (
@@ -669,6 +808,30 @@ const customStyles = `
               >
                 + Ajouter
               </button>
+              
+              {/* LocalStorage Management Buttons */}
+              {localRecommendations && (
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={refreshLocalRecommendations}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+                    title="Actualiser les recommandations"
+                  >
+                    🔄
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (window.confirm('Voulez-vous effacer vos recommandations sauvegardées ? Vous devrez refaire la simulation pour les retrouver.')) {
+                        clearLocalStorageData();
+                      }
+                    }}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+                    title="Effacer les recommandations sauvegardées"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -801,7 +964,8 @@ const customStyles = `
             {[
               { key: 'holdings', label: 'Détail des Investissements', icon: '📊', count: getFilteredInvestments().length },
               { key: 'history', label: 'Historique', icon: '📈', count: investmentHistory.length },
-              { key: 'opportunities', label: 'Opportunités', icon: '💡', count: recommendedProducts.length }
+              { key: 'opportunities', label: 'Opportunités', icon: '💡', count: recommendedProducts.length },
+              { key: 'driven', label: 'Recommandations Avancées', icon: '🎯', count: (userResults?.matchedProducts?.length || localRecommendations?.matchedProducts?.length || 0) }
             ].map((section) => (
               <button
                 key={section.key}
@@ -911,6 +1075,27 @@ const customStyles = `
                           </div>
                         </div>
                       </div>
+                      
+                      {/* ROI Information */}
+                      {investment.investedAmount && (
+                        <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                          <div className="grid grid-cols-2 gap-4 text-xs">
+                            <div>
+                              <span className="text-gray-400">ROI Total:</span>
+                              <div className={`font-semibold ${getROIColor(investment.roiPercentage || 0)}`}>
+                                {investment.roiPercentage >= 0 ? '+' : ''}{investment.roiPercentage || 0}%
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Gain:</span>
+                              <div className={`font-semibold ${investment.roiPercentage >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {investment.roiPercentage >= 0 ? '+' : ''}{formatCurrency(investment.currentValue - investment.investedAmount)}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       {investment.investedAmount && (
                         <div className="flex space-x-2 mt-3">
                           <button 
@@ -1003,6 +1188,38 @@ const customStyles = `
                   <IoInformationCircle className="w-5 h-5 text-gray-400" />
                 </div>
                 
+                {/* User Profile Summary */}
+                {(userResults?.riskProfile || localRecommendations?.riskProfile) && (
+                  <div className="bg-gray-800 rounded-xl p-4 mb-4">
+                    <h4 className="text-white font-medium mb-3">Votre Profil d'Investisseur</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-400">Niveau de Risque:</span>
+                        <div className="text-white font-medium">
+                          {userResults?.riskProfile?.riskLevel || localRecommendations?.riskProfile?.riskLevel || 'N/A'}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Durée Préférée:</span>
+                        <div className="text-white font-medium">
+                          {userResults?.durationProfile?.durationPreference || localRecommendations?.durationProfile?.durationPreference || 'N/A'}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Compatibilité:</span>
+                        <div className="text-white font-medium">
+                          {(userResults?.matchedProducts?.length || localRecommendations?.matchedProducts?.length || 0)} produits
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-white/60 text-xs">
+                          {localRecommendations && !userResults ? '📱 Données locales' : '🔄 Données temps réel'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className={`space-y-3 max-h-96 overflow-y-auto scroll-smooth ${recommendedProducts.length > 3 ? 'custom-scrollbar' : ''}`}>
                   {recommendedProducts.map((product) => (
                     <div key={product.id} className="bg-gray-900 rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow">
@@ -1021,7 +1238,59 @@ const customStyles = `
                               <span className="text-gray-400 text-sm">
                                 Risque: {product.risk || 1}
                               </span>
+                              {product.overallCompatibility > 0 && (
+                                <span className="text-blue-400 text-sm font-medium">
+                                  Compatibilité: {Math.round(product.overallCompatibility)}%
+                                </span>
+                              )}
                             </div>
+                            
+                            {/* ROI Information for Recommended Products */}
+                            {product.roi_annuel && (
+                              <div className="mt-3 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                                <div className="text-xs text-blue-400 mb-2 font-medium">ROI sur 10,000 Dhs</div>
+                                <div className="grid grid-cols-3 gap-2 text-xs">
+                                  <div className="text-center">
+                                    <div className="font-semibold text-green-600">
+                                      {product.roi_3_ans ? `+${product.roi_3_ans}%` : 'N/A'}
+                                    </div>
+                                    <div className="text-gray-500">3 ans</div>
+                                  </div>
+                                  <div className="text-center">
+                                    <div className="font-semibold text-blue-600">
+                                      {product.roi_5_ans ? `+${product.roi_5_ans}%` : 'N/A'}
+                                    </div>
+                                    <div className="text-gray-500">5 ans</div>
+                                  </div>
+                                  <div className="text-center">
+                                    <div className="font-semibold text-purple-600">
+                                      {product.roi_10_ans ? `+${product.roi_10_ans}%` : 'N/A'}
+                                    </div>
+                                    <div className="text-gray-500">10 ans</div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Why This Product is Recommended */}
+                            {product.overallCompatibility > 0 && (
+                              <div className="mt-3 p-2 bg-green-500/10 border border-green-500/20 rounded-lg">
+                                <div className="text-xs text-green-400 mb-2 font-medium">Pourquoi Recommandé</div>
+                                <div className="text-xs text-gray-400">
+                                  {product.overallCompatibility >= 80 && "Excellente compatibilité avec votre profil"}
+                                  {product.overallCompatibility >= 60 && product.overallCompatibility < 80 && "Bonne compatibilité avec votre profil"}
+                                  {product.overallCompatibility < 60 && "Compatibilité modérée avec votre profil"}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  Score: {Math.round(product.overallCompatibility)}%
+                                </div>
+                                {(localRecommendations && !userResults) && (
+                                  <div className="text-xs text-blue-400 mt-1">
+                                    📱 Données locales
+                                  </div>
+                                )}
+                              </div>
+                            )}
                             {/* Market Price Data Label for Recommended Products */}
                             <div className="flex items-center space-x-2 mt-1">
                               <span className="text-xs text-gray-400">Marché:</span>
@@ -1058,7 +1327,53 @@ const customStyles = `
                       <p className="text-gray-500 text-sm mt-1">Revenez plus tard pour des recommandations personnalisées</p>
                     </div>
                   )}
+                  
+                  {!userResults && !localRecommendations && (
+                    <div className="text-center py-8">
+                      <div className="bg-blue-900/20 border border-blue-500/20 rounded-lg p-6">
+                        <h4 className="text-blue-400 font-medium mb-2">Profil Non Complété</h4>
+                        <p className="text-gray-400 text-sm mb-4">
+                          Pour recevoir des recommandations personnalisées, complétez d'abord votre profil financier.
+                        </p>
+                        <a 
+                          href="/profiling" 
+                          className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                        >
+                          Compléter le Profil
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Show localStorage data indicator */}
+                  {localRecommendations && !userResults && (
+                    <div className="text-center py-4">
+                      <div className="bg-green-900/20 border border-green-500/20 rounded-lg p-3">
+                        <p className="text-green-400 text-sm">
+                          📱 Affichage des recommandations sauvegardées localement
+                        </p>
+                        <p className="text-gray-400 text-xs mt-1">
+                          Vos données de simulation sont conservées dans votre navigateur
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </div>
+            )}
+
+            {/* Driven Investment Recommendations Section */}
+            {activeSection === 'driven' && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Recommandations Avancées</h3>
+                  <IoInformationCircle className="w-5 h-5 text-gray-400" />
+                </div>
+                
+                <DrivenInvestmentRecommendations 
+                  userResults={userResults} 
+                  onInvestmentDecision={handleInvestmentDecision}
+                />
               </div>
             )}
           </div>
@@ -1174,6 +1489,39 @@ const customStyles = `
                         <p className="text-white font-medium">{selectedInvestmentProduct.duration}</p>
                       </div>
                     </div>
+                    
+                    {/* ROI Information in Investment Modal */}
+                    {selectedInvestmentProduct.roi_annuel && (
+                      <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <h5 className="text-blue-400 font-medium mb-2">Projections ROI</h5>
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <span className="text-gray-400">ROI 3 ans:</span>
+                            <div className="text-green-400 font-semibold">
+                              {selectedInvestmentProduct.roi_3_ans ? `+${selectedInvestmentProduct.roi_3_ans}%` : 'N/A'}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">ROI 5 ans:</span>
+                            <div className="text-blue-400 font-semibold">
+                              {selectedInvestmentProduct.roi_5_ans ? `+${selectedInvestmentProduct.roi_5_ans}%` : 'N/A'}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Volatilité:</span>
+                            <div className="text-white font-medium">
+                              {selectedInvestmentProduct.volatilite || 'N/A'}%
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Frais annuels:</span>
+                            <div className="text-white font-medium">
+                              {selectedInvestmentProduct.frais_annuels || 'N/A'}%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
                 
@@ -1347,8 +1695,8 @@ const customStyles = `
                   <div className="space-y-4">
                     <div className="bg-gray-800 rounded-xl p-4">
                       <h4 className="font-medium text-white mb-3">Produits Disponibles</h4>
-                      <div className={`space-y-2 max-h-32 overflow-y-auto ${recommendedProducts.slice(0, 3).length > 3 ? 'custom-scrollbar' : ''}`}>
-                        {recommendedProducts.slice(0, 3).map((product) => (
+                      <div className={`space-y-2 max-h-32 overflow-y-auto ${recommendedProducts.slice(0, 4).length > 4 ? 'custom-scrollbar' : ''}`}>
+                        {recommendedProducts.slice(0, 4).map((product) => (
                           <div key={product.id} className="flex items-center justify-between p-2 bg-gray-700 rounded-lg">
                             <div className="flex items-center space-x-2">
                               <span className="text-lg">{product.icon}</span>

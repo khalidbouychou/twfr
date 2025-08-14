@@ -1,319 +1,308 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  IoCalculator,
-  IoTrendingUp,
-  IoTrendingDown,
-  IoInformationCircle,
-  IoAdd
-} from 'react-icons/io5';
+import { ROICalculator } from '../Algo';
 
 const InvestmentSimulation = () => {
-  const [montantInitial, setMontantInitial] = useState(10000);
-  const [investissementMensuel, setInvestissementMensuel] = useState(1000);
-  const [duree, setDuree] = useState(5);
-  const [rendementAnnuel, setRendementAnnuel] = useState(5);
-  const [simulationResults, setSimulationResults] = useState(null);
-  const [soldeDisponible] = useState(80025000);
+  const [formData, setFormData] = useState({
+    initialCapital: '',
+    monthlyContribution: '',
+    annualReturn: 7,
+    years: 5,
+    riskProfile: 'modere'
+  });
 
-  // Calculate simulation results
+  const [simulationResults, setSimulationResults] = useState(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const calculateProjection = () => {
+    const capital = parseFloat(formData.initialCapital) || 0;
+    const monthly = parseFloat(formData.monthlyContribution) || 0;
+    const annual = parseFloat(formData.annualReturn);
+    const years = parseInt(formData.years);
+
+    if (capital <= 0 && monthly <= 0) return;
+
+    // Use ROICalculator for more accurate calculations
+    let results;
+    if (monthly > 0) {
+      results = ROICalculator.calculateCompoundROI(capital, monthly, annual, years);
+    } else {
+      results = ROICalculator.calculateSimpleROI(capital, annual, years);
+    }
+
+    // Calculate additional scenarios
+    const scenarios = ROICalculator.calculateROIScenarios(capital, annual, years);
+    const riskAdjusted = ROICalculator.calculateRiskAdjustedROI(annual, 8); // Default volatility
+    const netROI = ROICalculator.calculateNetROI(capital, annual, years, 1.5); // Default 1.5% fees
+
+    setSimulationResults({
+      ...results,
+      scenarios,
+      riskAdjusted,
+      netROI,
+      monthlyContribution: monthly
+    });
+  };
+
   useEffect(() => {
-    const calculateProjection = () => {
-      const monthlyRate = rendementAnnuel / 100 / 12;
-      const totalMonths = duree * 12;
-      
-      // Future value of initial investment
-      const futureValueInitial = montantInitial * Math.pow(1 + monthlyRate, totalMonths);
-      
-      // Future value of monthly investments (annuity)
-      const futureValueMonthly = investissementMensuel * 
-        ((Math.pow(1 + monthlyRate, totalMonths) - 1) / monthlyRate);
-      
-      const valeurFinaleEstimee = futureValueInitial + futureValueMonthly;
-      const totalInvesti = montantInitial + (investissementMensuel * totalMonths);
-      const gains = valeurFinaleEstimee - totalInvesti;
-      
-      // Risk scenarios
-      const optimiste = valeurFinaleEstimee * 1.15; // +15%
-      const realiste = valeurFinaleEstimee;
-      const pessimiste = valeurFinaleEstimee * 0.85; // -15%
-      
-      setSimulationResults({
-        valeurFinaleEstimee: Math.round(valeurFinaleEstimee),
-        totalInvesti: Math.round(totalInvesti),
-        gains: Math.round(gains),
-        scenarios: {
-          optimiste: Math.round(optimiste),
-          realiste: Math.round(realiste),
-          pessimiste: Math.round(pessimiste)
-        }
-      });
-    };
-    
     calculateProjection();
-  }, [montantInitial, investissementMensuel, duree, rendementAnnuel]);
+  }, [formData]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'MAD',
-      minimumFractionDigits: 0
-    }).format(amount).replace('MAD', 'Dhs');
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
   const formatLargeCurrency = (amount) => {
     if (amount >= 1000000) {
-      return `${(amount / 1000000).toFixed(3)} Dhs`;
+      return `${(amount / 1000000).toFixed(1)}M Dhs`;
+    } else if (amount >= 1000) {
+      return `${(amount / 1000).toFixed(1)}K Dhs`;
     }
     return formatCurrency(amount);
   };
 
+  const getRiskProfileColor = (profile) => {
+    const colors = {
+      conservateur: 'text-blue-500',
+      modere: 'text-green-500',
+      dynamique: 'text-yellow-500',
+      agressif: 'text-red-500'
+    };
+    return colors[profile] || 'text-gray-500';
+  };
+
   return (
-    <div className="min-h-screen bg-bg-dark text-white font-raleway">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-bg-dark/95 backdrop-blur-sm border-b border-gray-800">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div>
-            <h1 className="text-xl font-bold">Simulations</h1>
-            <p className="text-sm text-gray-400">Simulateur d'investissement</p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <p className="text-xs text-gray-400">Solde disponible</p>
-              <p className="text-lg font-bold text-accent">{formatLargeCurrency(soldeDisponible)}</p>
-            </div>
-            <button className="bg-accent text-bg-dark px-4 py-2 rounded-lg font-medium hover:bg-accent/90 transition-colors">
-              <IoAdd className="w-4 h-4 inline mr-1" />
-              Ajouter
-            </button>
-          </div>
+    <div className="min-h-screen bg-[#0F0F19] py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Simulateur d'Investissement
+          </h1>
+          <p className="text-lg text-gray-300">
+            Calculez le rendement potentiel de vos investissements avec des projections détaillées
+          </p>
         </div>
-      </div>
 
-      <div className="px-4 py-6 space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Simulateur d'Investissement */}
-          <div className="bg-gray-900 rounded-2xl p-6 shadow-xl">
-            <div className="flex items-center space-x-2 mb-6">
-              <IoCalculator className="w-6 h-6 text-accent" />
-              <h2 className="text-xl font-bold">Simulateur d'Investissement</h2>
-            </div>
-
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Input Form */}
+          <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+            <h2 className="text-2xl font-bold text-white mb-6">Paramètres d'Investissement</h2>
+            
             <div className="space-y-4">
-              {/* Montant Initial */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Montant Initial
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Capital Initial (Dhs)
                 </label>
                 <input
                   type="number"
-                  value={montantInitial}
-                  onChange={(e) => setMontantInitial(Number(e.target.value))}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-accent"
-                  placeholder="10,000 Dhs"
+                  value={formData.initialCapital}
+                  onChange={(e) => setFormData({...formData, initialCapital: e.target.value})}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none"
+                  placeholder="10000"
                 />
               </div>
 
-              {/* Investissement Mensuel */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Investissement Mensuel
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Contribution Mensuelle (Dhs)
                 </label>
                 <input
                   type="number"
-                  value={investissementMensuel}
-                  onChange={(e) => setInvestissementMensuel(Number(e.target.value))}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-accent"
-                  placeholder="1,000 Dhs"
+                  value={formData.monthlyContribution}
+                  onChange={(e) => setFormData({...formData, monthlyContribution: e.target.value})}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none"
+                  placeholder="500"
                 />
               </div>
 
-              {/* Durée */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Durée (années)
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Rendement Annuel (%)
+                </label>
+                <input
+                  type="number"
+                  value={formData.annualReturn}
+                  onChange={(e) => setFormData({...formData, annualReturn: e.target.value})}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none"
+                  step="0.1"
+                />
+              </div>
+
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Durée (Années)
+                </label>
+                <input
+                  type="number"
+                  value={formData.years}
+                  onChange={(e) => setFormData({...formData, years: e.target.value})}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none"
+                  min="1"
+                  max="30"
+                />
+              </div>
+
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Profil de Risque
                 </label>
                 <select
-                  value={duree}
-                  onChange={(e) => setDuree(Number(e.target.value))}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
+                  value={formData.riskProfile}
+                  onChange={(e) => setFormData({...formData, riskProfile: e.target.value})}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:border-[#3CD4AB] focus:outline-none"
                 >
-                  <option value={1}>1 an</option>
-                  <option value={2}>2 ans</option>
-                  <option value={3}>3 ans</option>
-                  <option value={5}>5 ans</option>
-                  <option value={10}>10 ans</option>
-                  <option value={15}>15 ans</option>
-                  <option value={20}>20 ans</option>
+                  <option value="conservateur">Conservateur (3-5%)</option>
+                  <option value="modere">Modéré (5-8%)</option>
+                  <option value="dynamique">Dynamique (8-12%)</option>
+                  <option value="agressif">Agressif (12-18%)</option>
                 </select>
               </div>
 
-              {/* Rendement Annuel Espéré */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Rendement Annuel Espéré
-                </label>
-                <select
-                  value={rendementAnnuel}
-                  onChange={(e) => setRendementAnnuel(Number(e.target.value))}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"
-                >
-                  <option value={3}>3% (Conservateur)</option>
-                  <option value={5}>5% (Conservateur)</option>
-                  <option value={7}>7% (Modéré)</option>
-                  <option value={10}>10% (Agressif)</option>
-                  <option value={12}>12% (Très Agressif)</option>
-                </select>
-              </div>
-
-              {/* Calculer Button */}
-              <button className="w-full bg-accent text-bg-dark py-3 rounded-lg font-medium hover:bg-accent/90 transition-colors shadow-lg">
-                Calculer la Projection
+              <button
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+              >
+                {showAdvanced ? 'Masquer' : 'Afficher'} Options Avancées
               </button>
+
+              {showAdvanced && (
+                <div className="space-y-4 p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div>
+                    <label className="block text-white/80 text-sm font-medium mb-2">
+                      Taux d'Inflation (%)
+                    </label>
+                    <input
+                      type="number"
+                      value="2"
+                      disabled
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white/60"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white/80 text-sm font-medium mb-2">
+                      Frais Annuels (%)
+                    </label>
+                    <input
+                      type="number"
+                      value="1.5"
+                      disabled
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white/60"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Résultats de Simulation */}
-          <div className="bg-gray-900 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-bold mb-6">Résultats de Simulation</h2>
+          {/* Results Display */}
+          <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+            <h2 className="text-2xl font-bold text-white mb-6">Projections et ROI</h2>
             
-            {simulationResults && (
+            {simulationResults ? (
               <div className="space-y-6">
-                {/* Valeur Finale Estimée */}
-                <div className="text-center">
-                  <p className="text-sm text-gray-400 mb-1">Valeur Finale Estimée</p>
-                  <p className="text-3xl font-bold text-accent">
-                    {formatCurrency(simulationResults.valeurFinaleEstimee)}
-                  </p>
-                </div>
-
-                {/* Total Investi et Gains */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-800 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-400 mb-1">Total Investi</p>
-                    <p className="text-lg font-bold text-white">
-                      {formatCurrency(simulationResults.totalInvesti)}
-                    </p>
-                  </div>
-                  <div className="bg-gray-800 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-400 mb-1">Gains</p>
-                    <p className="text-lg font-bold text-green-400">
-                      {formatCurrency(simulationResults.gains)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Simple Chart Visualization */}
-                <div className="bg-gray-800 rounded-lg p-4">
-                  <div className="h-32 relative">
-                    <div className="absolute inset-0 flex items-end justify-between">
-                      {Array.from({ length: duree }, (_, i) => {
-                        const year = i + 1;
-                        const progress = (year / duree) * 100;
-                        const value = montantInitial + (investissementMensuel * 12 * year);
-                        return (
-                          <div key={year} className="flex flex-col items-center">
-                            <div 
-                              className="bg-accent rounded-sm w-6 mb-1"
-                              style={{ height: `${progress}%` }}
-                            />
-                            <span className="text-xs text-gray-400">{year}</span>
-                          </div>
-                        );
-                      })}
+                {/* Main Results */}
+                <div className="p-4 bg-[#3CD4AB]/10 border border-[#3CD4AB]/20 rounded-lg">
+                  <h3 className="text-lg font-semibold text-[#3CD4AB] mb-3">Résultats Principaux</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-white/60">Capital Final:</span>
+                      <div className="text-white font-semibold text-lg">
+                        {formatLargeCurrency(simulationResults.finalValue)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-white/60">ROI Total:</span>
+                      <div className={`text-lg font-semibold ${ROICalculator.getROIColor(simulationResults.roiPercentage)}`}>
+                        {ROICalculator.formatROI(simulationResults.roiPercentage)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-white/60">ROI Annuel Moyen:</span>
+                      <div className={`text-lg font-semibold ${ROICalculator.getROIColor(simulationResults.averageAnnualROI)}`}>
+                        {ROICalculator.formatROI(simulationResults.averageAnnualROI)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-white/60">Gain Total:</span>
+                      <div className="text-white font-semibold text-lg">
+                        {formatLargeCurrency(simulationResults.totalReturn)}
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                {/* ROI Scenarios */}
+                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                  <h3 className="text-lg font-semibold text-blue-400 mb-3">Scénarios ROI</h3>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="text-red-400 font-semibold">
+                        {ROICalculator.formatROI(simulationResults.scenarios.pessimistic.roiPercentage)}
+                      </div>
+                      <div className="text-white/60 text-xs">Pessimiste</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-yellow-400 font-semibold">
+                        {ROICalculator.formatROI(simulationResults.scenarios.realistic.roiPercentage)}
+                      </div>
+                      <div className="text-white/60 text-xs">Réaliste</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-green-400 font-semibold">
+                        {ROICalculator.formatROI(simulationResults.scenarios.optimistic.roiPercentage)}
+                      </div>
+                      <div className="text-white/60 text-xs">Optimiste</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Risk-Adjusted Metrics */}
+                <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                  <h3 className="text-lg font-semibold text-purple-400 mb-3">Métriques Ajustées au Risque</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-white/60">Ratio de Sharpe:</span>
+                      <div className="text-white font-semibold">
+                        {simulationResults.riskAdjusted.sharpeRatio}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-white/60">ROI Ajusté:</span>
+                      <div className={`font-semibold ${ROICalculator.getROIColor(simulationResults.riskAdjusted.riskAdjustedReturn)}`}>
+                        {ROICalculator.formatROI(simulationResults.riskAdjusted.riskAdjustedReturn)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Net ROI after Fees */}
+                <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                  <h3 className="text-lg font-semibold text-orange-400 mb-3">ROI Net (Après Frais)</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-white/60">ROI Net:</span>
+                      <div className={`font-semibold ${ROICalculator.getROIColor(simulationResults.netROI.netROIPercentage)}`}>
+                        {ROICalculator.formatROI(simulationResults.netROI.netROIPercentage)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-white/60">Frais Totaux:</span>
+                      <div className="text-white font-semibold">
+                        {formatCurrency(simulationResults.netROI.totalFees)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center text-white/60 py-8">
+                <p>Entrez vos paramètres pour voir les projections</p>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Scénarios de Risque */}
-        {simulationResults && (
-          <div className="bg-gray-900 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-bold mb-6">Scénarios de Risque</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Optimiste */}
-              <div className="bg-green-900/20 border border-green-500/20 rounded-xl p-4 text-center">
-                <h3 className="text-lg font-semibold text-green-400 mb-2">Optimiste</h3>
-                <p className="text-2xl font-bold text-green-400 mb-1">+15%</p>
-                <p className="text-sm text-gray-300">{formatCurrency(simulationResults.scenarios.optimiste)}</p>
-              </div>
-
-              {/* Réaliste */}
-              <div className="bg-blue-900/20 border border-accent/20 rounded-xl p-4 text-center">
-                <h3 className="text-lg font-semibold text-accent mb-2">Réaliste</h3>
-                <p className="text-2xl font-bold text-accent mb-1">+8%</p>
-                <p className="text-sm text-gray-300">{formatCurrency(simulationResults.scenarios.realiste)}</p>
-              </div>
-
-              {/* Pessimiste */}
-              <div className="bg-orange-900/20 border border-orange-500/20 rounded-xl p-4 text-center">
-                <h3 className="text-lg font-semibold text-orange-400 mb-2">Pessimiste</h3>
-                <p className="text-2xl font-bold text-orange-400 mb-1">+3%</p>
-                <p className="text-sm text-gray-300">{formatCurrency(simulationResults.scenarios.pessimiste)}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Opportunités Recommandées */}
-        <div className="bg-gray-900 rounded-2xl p-6 shadow-xl">
-          <h2 className="text-xl font-bold mb-6">Opportunités Recommandées</h2>
-          <div className="space-y-4">
-            {[
-              {
-                name: "ETF Maroc",
-                description: "ETF diversifié sur le marché marocain",
-                return: "8.5%",
-                risk: "Diversifié",
-                category: "ETF"
-              },
-              {
-                name: "Obligations d'État",
-                description: "Obligations sécurisées du gouvernement",
-                return: "4.2%",
-                risk: "Fixed Income",
-                category: "Obligations"
-              },
-              {
-                name: "Actions Tech",
-                description: "Portefeuille d'actions technologiques",
-                return: "12.3%",
-                risk: "Technologie",
-                category: "Actions"
-              },
-              {
-                name: "REIT Immobilier",
-                description: "Fonds d'investissement immobilier",
-                return: "7.8%",
-                risk: "Immobilier",
-                category: "REIT"
-              }
-            ].map((opportunity, index) => (
-              <div key={index} className="bg-gray-800 rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-white mb-1">{opportunity.name}</h3>
-                    <p className="text-sm text-gray-400 mb-2">{opportunity.description}</p>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-xs bg-gray-700 px-2 py-1 rounded">
-                        {opportunity.category}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        Risque: {opportunity.risk}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-right mr-4">
-                    <p className="text-lg font-bold text-accent">{opportunity.return}</p>
-                  </div>
-                  <button className="bg-accent text-bg-dark px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors">
-                    Investir
-                  </button>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>
