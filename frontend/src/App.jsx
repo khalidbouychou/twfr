@@ -15,7 +15,7 @@ import Contactus from "./components/Contactus";
 import FinancialProfilingStepper from './components/Profiling/FinancialProfilingStepper';
 import UserDashboard from './components/Dashboard/UserDashboard';
 import InvestmentPortfolio from './components/Invest/InvestmentPortfolio';
-import { UserProvider } from './components/Context/UserContext';
+import { UserProvider } from './components/Context/UserContext.jsx';
 
 const LandingPage = () => (
   <>

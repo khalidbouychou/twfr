@@ -18,7 +18,7 @@ import {
   Area
 } from "recharts";
 import { RecommendationEngine, ROICalculator } from "../Algo";
-import { useUserContext } from "../Context/UserContext";
+import { useUserContext } from "../Context/useUserContext";
 
 const UserDashboard = () => {
   const { pendingInvestment, clearPendingInvestment } = useUserContext();
@@ -300,6 +300,8 @@ const UserDashboard = () => {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [notificationHistory, setNotificationHistory] = useState([]);
   const [transactionsHistory, setTransactionsHistory] = useState([]);
+  const [showDateFilter, setShowDateFilter] = useState(false);
+  const [dateFilter, setDateFilter] = useState('6months');
   
   const notificationRef = useRef(null);
 
@@ -316,6 +318,9 @@ const UserDashboard = () => {
       }
       if (showSettingsModal) {
         setShowSettingsModal(false);
+      }
+      if (showDateFilter && !event.target.closest('.date-filter-container')) {
+        setShowDateFilter(false);
       }
     };
 
@@ -2038,6 +2043,8 @@ const UserDashboard = () => {
                 </div>
 
                 {/* Notification History Section */}
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
                   <h3 className="text-xl font-bold text-white mb-4">
                     Historique des Notifications
@@ -2096,7 +2103,208 @@ const UserDashboard = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Investment Revenue Chart */}
+                                 <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm flex justify-center">
+                   <div className="w-full max-w-sm bg-white/5 rounded-lg shadow-sm border border-white/10 p-4 md:p-6">
+                    <div className="flex justify-between border-white/20 border-b pb-3">
+                      <dl>
+                        <dt className="text-base font-normal text-white/60 pb-1">Profit</dt>
+                        <dd className="leading-none text-3xl font-bold text-white">
+                          {calculateTotalProfits().toLocaleString()} Dhs
+                        </dd>
+                      </dl>
+                      <div>
+                        <span className="bg-green-500/20 text-green-400 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md">
+                          <svg className="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
+                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
+                          </svg>
+                          Profit rate {portfolioData.globalPerformance.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 py-3">
+                      <dl>
+                        <dt className="text-base font-normal text-white/60 pb-1">Investi</dt>
+                        <dd className="leading-none text-xl font-bold text-[#3CD4AB]">
+                          {portfolioData.totalInvested.toLocaleString()} Dhs
+                        </dd>
+                      </dl>
+                      <dl>
+                        <dt className="text-base font-normal text-white/60 pb-1">Revenus</dt>
+                        <dd className="leading-none text-xl font-bold text-green-400">
+                          +{calculateTotalProfits().toLocaleString()} Dhs
+                        </dd>
+                      </dl>
+                    </div>
+
+                    {/* Simple Bar Chart using CSS */}
+                    <div className="h-32 flex items-end justify-between space-x-2 mb-4">
+                      {portfolioData.performanceHistory
+                        .slice(dateFilter === 'today' ? -1 : dateFilter === 'week' ? -7 : dateFilter === 'month' ? -30 : dateFilter === 'quarter' ? -90 : dateFilter === '6months' ? -6 : -12)
+                        .map((entry, index) => (
+                        <div key={index} className="flex-1 flex flex-col items-center">
+                          <div 
+                            className="w-full bg-[#3CD4AB]/60 rounded-t transition-all duration-300 hover:bg-[#3CD4AB]"
+                            style={{ 
+                              height: `${Math.max(10, (entry.value / Math.max(...portfolioData.performanceHistory.map(e => e.value))) * 100)}%` 
+                            }}
+                          ></div>
+                          <span className="text-white/60 text-xs mt-2">{entry.date}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 items-center border-white/20 border-t justify-between">
+                      <div className="flex justify-between items-center pt-5">
+                        {/* Date Filter Button */}
+                        <div className="relative date-filter-container">
+                          <button
+                            onClick={() => setShowDateFilter(!showDateFilter)}
+                            className="text-sm font-medium text-white/70 hover:text-white text-center inline-flex items-center transition-all duration-200 px-4 py-2 rounded-lg hover:bg-white/10 border border-white/20 hover:border-white/30"
+                            type="button">
+                            {dateFilter === 'today' ? 'Aujourd\'hui' : 
+                             dateFilter === 'week' ? 'Cette semaine' : 
+                             dateFilter === 'month' ? 'Ce mois' : 
+                             dateFilter === 'quarter' ? 'Ce trimestre' : 
+                             dateFilter === '6months' ? 'Derniers 6 mois' : 
+                             dateFilter === 'year' ? 'Cette année' : 'Derniers 6 mois'}
+                            <svg className={`w-4 h-4 ml-2 transition-transform duration-200 ${showDateFilter ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          
+                          {/* Date Filter Dropdown */}
+                          {showDateFilter && (
+                            <div className="absolute bottom-full left-0 mb-2 w-48 bg-[#0F0F19] border border-white/30 rounded-lg shadow-xl z-50 backdrop-blur-sm">
+                              <div className="p-2">
+                                <div className="text-xs text-white/40 px-3 py-1 mb-1 border-b border-white/10">Période</div>
+                                <ul className="space-y-1">
+                                  <li>
+                                    <button
+                                      onClick={() => {
+                                        setDateFilter('today');
+                                        setShowDateFilter(false);
+                                      }}
+                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                        dateFilter === 'today' 
+                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
+                                          : 'text-white/80 hover:text-white hover:bg-white/10'
+                                      }`}>
+                                      <div className="flex items-center justify-between">
+                                        <span>Aujourd'hui</span>
+                                        {dateFilter === 'today' && <span className="text-[#3CD4AB]">✓</span>}
+                                      </div>
+                                    </button>
+                                  </li>
+                                  <li>
+                                    <button
+                                      onClick={() => {
+                                        setDateFilter('week');
+                                        setShowDateFilter(false);
+                                      }}
+                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                        dateFilter === 'week' 
+                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
+                                          : 'text-white/80 hover:text-white hover:bg-white/10'
+                                      }`}>
+                                      <div className="flex items-center justify-between">
+                                        <span>Cette semaine</span>
+                                        {dateFilter === 'week' && <span className="text-[#3CD4AB]">✓</span>}
+                                      </div>
+                                    </button>
+                                  </li>
+                                  <li>
+                                    <button
+                                      onClick={() => {
+                                        setDateFilter('month');
+                                        setShowDateFilter(false);
+                                      }}
+                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                        dateFilter === 'month' 
+                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
+                                          : 'text-white/80 hover:text-white hover:bg-white/10'
+                                      }`}>
+                                      <div className="flex items-center justify-between">
+                                        <span>Ce mois</span>
+                                        {dateFilter === 'month' && <span className="text-[#3CD4AB]">✓</span>}
+                                      </div>
+                                    </button>
+                                  </li>
+                                  <li>
+                                    <button
+                                      onClick={() => {
+                                        setDateFilter('quarter');
+                                        setShowDateFilter(false);
+                                      }}
+                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                        dateFilter === 'quarter' 
+                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
+                                          : 'text-white/80 hover:text-white hover:bg-white/10'
+                                      }`}>
+                                      <div className="flex items-center justify-between">
+                                        <span>Ce trimestre</span>
+                                        {dateFilter === 'quarter' && <span className="text-[#3CD4AB]">✓</span>}
+                                      </div>
+                                    </button>
+                                  </li>
+                                  <li>
+                                    <button
+                                      onClick={() => {
+                                        setDateFilter('6months');
+                                        setShowDateFilter(false);
+                                      }}
+                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                        dateFilter === '6months' 
+                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
+                                          : 'text-white/80 hover:text-white hover:bg-white/10'
+                                      }`}>
+                                      <div className="flex items-center justify-between">
+                                        <span>Derniers 6 mois</span>
+                                        {dateFilter === '6months' && <span className="text-[#3CD4AB]">✓</span>}
+                                      </div>
+                                    </button>
+                                  </li>
+                                  <li>
+                                    <button
+                                      onClick={() => {
+                                        setDateFilter('year');
+                                        setShowDateFilter(false);
+                                      }}
+                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                        dateFilter === 'year' 
+                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
+                                          : 'text-white/80 hover:text-white hover:bg-white/10'
+                                      }`}>
+                                      <div className="flex items-center justify-between">
+                                        <span>Cette année</span>
+                                        {dateFilter === 'year' && <span className="text-[#3CD4AB]">✓</span>}
+                                      </div>
+                                    </button>
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Revenue Report Link */}
+                        <button
+                          onClick={() => setCurrentPage("portfolio")}
+                          className="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-[#3CD4AB] hover:text-[#3CD4AB] hover:bg-[#3CD4AB]/10 px-4 py-2 transition-all duration-200 border border-[#3CD4AB]/30 hover:border-[#3CD4AB]/50 group">
+                          <span>Rapport Complet</span>
+                          <svg className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+              </div>
+
             )}
 
             {/* Investments Page */}

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { RecommendationEngine, ROICalculator } from '../Algo';
-import { useUserContext } from '../Context/UserContext';
+import { useUserContext } from '../Context/useUserContext';
 
 const QUESTION_CATEGORIES = [
   {
@@ -79,7 +79,7 @@ const initialForm = {
   inclusionPolicies: '',
 };
 
-export default function FinancialProfilingStepper() {
+const FinancialProfilingStepper = () => {
   const { updateUserProfile, updateUserResults } = useUserContext();
   const [formData, setFormData] = useState(initialForm);
   const [categoryIndex, setCategoryIndex] = useState(0);
@@ -438,3 +438,4 @@ export default function FinancialProfilingStepper() {
     </div>
   );
 } 
+export default FinancialProfilingStepper;
