@@ -1,4 +1,4 @@
-import tawfirProducts from '../Resultat/Products/Tawfir_Products.json';
+import tawfirProducts from '../Products/Tawfir_Products.json';
 
 class RecommendationEngine {
   constructor() {

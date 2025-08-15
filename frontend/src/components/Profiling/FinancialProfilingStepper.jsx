@@ -127,8 +127,8 @@ export default function FinancialProfilingStepper() {
       setRecommendations(results);
       
       // Store recommendations in localStorage
-      localStorage.setItem('tawfir_user_recommendations', JSON.stringify(results));
-      localStorage.setItem('tawfir_user_profile', JSON.stringify(transformForm(formData)));
+      localStorage.setItem('userResults', JSON.stringify(results));
+      // localStorage.setItem('userProfileData', JSON.stringify(transformForm(formData)));
     }
   };
 
@@ -329,7 +329,7 @@ export default function FinancialProfilingStepper() {
                     <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                       <h4 className="text-xl font-semibold text-gray-800 mb-4">Produits recommandés avec ROI</h4>
                       <div className="grid md:grid-cols-2 gap-4">
-                        {recommendations.matchedProducts.slice(0, 4).map((p, idx) => {
+                        {recommendations.matchedProducts.map((p, idx) => {
                           // Calculate ROI for different time periods
                           const investmentAmount = 10000; // Example investment amount
                           const roi1Year = ROICalculator.calculateSimpleROI(investmentAmount, p.roi_annuel !== undefined ? p.roi_annuel : 5, 1);

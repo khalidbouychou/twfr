@@ -1,114 +1,42 @@
 import React from 'react';
+import realProducts from '../Products/Tawfir_Products.json';
 
-// Mock products data - in a real app this would come from an API
-const MOCK_PRODUCTS = [
-  {
-    id: 1,
-    nom_produit: "Livret A",
-    type: "Épargne",
-    risque: 1,
-    duree_recommandee: "Court terme",
-    rendement: "3%",
-    montant_min: 100,
-    avatar: "/assets/saving.svg",
-    categories: ["Épargne", "Sécurité"],
-    compatibilite: {
-      age: { "0-18": 0.9, "19-59": 0.8, "60+": 0.9 },
-      incomeRange: { "Moins de 3000 Dhs": 0.9, "3000 - 6000 Dhs": 0.8, "Plus de 6000 Dhs": 0.7 },
-      savingsDuration: { "Court terme": 0.9, "Moyen terme": 0.7, "Long terme": 0.5 },
-      riskTolerance: { "Faible": 0.9, "Modéré": 0.7, "Élevé": 0.4 }
-    }
-  },
-  {
-    id: 2,
-    nom_produit: "Fonds Équilibré",
-    type: "Fonds",
-    risque: 4,
-    duree_recommandee: "Moyen terme",
-    rendement: "6-8%",
-    montant_min: 1000,
-    avatar: "/assets/products.svg",
-    categories: ["Fonds", "Équilibré"],
-    compatibilite: {
-      age: { "0-18": 0.6, "19-59": 0.8, "60+": 0.7 },
-      incomeRange: { "Moins de 3000 Dhs": 0.6, "3000 - 6000 Dhs": 0.8, "Plus de 6000 Dhs": 0.9 },
-      savingsDuration: { "Court terme": 0.5, "Moyen terme": 0.9, "Long terme": 0.8 },
-      riskTolerance: { "Faible": 0.5, "Modéré": 0.9, "Élevé": 0.7 }
-    }
-  },
-  {
-    id: 3,
-    nom_produit: "Actions Tech",
-    type: "Actions",
-    risque: 6,
-    duree_recommandee: "Long terme",
-    rendement: "10-15%",
-    montant_min: 5000,
-    avatar: "/assets/stock.png",
-    categories: ["Actions", "Croissance"],
-    compatibilite: {
-      age: { "0-18": 0.7, "19-59": 0.8, "60+": 0.5 },
-      incomeRange: { "Moins de 3000 Dhs": 0.4, "3000 - 6000 Dhs": 0.7, "Plus de 6000 Dhs": 0.9 },
-      savingsDuration: { "Court terme": 0.3, "Moyen terme": 0.6, "Long terme": 0.9 },
-      riskTolerance: { "Faible": 0.3, "Modéré": 0.6, "Élevé": 0.9 }
-    }
-  },
-  {
-    id: 4,
-    nom_produit: "Obligations d'État",
-    type: "Obligations",
-    risque: 2,
-    duree_recommandee: "Moyen terme",
-    rendement: "4-5%",
-    montant_min: 2000,
-    avatar: "/assets/OPCVM.jpg",
-    categories: ["Obligations", "Sécurité"],
-    compatibilite: {
-      age: { "0-18": 0.5, "19-59": 0.7, "60+": 0.8 },
-      incomeRange: { "Moins de 3000 Dhs": 0.7, "3000 - 6000 Dhs": 0.8, "Plus de 6000 Dhs": 0.8 },
-      savingsDuration: { "Court terme": 0.6, "Moyen terme": 0.8, "Long terme": 0.7 },
-      riskTolerance: { "Faible": 0.8, "Modéré": 0.7, "Élevé": 0.5 }
-    }
-  },
-  {
-    id: 5,
-    nom_produit: "Immobilier Locatif",
-    type: "Immobilier",
-    risque: 5,
-    duree_recommandee: "Long terme",
-    rendement: "8-12%",
-    montant_min: 100000,
-    avatar: "/assets/managed.jpg",
-    categories: ["Immobilier", "Rendement"],
-    compatibilite: {
-      age: { "0-18": 0.3, "19-59": 0.8, "60+": 0.6 },
-      incomeRange: { "Moins de 3000 Dhs": 0.2, "3000 - 6000 Dhs": 0.6, "Plus de 6000 Dhs": 0.9 },
-      savingsDuration: { "Court terme": 0.2, "Moyen terme": 0.5, "Long terme": 0.9 },
-      riskTolerance: { "Faible": 0.4, "Modéré": 0.7, "Élevé": 0.8 }
-    }
-  },
-  {
-    id: 6,
-    nom_produit: "Cryptomonnaies",
-    type: "Crypto",
-    risque: 7,
-    duree_recommandee: "Long terme",
-    rendement: "20-50%",
-    montant_min: 100,
-    avatar: "/assets/marketstock.png",
-    categories: ["Crypto", "Spéculatif"],
-    compatibilite: {
-      age: { "0-18": 0.8, "19-59": 0.7, "60+": 0.4 },
-      incomeRange: { "Moins de 3000 Dhs": 0.6, "3000 - 6000 Dhs": 0.7, "Plus de 6000 Dhs": 0.8 },
-      savingsDuration: { "Court terme": 0.4, "Moyen terme": 0.6, "Long terme": 0.8 },
-      riskTolerance: { "Faible": 0.2, "Modéré": 0.5, "Élevé": 0.9 }
-    }
+// Real products data from Tawfir_Products.json with ROI information
+const REAL_PRODUCTS = realProducts.map(product => ({
+  id: product.id,
+  nom_produit: product.nom_produit,
+  type: product.famille,
+  risque: product.risque,
+  duree_recommandee: product.duree_recommandee,
+  rendement: `${product.rendement_annuel_moyen}%`,
+  rendement_annuel_moyen: product.rendement_annuel_moyen,
+  montant_min: product.ticket_entree_minimum,
+  avatar: product.avatar,
+  categories: [product.famille, product.type_investissement],
+  description: product.description,
+  // Add ROI fields for better display
+  roi_annuel: product.rendement_annuel_moyen,
+  roi_3_ans: product.rendement_annuel_moyen * 3,
+  roi_5_ans: product.rendement_annuel_moyen * 5,
+  roi_10_ans: product.rendement_annuel_moyen * 10,
+  volatilite: product.volatilite === "très faible" ? 1 : 
+              product.volatilite === "faible" ? 2 : 
+              product.volatilite === "modérée" ? 4 : 
+              product.volatilite === "élevée" ? 7 : 5,
+  frais_annuels: product.famille === "actions" ? 1.5 : 
+                 product.famille === "obligations" ? 1.0 : 
+                 product.famille === "épargne" ? 0.5 : 1.0,
+  compatibilite: {
+    age: { "0-18": 0.9, "19-59": 0.8, "60+": 0.9 },
+    incomeRange: { "Moins de 3000 Dhs": 0.9, "3000 - 6000 Dhs": 0.8, "Plus de 6000 Dhs": 0.7 },
+    savingsDuration: { "Court terme": 0.9, "Moyen terme": 0.7, "Long terme": 0.5 },
+    riskTolerance: { "Faible": 0.9, "Modéré": 0.7, "Élevé": 0.4 }
   }
-];
+}));
 
 export class RecommendationEngine {
   constructor() {
-    this.products = MOCK_PRODUCTS;
+    this.products = REAL_PRODUCTS;
   }
 
   // Calculate risk tolerance based on user answers

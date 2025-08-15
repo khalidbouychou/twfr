@@ -41,7 +41,7 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
   
   useEffect(() => {
     if (!userResults) {
-      const stored = localStorage.getItem('tawfir_user_recommendations');
+      const stored = localStorage.getItem('userResults');
       if (stored) {
         try {
           setLocalRecommendations(JSON.parse(stored));
@@ -165,10 +165,14 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
         totalInvested += amount;
         
         // Calculate expected returns using ROI calculator
-        const roi1Year = ROICalculator.calculateSimpleROI(amount, product.roi_annuel || 5, 1);
-        const roi3Years = ROICalculator.calculateSimpleROI(amount, product.roi_annuel || 5, 3);
-        const roi5Years = ROICalculator.calculateSimpleROI(amount, product.roi_annuel || 5, 5);
-        const roi10Years = ROICalculator.calculateSimpleROI(amount, product.roi_annuel || 5, 10);
+        // Use rendement_annuel_moyen from real products, fallback to roi_annuel, then to 5%
+        const annualReturn = product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
+                           (product.roi_annuel !== undefined ? product.roi_annuel : 5);
+        
+        const roi1Year = ROICalculator.calculateSimpleROI(amount, annualReturn, 1);
+        const roi3Years = ROICalculator.calculateSimpleROI(amount, annualReturn, 3);
+        const roi5Years = ROICalculator.calculateSimpleROI(amount, annualReturn, 5);
+        const roi10Years = ROICalculator.calculateSimpleROI(amount, annualReturn, 10);
 
         const expectedValue = roi5Years.futureValue; // Use 5-year projection
         totalExpectedValue += expectedValue;
@@ -436,7 +440,8 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
                       <div className="text-sm text-blue-600 font-medium">Rendement</div>
                       <div className="text-lg font-bold text-blue-800">
-                        {product.roi_annuel || 'N/A'}%
+                        {product.rendement_annuel_moyen !== undefined ? `${product.rendement_annuel_moyen}%` : 
+                         (product.roi_annuel !== undefined ? `${product.roi_annuel}%` : 'N/A')}
                       </div>
                     </div>
                     <div className="text-center p-3 bg-green-50 rounded-lg">
@@ -448,25 +453,37 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                   </div>
 
                   {/* ROI Projections */}
-                  {product.roi_annuel && (
+                  {(product.rendement_annuel_moyen !== undefined || product.roi_annuel !== undefined) && (
                     <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                       <div className="text-sm font-medium text-gray-700 mb-2">Projections ROI (10,000 Dhs)</div>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div className="text-center">
                           <div className="font-semibold text-green-600">
-                            {product.roi_3_ans ? `+${product.roi_3_ans}%` : 'N/A'}
+                            {(() => {
+                              const annualReturn = product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
+                                                (product.roi_annuel !== undefined ? product.roi_annuel : 0);
+                              return annualReturn > 0 ? `+${(annualReturn * 3).toFixed(1)}%` : 'N/A';
+                            })()}
                           </div>
                           <div className="text-gray-500">3 ans</div>
                         </div>
                         <div className="text-center">
                           <div className="font-semibold text-blue-600">
-                            {product.roi_5_ans ? `+${product.roi_5_ans}%` : 'N/A'}
+                            {(() => {
+                              const annualReturn = product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
+                                                (product.roi_annuel !== undefined ? product.roi_annuel : 0);
+                              return annualReturn > 0 ? `+${(annualReturn * 5).toFixed(1)}%` : 'N/A';
+                            })()}
                           </div>
                           <div className="text-gray-500">5 ans</div>
                         </div>
                         <div className="text-center">
                           <div className="font-semibold text-purple-600">
-                            {product.roi_10_ans ? `+${product.roi_10_ans}%` : 'N/A'}
+                            {(() => {
+                              const annualReturn = product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
+                                                (product.roi_annuel !== undefined ? product.roi_annuel : 0);
+                              return annualReturn > 0 ? `+${(annualReturn * 10).toFixed(1)}%` : 'N/A';
+                            })()}
                           </div>
                           <div className="text-gray-500">10 ans</div>
                         </div>
@@ -680,7 +697,10 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-gray-500">ROI annuel</div>
-                        <div className="text-lg font-bold text-green-600">{product.roi_annuel || 'N/A'}%</div>
+                        <div className="text-lg font-bold text-green-600">
+                          {product.rendement_annuel_moyen !== undefined ? `${product.rendement_annuel_moyen}%` : 
+                           (product.roi_annuel !== undefined ? `${product.roi_annuel}%` : 'N/A')}
+                        </div>
                       </div>
                     </div>
                     

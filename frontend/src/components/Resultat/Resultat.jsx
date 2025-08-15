@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RecommendationEngine } from '../Algo/Algo';
+import { RecommendationEngine } from '../Algo';
 
 const Resultat = ({ userAnswers, onBackToProfiling }) => {
   const [recommendations, setRecommendations] = useState(null);

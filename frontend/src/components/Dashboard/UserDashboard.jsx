@@ -21,14 +21,14 @@ import { RecommendationEngine, ROICalculator } from "../Algo";
 import { useUserContext } from "../Context/UserContext";
 
 const UserDashboard = () => {
-  const { userProfileData, userResults, pendingInvestment, clearPendingInvestment } = useUserContext();
+  const { pendingInvestment, clearPendingInvestment } = useUserContext();
   
   // Mock user data since we removed authentication
   const userData = {
-    name: 'Utilisateur Demo',
+    name: 'KHALID',
     email: 'demo@tawfir.ai',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DemoUser',
-    createdAt: new Date('2024-01-01')
+    avatar: 'https://cdn.intra.42.fr/users/74758a0eee89f55f72d656fc0645b523/khbouych.jpg',
+    createdAt: new Date()
   };
   
   const navigate = useNavigate();
@@ -74,6 +74,35 @@ const UserDashboard = () => {
 
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Read userProfileData and userResults from localStorage
+  const [userProfileData, setUserProfileData] = useState(null);
+  const [userResults, setUserResults] = useState(null);
+
+  // Read data from localStorage
+  useEffect(() => {
+    const storedUserProfile = localStorage.getItem('userProfileData');
+    if (storedUserProfile) {
+      try {
+        const parsedUserProfile = JSON.parse(storedUserProfile);
+        setUserProfileData(parsedUserProfile);
+      } catch (error) {
+        console.error('Error parsing stored userProfileData:', error);
+        setUserProfileData(null);
+      }
+    }
+
+    const storedUserResults = localStorage.getItem('userResults');
+    if (storedUserResults) {
+      try {
+        const parsedUserResults = JSON.parse(storedUserResults);
+        setUserResults(parsedUserResults);
+      } catch (error) {
+        console.error('Error parsing stored userResults:', error);
+        setUserResults(null);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // Actualités via fournisseurs multiples (FR): Newsdata -> GNews -> NewsAPI -> Mediastack -> ContextualWeb

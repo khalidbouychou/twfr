@@ -60,7 +60,7 @@ const customStyles = `
   }
 `;
 
-  import tawfirProducts from '../Resultat/Products/Tawfir_Products.json';
+  import tawfirProducts from '../Products/Tawfir_Products.json';
   
   const InvestmentPortfolio = () => {
   const { userProfile, userResults } = useUserContext();
@@ -89,8 +89,8 @@ const customStyles = `
 
   // Load recommendations from localStorage on component mount
   useEffect(() => {
-    const storedRecommendations = localStorage.getItem('tawfir_user_recommendations');
-    const storedProfile = localStorage.getItem('tawfir_user_profile');
+    const storedRecommendations = localStorage.getItem('userResults');
+    const storedProfile = localStorage.getItem('userProfileData');
     
     if (storedRecommendations) {
       try {
@@ -180,14 +180,14 @@ const customStyles = `
 
   // Handle profit operations
   const clearLocalStorageData = () => {
-    localStorage.removeItem('tawfir_user_recommendations');
-    localStorage.removeItem('tawfir_user_profile');
+    localStorage.removeItem('userResults');
+    localStorage.removeItem('userProfileData');
     setLocalRecommendations(null);
     console.log('LocalStorage data cleared');
   };
 
   const refreshLocalRecommendations = () => {
-    const storedRecommendations = localStorage.getItem('tawfir_user_recommendations');
+    const storedRecommendations = localStorage.getItem('userResults');
     if (storedRecommendations) {
       try {
         const parsedRecommendations = JSON.parse(storedRecommendations);
@@ -422,13 +422,15 @@ const customStyles = `
         id: index + 1,
         name: product.nom_produit,
         description: `${product.duree_recommandee} • ${product.enveloppe_gestion}`,
-        expectedReturn: product.roi_annuel !== undefined ? product.roi_annuel : 5,
+        expectedReturn: product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
+                       (product.roi_annuel !== undefined ? product.roi_annuel : 5),
         risk: getValidRiskValue(product.risque),
         minInvestment: 1000,
         category: getProductCategory(product.nom_produit),
         icon: getProductIcon(product.nom_produit),
         avatar: product.avatar,
-        roi_annuel: product.roi_annuel,
+        roi_annuel: product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
+                   (product.roi_annuel !== undefined ? product.roi_annuel : 5),
         roi_3_ans: product.roi_3_ans,
         roi_5_ans: product.roi_5_ans,
         roi_10_ans: product.roi_10_ans,
@@ -446,13 +448,15 @@ const customStyles = `
         id: index + 1,
         name: product.nom_produit,
         description: `${product.duree_recommandee} • ${product.enveloppe_gestion}`,
-        expectedReturn: product.roi_annuel !== undefined ? product.roi_annuel : 5,
+        expectedReturn: product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
+                       (product.roi_annuel !== undefined ? product.roi_annuel : 5),
         risk: getValidRiskValue(product.risque),
         minInvestment: 1000,
         category: getProductCategory(product.nom_produit),
         icon: getProductIcon(product.nom_produit),
         avatar: product.avatar,
-        roi_annuel: product.roi_annuel,
+        roi_annuel: product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
+                   (product.roi_annuel !== undefined ? product.roi_annuel : 5),
         roi_3_ans: product.roi_3_ans,
         roi_5_ans: product.roi_5_ans,
         roi_10_ans: product.roi_10_ans,
@@ -469,13 +473,15 @@ const customStyles = `
       id: index + 1,
       name: product.nom_produit,
       description: `${product.duree_recommandee} • ${product.enveloppe_gestion}`,
-      expectedReturn: product.roi_annuel !== undefined ? product.roi_annuel : 5,
+      expectedReturn: product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
+                       (product.roi_annuel !== undefined ? product.roi_annuel : 5),
       risk: getValidRiskValue(product.risque),
       minInvestment: 1000,
       category: getProductCategory(product.nom_produit),
-      icon: getProductIcon(product.nom_produit),
-      avatar: product.avatar,
-      roi_annuel: product.roi_annuel,
+        icon: getProductIcon(product.nom_produit),
+        avatar: product.avatar,
+        roi_annuel: product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
+                   (product.roi_annuel !== undefined ? product.roi_annuel : 5),
       roi_3_ans: product.roi_3_ans,
       roi_5_ans: product.roi_5_ans,
       roi_10_ans: product.roi_10_ans,
