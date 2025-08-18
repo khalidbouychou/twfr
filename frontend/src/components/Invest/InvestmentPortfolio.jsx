@@ -13,7 +13,7 @@ import {
   IoInformation
 } from 'react-icons/io5';
 import { ROICalculator, RecommendationEngine } from '../Algo';
-import { useUserContext } from '../Context/UserContext';
+import { useUserContext } from '../Context/useUserContext';
 import DrivenInvestmentRecommendations from './DrivenInvestmentRecommendations';
 
 // Custom CSS to hide default scrollbars

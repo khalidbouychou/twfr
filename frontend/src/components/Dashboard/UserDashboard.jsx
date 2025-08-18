@@ -18,7 +18,7 @@ import {
   Area
 } from "recharts";
 import { RecommendationEngine, ROICalculator } from "../Algo";
-import { useUserContext } from "../Context/UserContext";
+import { useUserContext } from "../Context/useUserContext";
 
 const UserDashboard = () => {
   const { pendingInvestment, clearPendingInvestment } = useUserContext();

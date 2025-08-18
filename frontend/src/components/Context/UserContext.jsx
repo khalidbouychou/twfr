@@ -1,9 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { UserContext } from './UserContext.js';
 
-
-
-
 export const UserProvider = ({ children }) => {
   const [userProfileData, setUserProfileData] = useState(null);
   const [userResults, setUserResults] = useState(null);
