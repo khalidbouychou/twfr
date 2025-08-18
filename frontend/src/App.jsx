@@ -16,6 +16,7 @@ import FinancialProfilingStepper from './components/Profiling/FinancialProfiling
 import UserDashboard from './components/Dashboard/UserDashboard';
 import InvestmentPortfolio from './components/Invest/InvestmentPortfolio';
 import { UserProvider } from './components/Context/UserContext.jsx';
+import Login from './components/Login/Login';
 
 const LandingPage = () => (
   <>
@@ -59,6 +60,7 @@ const App = () => {
       <BrowserRouter>
         <Routes>
           {/* Public routes */}
+          <Route path="/login" element={<Login />} />
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/portfolio" element={<InvestmentPortfolio />} />
