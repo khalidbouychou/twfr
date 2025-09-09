@@ -12,11 +12,12 @@ import Reviews from "./components/Feedbacks";
 import News from "./components/News";
 import Footer from "./components/Footer";
 import Contactus from "./components/Contactus";
-import FinancialProfilingStepper from './components/Profiling/FinancialProfilingStepper';
+// import FinancialProfilingStepper from './components/Profiling/FinancialProfilingStepper';
 import UserDashboard from './components/Dashboard/UserDashboard';
 import InvestmentPortfolio from './components/Invest/InvestmentPortfolio';
 import { UserProvider } from './components/Context/UserContext.jsx';
 import Login from './components/Login/Login';
+import Stepper from './components/Profiling/Stepper';
 
 const LandingPage = () => (
   <>
@@ -63,8 +64,8 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<UserDashboard />} />
-          <Route path="/portfolio" element={<InvestmentPortfolio />} />
-          <Route path="/simulation" element={<FinancialProfilingStepper />} />
+          {/* <Route path="/portfolio" element={<InvestmentPortfolio />} /> */}
+          <Route path="/simulation" element={<Stepper/>} />
           
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />

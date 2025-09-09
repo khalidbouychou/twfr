@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef , useContext } from 'react';
 // import { Link, useNavigate } from 'react-router-dom';
 import { Link} from 'react-router-dom';
+import {UserContext}  from './Context/UserContext.jsx'
+
 
 const Navbar = () => {
   // const navigate = useNavigate();
@@ -9,6 +11,8 @@ const Navbar = () => {
   const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState('home');
   const productsDropdownRef = useRef(null);
+  const { isLoggedIn } = useContext(UserContext);
+  
 
   // Close desktop dropdown when clicking outside
   useEffect(() => {
@@ -107,15 +111,17 @@ const Navbar = () => {
           <Link to="/simulation" className="text-[#3CD4AB] px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white border border-solid border-[#3CD4AB]">
             Simuler un projet
           </Link>
+         {console.log(isLoggedIn)}
+         {isLoggedIn ? (
           <Link to="/dashboard" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
             Mon Profile
           </Link>
-          <Link to="/signin" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
+         ) : (
+          <Link  to="/login" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
             Se connecter
           </Link>
-          <Link to="/signup" className="text-[#3CD4AB] px-6 py-2 border border-[#3CD4AB] rounded-full text-lg hover:bg-[#3CD4AB] hover:text-[#0F0F19] transition-colors">
-            S'inscrire
-          </Link>
+         )}
+
         </div>
 
         {/* Burger menu */}

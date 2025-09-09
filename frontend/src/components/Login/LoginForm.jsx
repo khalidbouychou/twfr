@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState , useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { UserContext } from '../Context/UserContext';
+
 
 const LoginForm = ({ onSwitchToSignup }) => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const { setIsLoggedIn} = useContext(UserContext);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -90,6 +95,13 @@ const LoginForm = ({ onSwitchToSignup }) => {
 
             {/* Submit Button */}
             <Button
+              onClick={(e) => {
+                e.preventDefault();
+                localStorage.setItem('isLogin', 'true');
+                setIsLoggedIn(true);
+                navigate('/dashboard');
+              }}
+            
               type="submit"
               className="w-full bg-gradient-to-r from-[#3CD4AB] to-[#3CD4AB]/80 hover:from-[#3CD4AB]/90 hover:to-[#3CD4AB] text-white font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
             >

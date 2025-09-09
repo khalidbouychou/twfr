@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useContext } from "react";
+import { UserContext } from "../Context/UserContext";
 import { useNavigate, Link } from "react-router-dom";
+import { LogOut, UserRoundCog } from "lucide-react";
 import {
   PieChart,
   Pie,
@@ -21,16 +23,18 @@ import { RecommendationEngine, ROICalculator } from "../Algo";
 import { useUserContext } from "../Context/useUserContext";
 
 const UserDashboard = () => {
+  const { setIsLoggedIn } = useContext(UserContext);
   const { pendingInvestment, clearPendingInvestment } = useUserContext();
-  
+
   // Mock user data since we removed authentication
   const userData = {
-    name: 'KHALID',
-    email: 'demo@tawfir.ai',
-    avatar: 'https://cdn.intra.42.fr/users/74758a0eee89f55f72d656fc0645b523/khbouych.jpg',
+    name: "KHALID",
+    email: "demo@tawfir.ai",
+    avatar:
+      "https://cdn.intra.42.fr/users/74758a0eee89f55f72d656fc0645b523/khbouych.jpg",
     createdAt: new Date()
   };
-  
+
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -81,24 +85,24 @@ const UserDashboard = () => {
 
   // Read data from localStorage
   useEffect(() => {
-    const storedUserProfile = localStorage.getItem('userProfileData');
+    const storedUserProfile = localStorage.getItem("userProfileData");
     if (storedUserProfile) {
       try {
         const parsedUserProfile = JSON.parse(storedUserProfile);
         setUserProfileData(parsedUserProfile);
       } catch (error) {
-        console.error('Error parsing stored userProfileData:', error);
+        console.error("Error parsing stored userProfileData:", error);
         setUserProfileData(null);
       }
     }
 
-    const storedUserResults = localStorage.getItem('userResults');
+    const storedUserResults = localStorage.getItem("userResults");
     if (storedUserResults) {
       try {
         const parsedUserResults = JSON.parse(storedUserResults);
         setUserResults(parsedUserResults);
       } catch (error) {
-        console.error('Error parsing stored userResults:', error);
+        console.error("Error parsing stored userResults:", error);
         setUserResults(null);
       }
     }
@@ -106,110 +110,138 @@ const UserDashboard = () => {
 
   useEffect(() => {
     // Actualités via fournisseurs multiples (FR): Newsdata -> GNews -> NewsAPI -> Mediastack -> ContextualWeb
-    const NEWSDATA_KEY = 'pub_a433db815e694abe98923ab9daac2de5';
+    const NEWSDATA_KEY = "pub_a433db815e694abe98923ab9daac2de5";
     const GNEWS_KEY = import.meta.env.VITE_GNEWS_KEY;
     const NEWSAPI_KEY = import.meta.env.VITE_NEWSAPI_KEY;
     const MEDIASTACK_KEY = import.meta.env.VITE_MEDIASTACK_KEY;
     const CTX_NEWS_KEY = import.meta.env.VITE_CTX_NEWS_KEY; // RapidAPI key
-    const CTX_NEWS_HOST = import.meta.env.VITE_CTX_NEWS_HOST || 'contextualwebsearch-websearch-v1.p.rapidapi.com';
+    const CTX_NEWS_HOST =
+      import.meta.env.VITE_CTX_NEWS_HOST ||
+      "contextualwebsearch-websearch-v1.p.rapidapi.com";
 
     const q = 'finance OR bourse OR "marché boursier" OR investissement';
 
     const getFromNewsdata = async () => {
-      if (!NEWSDATA_KEY) throw new Error('no_newsdata_key');
-      const url = `https://newsdata.io/api/1/news?apikey=${NEWSDATA_KEY}&language=fr&category=business&q=${encodeURIComponent(q)}`;
+      if (!NEWSDATA_KEY) throw new Error("no_newsdata_key");
+      const url = `https://newsdata.io/api/1/news?apikey=${NEWSDATA_KEY}&language=fr&category=business&q=${encodeURIComponent(
+        q
+      )}`;
       const r = await fetch(url);
-      if (!r.ok) throw new Error('newsdata_err');
+      if (!r.ok) throw new Error("newsdata_err");
       const data = await r.json();
       const items = Array.isArray(data.results) ? data.results : [];
-      return items.map(a => ({
-        title: a.title,
-        description: a.description,
-        url: a.link,
-        image: a.image_url,
-        source: a.source_id,
-        publishedAt: a.pubDate ? new Date(a.pubDate).toISOString() : null,
-      })).filter(n => n.title && n.url);
+      return items
+        .map((a) => ({
+          title: a.title,
+          description: a.description,
+          url: a.link,
+          image: a.image_url,
+          source: a.source_id,
+          publishedAt: a.pubDate ? new Date(a.pubDate).toISOString() : null
+        }))
+        .filter((n) => n.title && n.url);
     };
 
     const getFromGNews = async () => {
-      if (!GNEWS_KEY) throw new Error('no_gnews_key');
-      const url = `https://gnews.io/api/v4/top-headlines?lang=fr&topic=business&max=20&apikey=${GNEWS_KEY}&q=${encodeURIComponent(q)}`;
+      if (!GNEWS_KEY) throw new Error("no_gnews_key");
+      const url = `https://gnews.io/api/v4/top-headlines?lang=fr&topic=business&max=20&apikey=${GNEWS_KEY}&q=${encodeURIComponent(
+        q
+      )}`;
       const r = await fetch(url);
-      if (!r.ok) throw new Error('gnews_err');
+      if (!r.ok) throw new Error("gnews_err");
       const data = await r.json();
       const items = Array.isArray(data.articles) ? data.articles : [];
-      return items.map(a => ({
-        title: a.title,
-        description: a.description,
-        url: a.url,
-        image: a.image,
-        source: a.source?.name,
-        publishedAt: a.publishedAt,
-      })).filter(n => n.title && n.url);
+      return items
+        .map((a) => ({
+          title: a.title,
+          description: a.description,
+          url: a.url,
+          image: a.image,
+          source: a.source?.name,
+          publishedAt: a.publishedAt
+        }))
+        .filter((n) => n.title && n.url);
     };
 
     const getFromNewsAPI = async () => {
-      if (!NEWSAPI_KEY) throw new Error('no_newsapi_key');
-      const url = `https://newsapi.org/v2/everything?language=fr&pageSize=20&sortBy=publishedAt&q=${encodeURIComponent(q)}&apiKey=${NEWSAPI_KEY}`;
+      if (!NEWSAPI_KEY) throw new Error("no_newsapi_key");
+      const url = `https://newsapi.org/v2/everything?language=fr&pageSize=20&sortBy=publishedAt&q=${encodeURIComponent(
+        q
+      )}&apiKey=${NEWSAPI_KEY}`;
       const r = await fetch(url);
-      if (!r.ok) throw new Error('newsapi_err');
+      if (!r.ok) throw new Error("newsapi_err");
       const data = await r.json();
       const items = Array.isArray(data.articles) ? data.articles : [];
-      return items.map(a => ({
-        title: a.title,
-        description: a.description,
-        url: a.url,
-        image: a.urlToImage,
-        source: a.source?.name,
-        publishedAt: a.publishedAt,
-      })).filter(n => n.title && n.url);
+      return items
+        .map((a) => ({
+          title: a.title,
+          description: a.description,
+          url: a.url,
+          image: a.urlToImage,
+          source: a.source?.name,
+          publishedAt: a.publishedAt
+        }))
+        .filter((n) => n.title && n.url);
     };
 
     const getFromMediastack = async () => {
-      if (!MEDIASTACK_KEY) throw new Error('no_mediastack_key');
-      const url = `https://api.mediastack.com/v1/news?access_key=${MEDIASTACK_KEY}&languages=fr&categories=business&limit=20&sort=published_desc&keywords=${encodeURIComponent(q)}`;
+      if (!MEDIASTACK_KEY) throw new Error("no_mediastack_key");
+      const url = `https://api.mediastack.com/v1/news?access_key=${MEDIASTACK_KEY}&languages=fr&categories=business&limit=20&sort=published_desc&keywords=${encodeURIComponent(
+        q
+      )}`;
       const r = await fetch(url);
-      if (!r.ok) throw new Error('mediastack_err');
+      if (!r.ok) throw new Error("mediastack_err");
       const data = await r.json();
       const items = Array.isArray(data.data) ? data.data : [];
-      return items.map(a => ({
-        title: a.title,
-        description: a.description,
-        url: a.url,
-        image: a.image,
-        source: a.source,
-        publishedAt: a.published_at,
-      })).filter(n => n.title && n.url);
+      return items
+        .map((a) => ({
+          title: a.title,
+          description: a.description,
+          url: a.url,
+          image: a.image,
+          source: a.source,
+          publishedAt: a.published_at
+        }))
+        .filter((n) => n.title && n.url);
     };
 
     const getFromContextualWeb = async () => {
-      if (!CTX_NEWS_KEY) throw new Error('no_ctx_key');
-      const url = `https://${CTX_NEWS_HOST}/api/Search/NewsSearchAPI?q=${encodeURIComponent(q)}&pageNumber=1&pageSize=20&autoCorrect=true&fromPublishedDate=null&toPublishedDate=null&safeSearch=false&withThumbnails=true&textDecorations=false&freshness=Week&setLang=fr`;
+      if (!CTX_NEWS_KEY) throw new Error("no_ctx_key");
+      const url = `https://${CTX_NEWS_HOST}/api/Search/NewsSearchAPI?q=${encodeURIComponent(
+        q
+      )}&pageNumber=1&pageSize=20&autoCorrect=true&fromPublishedDate=null&toPublishedDate=null&safeSearch=false&withThumbnails=true&textDecorations=false&freshness=Week&setLang=fr`;
       const r = await fetch(url, {
         headers: {
-          'X-RapidAPI-Key': CTX_NEWS_KEY,
-          'X-RapidAPI-Host': CTX_NEWS_HOST,
+          "X-RapidAPI-Key": CTX_NEWS_KEY,
+          "X-RapidAPI-Host": CTX_NEWS_HOST
         }
       });
-      if (!r.ok) throw new Error('ctx_err');
+      if (!r.ok) throw new Error("ctx_err");
       const data = await r.json();
       const items = Array.isArray(data.value) ? data.value : [];
-      return items.map(a => ({
-        title: a.title,
-        description: a.description,
-        url: a.url,
-        image: a.image?.url,
-        source: a.provider?.name,
-        publishedAt: a.datePublished,
-      })).filter(n => n.title && n.url);
+      return items
+        .map((a) => ({
+          title: a.title,
+          description: a.description,
+          url: a.url,
+          image: a.image?.url,
+          source: a.provider?.name,
+          publishedAt: a.datePublished
+        }))
+        .filter((n) => n.title && n.url);
     };
 
     const loadNews = async () => {
       setNewsLoading(true);
       setNewsError(null);
       let articles = [];
-      const providers = [getFromNewsdata, getFromGNews, getFromNewsAPI, getFromMediastack, getFromContextualWeb];
+      const providers = [
+        getFromNewsdata,
+        getFromGNews,
+        getFromNewsAPI,
+        getFromMediastack,
+        getFromContextualWeb
+      ];
       for (const fn of providers) {
         try {
           articles = await fn();
@@ -225,27 +257,36 @@ const UserDashboard = () => {
     loadNews();
 
     // Indices via Finnhub (avec fallback ETF)
-    const FINNHUB_TOKEN = 'd1ofk41r01qjadrjqv70d1ofk41r01qjadrjqv7g';
+    const FINNHUB_TOKEN = "d1ofk41r01qjadrjqv70d1ofk41r01qjadrjqv7g";
     // Crypto marché (Binance pairs)
     const symbols = [
-      { sym: 'BINANCE:BTCUSDT', label: 'Bitcoin (BTC/USDT)' },
-      { sym: 'BINANCE:ETHUSDT', label: 'Ethereum (ETH/USDT)' },
-      { sym: 'BINANCE:SOLUSDT', label: 'Solana (SOL/USDT)' },
+      { sym: "BINANCE:BTCUSDT", label: "Bitcoin (BTC/USDT)" },
+      { sym: "BINANCE:ETHUSDT", label: "Ethereum (ETH/USDT)" },
+      { sym: "BINANCE:SOLUSDT", label: "Solana (SOL/USDT)" }
     ];
     const fetchQuote = (symbol) =>
-      fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_TOKEN}`)
-        .then(r => r.ok ? r.json() : Promise.reject('q_err'));
+      fetch(
+        `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(
+          symbol
+        )}&token=${FINNHUB_TOKEN}`
+      ).then((r) => (r.ok ? r.json() : Promise.reject("q_err")));
 
     const loadQuotes = async () => {
       const out = [];
       for (const s of symbols) {
         try {
           const q = await fetchQuote(s.sym);
-          if (q && typeof q.c === 'number') {
-            out.push({ symbol: s.sym, label: s.label, price: q.c, change: q.d || 0, changesPercentage: q.dp || 0 });
+          if (q && typeof q.c === "number") {
+            out.push({
+              symbol: s.sym,
+              label: s.label,
+              price: q.c,
+              change: q.d || 0,
+              changesPercentage: q.dp || 0
+            });
           }
         } catch {
-          console.warn('Quote fetch failed for', s.sym);
+          console.warn("Quote fetch failed for", s.sym);
         }
       }
       setMarketQuotes(out);
@@ -301,16 +342,19 @@ const UserDashboard = () => {
   const [notificationHistory, setNotificationHistory] = useState([]);
   const [transactionsHistory, setTransactionsHistory] = useState([]);
   const [showDateFilter, setShowDateFilter] = useState(false);
-  const [dateFilter, setDateFilter] = useState('6months');
-  
+  const [dateFilter, setDateFilter] = useState("6months");
+
   const notificationRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
         setShowNotifications(false);
       }
-      if (showMobileMenu && !event.target.closest('.mobile-menu-container')) {
+      if (showMobileMenu && !event.target.closest(".mobile-menu-container")) {
         setShowMobileMenu(false);
       }
       if (showUserMenu) {
@@ -319,7 +363,7 @@ const UserDashboard = () => {
       if (showSettingsModal) {
         setShowSettingsModal(false);
       }
-      if (showDateFilter && !event.target.closest('.date-filter-container')) {
+      if (showDateFilter && !event.target.closest(".date-filter-container")) {
         setShowDateFilter(false);
       }
     };
@@ -328,7 +372,7 @@ const UserDashboard = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showMobileMenu, showUserMenu, showSettingsModal]);
+  }, []);
 
   const handleBalanceOperation = () => {
     const amount = parseFloat(balanceAmount);
@@ -350,9 +394,9 @@ const UserDashboard = () => {
           type: "deposit",
           amount,
           method: paymentMethodName,
-          date: new Date().toLocaleString("fr-FR"),
+          date: new Date().toLocaleString("fr-FR")
         },
-        ...prev,
+        ...prev
       ]);
       const newNotif = {
         id: Date.now(),
@@ -370,7 +414,7 @@ const UserDashboard = () => {
       setNotifications((prev) => [newNotif, ...prev.slice(0, 2)]);
       setNotificationHistory((prev) => [
         { ...newNotif, receivedAt: new Date().toLocaleString("fr-FR") },
-        ...prev,
+        ...prev
       ]);
     } else if (balanceOperation === "withdraw") {
       if (amount > userBalance) {
@@ -388,7 +432,7 @@ const UserDashboard = () => {
         setNotifications((prev) => [failNotif, ...prev.slice(0, 2)]);
         setNotificationHistory((prev) => [
           { ...failNotif, receivedAt: new Date().toLocaleString("fr-FR") },
-          ...prev,
+          ...prev
         ]);
         return;
       }
@@ -400,9 +444,9 @@ const UserDashboard = () => {
           type: "withdraw",
           amount,
           method: paymentMethodName,
-          date: new Date().toLocaleString("fr-FR"),
+          date: new Date().toLocaleString("fr-FR")
         },
-        ...prev,
+        ...prev
       ]);
       const successNotif = {
         id: Date.now(),
@@ -420,7 +464,7 @@ const UserDashboard = () => {
       setNotifications((prev) => [successNotif, ...prev.slice(0, 2)]);
       setNotificationHistory((prev) => [
         { ...successNotif, receivedAt: new Date().toLocaleString("fr-FR") },
-        ...prev,
+        ...prev
       ]);
     }
 
@@ -447,7 +491,7 @@ const UserDashboard = () => {
       setNotifications((prev) => [noProfitNotif, ...prev.slice(0, 2)]);
       setNotificationHistory((prev) => [
         { ...noProfitNotif, receivedAt: new Date().toLocaleString("fr-FR") },
-        ...prev,
+        ...prev
       ]);
       return;
     }
@@ -474,8 +518,11 @@ const UserDashboard = () => {
       };
       setNotifications((prev) => [profitWithdrawNotif, ...prev.slice(0, 2)]);
       setNotificationHistory((prev) => [
-        { ...profitWithdrawNotif, receivedAt: new Date().toLocaleString("fr-FR") },
-        ...prev,
+        {
+          ...profitWithdrawNotif,
+          receivedAt: new Date().toLocaleString("fr-FR")
+        },
+        ...prev
       ]);
 
       setInvestmentHistory((prevHistory) =>
@@ -492,9 +539,9 @@ const UserDashboard = () => {
           type: "profit_withdraw",
           amount: totalProfits,
           method: paymentMethodName,
-          date: new Date().toLocaleString("fr-FR"),
+          date: new Date().toLocaleString("fr-FR")
         },
-        ...prev,
+        ...prev
       ]);
     } else if (profitOperation === "add") {
       setUserBalance((prev) => prev + totalProfits);
@@ -513,7 +560,7 @@ const UserDashboard = () => {
       setNotifications((prev) => [profitAddNotif, ...prev.slice(0, 2)]);
       setNotificationHistory((prev) => [
         { ...profitAddNotif, receivedAt: new Date().toLocaleString("fr-FR") },
-        ...prev,
+        ...prev
       ]);
 
       setInvestmentHistory((prevHistory) =>
@@ -530,9 +577,9 @@ const UserDashboard = () => {
           type: "profit_to_balance",
           amount: totalProfits,
           method: "internal",
-          date: new Date().toLocaleString("fr-FR"),
+          date: new Date().toLocaleString("fr-FR")
         },
-        ...prev,
+        ...prev
       ]);
     }
 
@@ -838,7 +885,7 @@ const UserDashboard = () => {
     setNotifications((prev) => [simNotif, ...prev.slice(0, 2)]);
     setNotificationHistory((prev) => [
       { ...simNotif, receivedAt: new Date().toLocaleString("fr-FR") },
-      ...prev,
+      ...prev
     ]);
 
     setSimulationForm({
@@ -1017,9 +1064,9 @@ const UserDashboard = () => {
         type: "invest",
         amount,
         method: selectedInvestment.name,
-        date: new Date().toLocaleString("fr-FR"),
+        date: new Date().toLocaleString("fr-FR")
       },
-      ...prev,
+      ...prev
     ]);
 
     const investNotif = {
@@ -1040,7 +1087,7 @@ const UserDashboard = () => {
     setNotifications((prev) => [investNotif, ...prev.slice(0, 2)]);
     setNotificationHistory((prev) => [
       { ...investNotif, receivedAt: new Date().toLocaleString("fr-FR") },
-      ...prev,
+      ...prev
     ]);
 
     setShowInvestPopup(false);
@@ -1097,7 +1144,9 @@ const UserDashboard = () => {
   useEffect(() => {
     if (pendingInvestment) {
       setSelectedInvestment(pendingInvestment.product);
-      setInvestAmount(String(pendingInvestment.amount || pendingInvestment.product?.min || ""));
+      setInvestAmount(
+        String(pendingInvestment.amount || pendingInvestment.product?.min || "")
+      );
       setCurrentPage("investments");
       setShowInvestPopup(true);
       clearPendingInvestment();
@@ -1108,26 +1157,41 @@ const UserDashboard = () => {
     if (!userResults || !userResults.matchedProducts) return [];
     return userResults.matchedProducts.map((p) => {
       // Calculate ROI for different investment amounts
-                          const roi1Year = ROICalculator.calculateSimpleROI(10000, p.roi_annuel !== undefined ? p.roi_annuel : 5, 1);
-                    const roi3Years = ROICalculator.calculateSimpleROI(10000, p.roi_annuel !== undefined ? p.roi_annuel : 5, 3);
-                    const roi5Years = ROICalculator.calculateSimpleROI(10000, p.roi_annuel !== undefined ? p.roi_annuel : 5, 5);
-      
+      const roi1Year = ROICalculator.calculateSimpleROI(
+        10000,
+        p.roi_annuel !== undefined ? p.roi_annuel : 5,
+        1
+      );
+      const roi3Years = ROICalculator.calculateSimpleROI(
+        10000,
+        p.roi_annuel !== undefined ? p.roi_annuel : 5,
+        3
+      );
+      const roi5Years = ROICalculator.calculateSimpleROI(
+        10000,
+        p.roi_annuel !== undefined ? p.roi_annuel : 5,
+        5
+      );
+
       return {
         name: p.nom_produit,
         risk: Number(p.risque) || 3,
-        return: `${Math.max(3, Math.min(12, Math.round((p.overallCompatibility/10)+5)))}%`,
+        return: `${Math.max(
+          3,
+          Math.min(12, Math.round(p.overallCompatibility / 10 + 5))
+        )}%`,
         min: 1000,
         description: p.duree_recommandee,
         image: p.avatar || "/public/assets/marketstock.png",
         roi: {
-                                  annual: p.roi_annuel !== undefined ? p.roi_annuel : 5,
+          annual: p.roi_annuel !== undefined ? p.roi_annuel : 5,
           roi1Year: roi1Year.roiPercentage,
           roi3Years: roi3Years.roiPercentage,
           roi5Years: roi5Years.roiPercentage,
           volatility: p.volatilite || 5,
           fees: p.frais_annuels || 1,
           dividends: p.volatilite || 0,
-          liquidity: p.liquidite || 'Standard'
+          liquidity: p.liquidite || "Standard"
         }
       };
     });
@@ -1145,7 +1209,9 @@ const UserDashboard = () => {
                 <div className="w-8 h-8 bg-[#89559F] rounded-lg flex items-center justify-center mr-3">
                   <span className="text-white font-bold text-lg">T</span>
                 </div>
-                <span className="text-white font-semibold text-lg hidden sm:block">TawfirAI</span>
+                <span className="text-white font-semibold text-lg hidden sm:block">
+                  <img src="../public/assets/logo.svg" alt="" />
+                </span>
               </div>
 
               {/* Mobile Menu Button */}
@@ -1153,8 +1219,18 @@ const UserDashboard = () => {
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
                 className="lg:hidden p-2 text-white hover:bg-white/10 rounded-lg"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 </svg>
               </button>
 
@@ -1236,39 +1312,67 @@ const UserDashboard = () => {
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center gap-2 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
                   >
-                    <img 
-                      src={userData?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'} 
-                      alt="Avatar" 
+                    <img
+                      src={
+                        userData?.avatar ||
+                        "https://api.dicebear.com/7.x/avataaars/svg?seed=User"
+                      }
+                      alt="Avatar"
                       className="w-7 h-7 rounded-full"
                     />
-                    <span className="text-white text-sm hidden xl:block">{userData?.name || 'Utilisateur'}</span>
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <span className="text-white text-sm hidden xl:block">
+                      {userData?.name || "Utilisateur"}
+                    </span>
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </button>
-                  
+
                   {showUserMenu && (
                     <div className="absolute right-0 mt-2 w-48 bg-[#0F0F19] border border-[#89559F]/30 rounded-lg shadow-lg z-50">
                       <div className="p-3 border-b border-white/10">
-                        <div className="text-white font-medium">{userData?.name}</div>
+                        <div className="text-white font-medium">
+                          {userData?.name}
+                        </div>
                       </div>
                       <div className="p-1">
                         <button
-                          onClick={() => { setShowUserMenu(false); setShowSettingsModal(true); }}
+                          onClick={() => {
+                            setShowSettingsModal(true);
+                            setShowUserMenu(false);
+
+                          }}
                           className="w-full text-left px-3 py-2 text-white hover:bg-white/10 rounded-md transition-colors"
                         >
-                          ⚙️ Paramètres
+                          <div className="flex items-center gap-2">
+                            <UserRoundCog className="w-4 h-4 mr-2" />
+                            <p>Paramètres</p>
+                          </div>
                         </button>
+
                         <button
                           onClick={() => {
-                            console.log('Logout button clicked in user menu');
+                           localStorage.removeItem('isLogin');
+                           setIsLoggedIn(false);
+                           navigate('/login');
                             setShowUserMenu(false);
-                            console.log('Logout function called, navigating to signin');
-                            navigate('/signin');
                           }}
-                          className="w-full text-left px-3 py-2 text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
+                          className="cursor-pointer w-full text-left px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex items-center"
                         >
-                          🚪 Déconnexion
+                          <div className="flex items-center gap-2">
+                            <LogOut className="w-4 h-4 mr-2" />
+                            <p>Déconnexion</p>
+                          </div>
                         </button>
                       </div>
                     </div>
@@ -1347,14 +1451,16 @@ const UserDashboard = () => {
                         <button
                           onClick={() => {
                             if (notifications.length > 0) {
-                              const clearedAt = new Date().toLocaleString("fr-FR");
+                              const clearedAt = new Date().toLocaleString(
+                                "fr-FR"
+                              );
                               setNotificationHistory((prev) => [
                                 ...notifications.map((n) => ({
                                   ...n,
                                   isRead: n.isRead || false,
                                   clearedAt
                                 })),
-                                ...prev,
+                                ...prev
                               ]);
                             }
                             setNotifications([]);
@@ -1451,13 +1557,18 @@ const UserDashboard = () => {
 
               {/* User Info */}
               <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                <img 
-                  src={userData?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'} 
-                  alt="Avatar" 
+                <img
+                  src={
+                    userData?.avatar ||
+                    "https://api.dicebear.com/7.x/avataaars/svg?seed=User"
+                  }
+                  alt="Avatar"
                   className="w-12 h-12 rounded-full"
                 />
                 <div className="flex-1">
-                  <div className="text-white font-semibold">{userData?.name || 'Utilisateur'}</div>
+                  <div className="text-white font-semibold">
+                    {userData?.name || "Utilisateur"}
+                  </div>
                   <div className="text-white/60 text-sm">{userData?.email}</div>
                 </div>
               </div>
@@ -1471,7 +1582,10 @@ const UserDashboard = () => {
                   }}
                   className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center"
                 >
-                  ⚙️ Paramètres
+                  <div className="flex items-center gap-2">
+                    <UserRoundCog className="w-4 h-4 mr-2" />
+                    <p>Paramètres</p>
+                  </div>
                 </button>
                 <button
                   onClick={() => {
@@ -1484,12 +1598,16 @@ const UserDashboard = () => {
                 </button>
                 <button
                   onClick={() => {
-                    // logout();
-                    navigate('/signin');
+                    alert("mobile");
+                    console.log("mobile");
+                    setShowUserMenu(false);
                   }}
-                  className="w-full text-left px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex items-center"
+                  className="cursor-pointer w-full text-left px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex items-center"
                 >
-                  🚪 Déconnexion
+                  <div className="flex items-center gap-2">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    <p>Déconnexion</p>
+                  </div>
                 </button>
               </div>
             </div>
@@ -1497,11 +1615,16 @@ const UserDashboard = () => {
         )}
 
         {/* Sidebar */}
+          
+          
         <aside
-          className={`fixed top-0 left-0 z-40 w-64 h-screen pt-14 transition-transform ${
+          className={`fixed top-0 left-0 z-40 w-64 h-screen pt-5 transition-transform ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } bg-[#0F0F19] border-r border-white/10 md:translate-x-0`}
         >
+          <div className='flex  justify-center'>
+           <a href='/' className='cursor-pointer'><img src="../../../public/logo.svg" className="w-15 h-15" alt="" /></a>
+          </div>
           <div className="h-full px-3 pb-4 overflow-y-auto bg-[#0F0F19]">
             <ul className="space-y-2 pt-4">
               <li>
@@ -1632,13 +1755,25 @@ const UserDashboard = () => {
                   <div className="p-4 bg-white/5 border border-[#89559F]/30 rounded-lg shadow backdrop-blur-sm">
                     <div className="flex items-center">
                       <div className="inline-flex items-center justify-center flex-shrink-0 w-10 h-10 text-[#3CD4AB] bg-[#3CD4AB]/20 rounded-lg">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"></path>
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                            clipRule="evenodd"
+                          ></path>
                         </svg>
                       </div>
                       <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">Solde</p>
-                        <p className="text-2xl font-bold text-white">{userBalance.toLocaleString()} Dhs</p>
+                        <p className="text-sm font-medium text-white/60">
+                          Solde
+                        </p>
+                        <p className="text-2xl font-bold text-white">
+                          {userBalance.toLocaleString()} Dhs
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1647,13 +1782,25 @@ const UserDashboard = () => {
                   <div className="p-4 bg-white/5 border border-[#89559F]/30 rounded-lg shadow backdrop-blur-sm">
                     <div className="flex items-center">
                       <div className="inline-flex items-center justify-center flex-shrink-0 w-10 h-10 text-[#3CD4AB] bg-[#3CD4AB]/20 rounded-lg">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"></path>
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                            clipRule="evenodd"
+                          ></path>
                         </svg>
                       </div>
                       <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">Total Investi</p>
-                        <p className="text-2xl font-bold text-white">{portfolioData.totalInvested.toLocaleString()} Dhs</p>
+                        <p className="text-sm font-medium text-white/60">
+                          Total Investi
+                        </p>
+                        <p className="text-2xl font-bold text-white">
+                          {portfolioData.totalInvested.toLocaleString()} Dhs
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1662,13 +1809,27 @@ const UserDashboard = () => {
                   <div className="p-4 bg-white/5 border border-[#89559F]/30 rounded-lg shadow backdrop-blur-sm">
                     <div className="flex items-center">
                       <div className="inline-flex items-center justify-center flex-shrink-0 w-10 h-10 text-green-400 bg-green-500/10 rounded-lg">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                          />
                         </svg>
                       </div>
                       <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">Profits Totaux</p>
-                        <p className="text-2xl font-bold text-green-400">{calculateTotalProfits().toLocaleString()} Dhs</p>
+                        <p className="text-sm font-medium text-white/60">
+                          Profits Totaux
+                        </p>
+                        <p className="text-2xl font-bold text-green-400">
+                          {calculateTotalProfits().toLocaleString()} Dhs
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1677,13 +1838,21 @@ const UserDashboard = () => {
                   <div className="p-4 bg-white/5 border border-[#89559F]/30 rounded-lg shadow backdrop-blur-sm">
                     <div className="flex items-center">
                       <div className="inline-flex items-center justify-center flex-shrink-0 w-10 h-10 text-[#3CD4AB] bg-[#3CD4AB]/20 rounded-lg">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
                           <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                       </div>
                       <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">Investissements</p>
-                        <p className="text-2xl font-bold text-white">{investmentHistory.length}</p>
+                        <p className="text-sm font-medium text-white/60">
+                          Investissements
+                        </p>
+                        <p className="text-2xl font-bold text-white">
+                          {investmentHistory.length}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1741,28 +1910,85 @@ const UserDashboard = () => {
                   {/* Portfolio Performance Chart */}
                   <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-white font-semibold">Évolution du Portefeuille</h3>
+                      <h3 className="text-white font-semibold">
+                        Évolution du Portefeuille
+                      </h3>
                     </div>
                     <div className="h-60">
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={portfolioData.performanceHistory} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <AreaChart
+                          data={portfolioData.performanceHistory}
+                          margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                        >
                           <defs>
-                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#3CD4AB" stopOpacity={0.6}/>
-                              <stop offset="95%" stopColor="#3CD4AB" stopOpacity={0}/>
+                            <linearGradient
+                              id="colorValue"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="5%"
+                                stopColor="#3CD4AB"
+                                stopOpacity={0.6}
+                              />
+                              <stop
+                                offset="95%"
+                                stopColor="#3CD4AB"
+                                stopOpacity={0}
+                              />
                             </linearGradient>
-                            <linearGradient id="colorBenchmark" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#89559F" stopOpacity={0.5}/>
-                              <stop offset="95%" stopColor="#89559F" stopOpacity={0}/>
+                            <linearGradient
+                              id="colorBenchmark"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="5%"
+                                stopColor="#89559F"
+                                stopOpacity={0.5}
+                              />
+                              <stop
+                                offset="95%"
+                                stopColor="#89559F"
+                                stopOpacity={0}
+                              />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#ffffff20"
+                          />
                           <XAxis dataKey="date" stroke="#ffffff80" />
                           <YAxis stroke="#ffffff80" />
-                          <Tooltip contentStyle={{ backgroundColor: '#0F0F19', border: '1px solid #ffffff20', borderRadius: '8px', color: '#ffffff' }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#0F0F19",
+                              border: "1px solid #ffffff20",
+                              borderRadius: "8px",
+                              color: "#ffffff"
+                            }}
+                          />
                           <Legend />
-                          <Area type="monotone" dataKey="value" name="Portefeuille" stroke="#3CD4AB" fillOpacity={1} fill="url(#colorValue)" />
-                          <Area type="monotone" dataKey="benchmark" name="Benchmark" stroke="#89559F" fillOpacity={1} fill="url(#colorBenchmark)" />
+                          <Area
+                            type="monotone"
+                            dataKey="value"
+                            name="Portefeuille"
+                            stroke="#3CD4AB"
+                            fillOpacity={1}
+                            fill="url(#colorValue)"
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="benchmark"
+                            name="Benchmark"
+                            stroke="#89559F"
+                            fillOpacity={1}
+                            fill="url(#colorBenchmark)"
+                          />
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
@@ -1771,28 +1997,55 @@ const UserDashboard = () => {
                   {/* Transactions History */}
                   <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-white font-semibold">Historique des Transactions</h3>
+                      <h3 className="text-white font-semibold">
+                        Historique des Transactions
+                      </h3>
                     </div>
                     {transactionsHistory.length === 0 ? (
-                      <p className="text-white/60">Aucune transaction pour le moment.</p>
+                      <p className="text-white/60">
+                        Aucune transaction pour le moment.
+                      </p>
                     ) : (
                       <ul className="divide-y divide-white/10">
                         {transactionsHistory.slice(0, 8).map((t) => (
-                          <li key={t.id} className="py-3 flex items-center justify-between">
+                          <li
+                            key={t.id}
+                            className="py-3 flex items-center justify-between"
+                          >
                             <div>
                               <p className="text-white font-medium">
-                                {t.type === 'deposit' && <span className="text-[#3CD4AB]">+{t.amount.toLocaleString()} Dhs</span>}
-                                {t.type === 'withdraw' && <span className="text-red-400">-{t.amount.toLocaleString()} Dhs</span>}
-                                {t.type === 'profit_withdraw' && <span className="text-orange-400">-{t.amount.toLocaleString()} Dhs</span>}
-                                {t.type === 'profit_to_balance' && <span className="text-green-400">+{t.amount.toLocaleString()} Dhs</span>}
+                                {t.type === "deposit" && (
+                                  <span className="text-[#3CD4AB]">
+                                    +{t.amount.toLocaleString()} Dhs
+                                  </span>
+                                )}
+                                {t.type === "withdraw" && (
+                                  <span className="text-red-400">
+                                    -{t.amount.toLocaleString()} Dhs
+                                  </span>
+                                )}
+                                {t.type === "profit_withdraw" && (
+                                  <span className="text-orange-400">
+                                    -{t.amount.toLocaleString()} Dhs
+                                  </span>
+                                )}
+                                {t.type === "profit_to_balance" && (
+                                  <span className="text-green-400">
+                                    +{t.amount.toLocaleString()} Dhs
+                                  </span>
+                                )}
                               </p>
-                              <p className="text-white/60 text-sm">{t.method} • {t.date}</p>
+                              <p className="text-white/60 text-sm">
+                                {t.method} • {t.date}
+                              </p>
                             </div>
                             <span className="text-white/60 text-xs bg-white/10 px-2 py-1 rounded">
-                              {t.type === 'deposit' && 'Dépôt'}
-                              {t.type === 'withdraw' && 'Retrait'}
-                              {t.type === 'profit_withdraw' && 'Retrait Profits'}
-                              {t.type === 'profit_to_balance' && 'Profits → Solde'}
+                              {t.type === "deposit" && "Dépôt"}
+                              {t.type === "withdraw" && "Retrait"}
+                              {t.type === "profit_withdraw" &&
+                                "Retrait Profits"}
+                              {t.type === "profit_to_balance" &&
+                                "Profits → Solde"}
                             </span>
                           </li>
                         ))}
@@ -2045,266 +2298,373 @@ const UserDashboard = () => {
                 {/* Notification History Section */}
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                  <h3 className="text-xl font-bold text-white mb-4">
-                    Historique des Notifications
-                  </h3>
-                  <div className="space-y-4">
-                    {notificationHistory.length > 0 ? (
-                      notificationHistory.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className="flex items-start space-x-3 p-4 bg-white/5 rounded-lg"
-                        >
-                          <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-[#3CD4AB]/20 rounded-full flex items-center justify-center">
-                              {getNotificationIcon(notification.type)}
-                            </div>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="text-white font-medium text-sm">
-                              {notification.title}
-                            </h4>
-                            <p className="text-white/60 text-sm mt-1">
-                              {notification.message}
-                            </p>
-                            <div className="flex justify-between items-center mt-2">
-                              <span className="text-white/40 text-xs">
-                                Lu le {notification.readAt}
-                              </span>
-                              <span className="text-[#3CD4AB] text-xs">
-                                ✓ Lu
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center text-white/60 py-8">
-                        <svg
-                          className="w-12 h-12 mx-auto mb-4 text-white/40"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1}
-                            d="M15 17h5l-5 5v-5zM12 19l-7-7 3-3 7 7-3 3z"
-                          ></path>
-                        </svg>
-                        <p>Aucune notification lue pour le moment</p>
-                        <p className="text-sm mt-1">
-                          Les notifications que vous marquez comme lues
-                          apparaîtront ici
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Investment Revenue Chart */}
-                                 <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm flex justify-center">
-                   <div className="w-full max-w-sm bg-white/5 rounded-lg shadow-sm border border-white/10 p-4 md:p-6">
-                    <div className="flex justify-between border-white/20 border-b pb-3">
-                      <dl>
-                        <dt className="text-base font-normal text-white/60 pb-1">Profit</dt>
-                        <dd className="leading-none text-3xl font-bold text-white">
-                          {calculateTotalProfits().toLocaleString()} Dhs
-                        </dd>
-                      </dl>
-                      <div>
-                        <span className="bg-green-500/20 text-green-400 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md">
-                          <svg className="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
-                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
-                          </svg>
-                          Profit rate {portfolioData.globalPerformance.toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 py-3">
-                      <dl>
-                        <dt className="text-base font-normal text-white/60 pb-1">Investi</dt>
-                        <dd className="leading-none text-xl font-bold text-[#3CD4AB]">
-                          {portfolioData.totalInvested.toLocaleString()} Dhs
-                        </dd>
-                      </dl>
-                      <dl>
-                        <dt className="text-base font-normal text-white/60 pb-1">Revenus</dt>
-                        <dd className="leading-none text-xl font-bold text-green-400">
-                          +{calculateTotalProfits().toLocaleString()} Dhs
-                        </dd>
-                      </dl>
-                    </div>
-
-                    {/* Simple Bar Chart using CSS */}
-                    <div className="h-32 flex items-end justify-between space-x-2 mb-4">
-                      {portfolioData.performanceHistory
-                        .slice(dateFilter === 'today' ? -1 : dateFilter === 'week' ? -7 : dateFilter === 'month' ? -30 : dateFilter === 'quarter' ? -90 : dateFilter === '6months' ? -6 : -12)
-                        .map((entry, index) => (
-                        <div key={index} className="flex-1 flex flex-col items-center">
-                          <div 
-                            className="w-full bg-[#3CD4AB]/60 rounded-t transition-all duration-300 hover:bg-[#3CD4AB]"
-                            style={{ 
-                              height: `${Math.max(10, (entry.value / Math.max(...portfolioData.performanceHistory.map(e => e.value))) * 100)}%` 
-                            }}
-                          ></div>
-                          <span className="text-white/60 text-xs mt-2">{entry.date}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-1 items-center border-white/20 border-t justify-between">
-                      <div className="flex justify-between items-center pt-5">
-                        {/* Date Filter Button */}
-                        <div className="relative date-filter-container">
-                          <button
-                            onClick={() => setShowDateFilter(!showDateFilter)}
-                            className="text-sm font-medium text-white/70 hover:text-white text-center inline-flex items-center transition-all duration-200 px-4 py-2 rounded-lg hover:bg-white/10 border border-white/20 hover:border-white/30"
-                            type="button">
-                            {dateFilter === 'today' ? 'Aujourd\'hui' : 
-                             dateFilter === 'week' ? 'Cette semaine' : 
-                             dateFilter === 'month' ? 'Ce mois' : 
-                             dateFilter === 'quarter' ? 'Ce trimestre' : 
-                             dateFilter === '6months' ? 'Derniers 6 mois' : 
-                             dateFilter === 'year' ? 'Cette année' : 'Derniers 6 mois'}
-                            <svg className={`w-4 h-4 ml-2 transition-transform duration-200 ${showDateFilter ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-                          
-                          {/* Date Filter Dropdown */}
-                          {showDateFilter && (
-                            <div className="absolute bottom-full left-0 mb-2 w-48 bg-[#0F0F19] border border-white/30 rounded-lg shadow-xl z-50 backdrop-blur-sm">
-                              <div className="p-2">
-                                <div className="text-xs text-white/40 px-3 py-1 mb-1 border-b border-white/10">Période</div>
-                                <ul className="space-y-1">
-                                  <li>
-                                    <button
-                                      onClick={() => {
-                                        setDateFilter('today');
-                                        setShowDateFilter(false);
-                                      }}
-                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                        dateFilter === 'today' 
-                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
-                                          : 'text-white/80 hover:text-white hover:bg-white/10'
-                                      }`}>
-                                      <div className="flex items-center justify-between">
-                                        <span>Aujourd'hui</span>
-                                        {dateFilter === 'today' && <span className="text-[#3CD4AB]">✓</span>}
-                                      </div>
-                                    </button>
-                                  </li>
-                                  <li>
-                                    <button
-                                      onClick={() => {
-                                        setDateFilter('week');
-                                        setShowDateFilter(false);
-                                      }}
-                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                        dateFilter === 'week' 
-                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
-                                          : 'text-white/80 hover:text-white hover:bg-white/10'
-                                      }`}>
-                                      <div className="flex items-center justify-between">
-                                        <span>Cette semaine</span>
-                                        {dateFilter === 'week' && <span className="text-[#3CD4AB]">✓</span>}
-                                      </div>
-                                    </button>
-                                  </li>
-                                  <li>
-                                    <button
-                                      onClick={() => {
-                                        setDateFilter('month');
-                                        setShowDateFilter(false);
-                                      }}
-                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                        dateFilter === 'month' 
-                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
-                                          : 'text-white/80 hover:text-white hover:bg-white/10'
-                                      }`}>
-                                      <div className="flex items-center justify-between">
-                                        <span>Ce mois</span>
-                                        {dateFilter === 'month' && <span className="text-[#3CD4AB]">✓</span>}
-                                      </div>
-                                    </button>
-                                  </li>
-                                  <li>
-                                    <button
-                                      onClick={() => {
-                                        setDateFilter('quarter');
-                                        setShowDateFilter(false);
-                                      }}
-                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                        dateFilter === 'quarter' 
-                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
-                                          : 'text-white/80 hover:text-white hover:bg-white/10'
-                                      }`}>
-                                      <div className="flex items-center justify-between">
-                                        <span>Ce trimestre</span>
-                                        {dateFilter === 'quarter' && <span className="text-[#3CD4AB]">✓</span>}
-                                      </div>
-                                    </button>
-                                  </li>
-                                  <li>
-                                    <button
-                                      onClick={() => {
-                                        setDateFilter('6months');
-                                        setShowDateFilter(false);
-                                      }}
-                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                        dateFilter === '6months' 
-                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
-                                          : 'text-white/80 hover:text-white hover:bg-white/10'
-                                      }`}>
-                                      <div className="flex items-center justify-between">
-                                        <span>Derniers 6 mois</span>
-                                        {dateFilter === '6months' && <span className="text-[#3CD4AB]">✓</span>}
-                                      </div>
-                                    </button>
-                                  </li>
-                                  <li>
-                                    <button
-                                      onClick={() => {
-                                        setDateFilter('year');
-                                        setShowDateFilter(false);
-                                      }}
-                                      className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                        dateFilter === 'year' 
-                                          ? 'bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30' 
-                                          : 'text-white/80 hover:text-white hover:bg-white/10'
-                                      }`}>
-                                      <div className="flex items-center justify-between">
-                                        <span>Cette année</span>
-                                        {dateFilter === 'year' && <span className="text-[#3CD4AB]">✓</span>}
-                                      </div>
-                                    </button>
-                                  </li>
-                                </ul>
+                  <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
+                    <h3 className="text-xl font-bold text-white mb-4">
+                      Historique des Notifications
+                    </h3>
+                    <div className="space-y-4">
+                      {notificationHistory.length > 0 ? (
+                        notificationHistory.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className="flex items-start space-x-3 p-4 bg-white/5 rounded-lg"
+                          >
+                            <div className="flex-shrink-0">
+                              <div className="w-8 h-8 bg-[#3CD4AB]/20 rounded-full flex items-center justify-center">
+                                {getNotificationIcon(notification.type)}
                               </div>
                             </div>
-                          )}
-                        </div>
-                        
-                        {/* Revenue Report Link */}
-                        <button
-                          onClick={() => setCurrentPage("portfolio")}
-                          className="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-[#3CD4AB] hover:text-[#3CD4AB] hover:bg-[#3CD4AB]/10 px-4 py-2 transition-all duration-200 border border-[#3CD4AB]/30 hover:border-[#3CD4AB]/50 group">
-                          <span>Rapport Complet</span>
-                          <svg className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            <div className="flex-1">
+                              <h4 className="text-white font-medium text-sm">
+                                {notification.title}
+                              </h4>
+                              <p className="text-white/60 text-sm mt-1">
+                                {notification.message}
+                              </p>
+                              <div className="flex justify-between items-center mt-2">
+                                <span className="text-white/40 text-xs">
+                                  Lu le {notification.readAt}
+                                </span>
+                                <span className="text-[#3CD4AB] text-xs">
+                                  ✓ Lu
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center text-white/60 py-8">
+                          <svg
+                            className="w-12 h-12 mx-auto mb-4 text-white/40"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1}
+                              d="M15 17h5l-5 5v-5zM12 19l-7-7 3-3 7 7-3 3z"
+                            ></path>
                           </svg>
-                        </button>
+                          <p>Aucune notification lue pour le moment</p>
+                          <p className="text-sm mt-1">
+                            Les notifications que vous marquez comme lues
+                            apparaîtront ici
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Investment Revenue Chart */}
+                  <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm flex justify-center">
+                    <div className="w-full max-w-sm bg-white/5 rounded-lg shadow-sm border border-white/10 p-4 md:p-6">
+                      <div className="flex justify-between border-white/20 border-b pb-3">
+                        <dl>
+                          <dt className="text-base font-normal text-white/60 pb-1">
+                            Profit
+                          </dt>
+                          <dd className="leading-none text-3xl font-bold text-white">
+                            {calculateTotalProfits().toLocaleString()} Dhs
+                          </dd>
+                        </dl>
+                        <div>
+                          <span className="bg-green-500/20 text-green-400 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md">
+                            <svg
+                              className="w-2.5 h-2.5 me-1.5"
+                              aria-hidden="true"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 10 14"
+                            >
+                              <path
+                                stroke="currentColor"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M5 13V1m0 0L1 5m4-4 4 4"
+                              />
+                            </svg>
+                            Profit rate{" "}
+                            {portfolioData.globalPerformance.toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 py-3">
+                        <dl>
+                          <dt className="text-base font-normal text-white/60 pb-1">
+                            Investi
+                          </dt>
+                          <dd className="leading-none text-xl font-bold text-[#3CD4AB]">
+                            {portfolioData.totalInvested.toLocaleString()} Dhs
+                          </dd>
+                        </dl>
+                        <dl>
+                          <dt className="text-base font-normal text-white/60 pb-1">
+                            Revenus
+                          </dt>
+                          <dd className="leading-none text-xl font-bold text-green-400">
+                            +{calculateTotalProfits().toLocaleString()} Dhs
+                          </dd>
+                        </dl>
+                      </div>
+
+                      {/* Simple Bar Chart using CSS */}
+                      <div className="h-32 flex items-end justify-between space-x-2 mb-4">
+                        {portfolioData.performanceHistory
+                          .slice(
+                            dateFilter === "today"
+                              ? -1
+                              : dateFilter === "week"
+                              ? -7
+                              : dateFilter === "month"
+                              ? -30
+                              : dateFilter === "quarter"
+                              ? -90
+                              : dateFilter === "6months"
+                              ? -6
+                              : -12
+                          )
+                          .map((entry, index) => (
+                            <div
+                              key={index}
+                              className="flex-1 flex flex-col items-center"
+                            >
+                              <div
+                                className="w-full bg-[#3CD4AB]/60 rounded-t transition-all duration-300 hover:bg-[#3CD4AB]"
+                                style={{
+                                  height: `${Math.max(
+                                    10,
+                                    (entry.value /
+                                      Math.max(
+                                        ...portfolioData.performanceHistory.map(
+                                          (e) => e.value
+                                        )
+                                      )) *
+                                      100
+                                  )}%`
+                                }}
+                              ></div>
+                              <span className="text-white/60 text-xs mt-2">
+                                {entry.date}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+
+                      <div className="grid grid-cols-1 items-center border-white/20 border-t justify-between">
+                        <div className="flex justify-between items-center pt-5">
+                          {/* Date Filter Button */}
+                          <div className="relative date-filter-container">
+                            <button
+                              onClick={() => setShowDateFilter(!showDateFilter)}
+                              className="text-sm font-medium text-white/70 hover:text-white text-center inline-flex items-center transition-all duration-200 px-4 py-2 rounded-lg hover:bg-white/10 border border-white/20 hover:border-white/30"
+                              type="button"
+                            >
+                              {dateFilter === "today"
+                                ? "Aujourd'hui"
+                                : dateFilter === "week"
+                                ? "Cette semaine"
+                                : dateFilter === "month"
+                                ? "Ce mois"
+                                : dateFilter === "quarter"
+                                ? "Ce trimestre"
+                                : dateFilter === "6months"
+                                ? "Derniers 6 mois"
+                                : dateFilter === "year"
+                                ? "Cette année"
+                                : "Derniers 6 mois"}
+                              <svg
+                                className={`w-4 h-4 ml-2 transition-transform duration-200 ${
+                                  showDateFilter ? "rotate-180" : ""
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </button>
+
+                            {/* Date Filter Dropdown */}
+                            {showDateFilter && (
+                              <div className="absolute bottom-full left-0 mb-2 w-48 bg-[#0F0F19] border border-white/30 rounded-lg shadow-xl z-50 backdrop-blur-sm">
+                                <div className="p-2">
+                                  <div className="text-xs text-white/40 px-3 py-1 mb-1 border-b border-white/10">
+                                    Période
+                                  </div>
+                                  <ul className="space-y-1">
+                                    <li>
+                                      <button
+                                        onClick={() => {
+                                          setDateFilter("today");
+                                          setShowDateFilter(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                          dateFilter === "today"
+                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
+                                            : "text-white/80 hover:text-white hover:bg-white/10"
+                                        }`}
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <span>Aujourd'hui</span>
+                                          {dateFilter === "today" && (
+                                            <span className="text-[#3CD4AB]">
+                                              ✓
+                                            </span>
+                                          )}
+                                        </div>
+                                      </button>
+                                    </li>
+                                    <li>
+                                      <button
+                                        onClick={() => {
+                                          setDateFilter("week");
+                                          setShowDateFilter(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                          dateFilter === "week"
+                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
+                                            : "text-white/80 hover:text-white hover:bg-white/10"
+                                        }`}
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <span>Cette semaine</span>
+                                          {dateFilter === "week" && (
+                                            <span className="text-[#3CD4AB]">
+                                              ✓
+                                            </span>
+                                          )}
+                                        </div>
+                                      </button>
+                                    </li>
+                                    <li>
+                                      <button
+                                        onClick={() => {
+                                          setDateFilter("month");
+                                          setShowDateFilter(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                          dateFilter === "month"
+                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
+                                            : "text-white/80 hover:text-white hover:bg-white/10"
+                                        }`}
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <span>Ce mois</span>
+                                          {dateFilter === "month" && (
+                                            <span className="text-[#3CD4AB]">
+                                              ✓
+                                            </span>
+                                          )}
+                                        </div>
+                                      </button>
+                                    </li>
+                                    <li>
+                                      <button
+                                        onClick={() => {
+                                          setDateFilter("quarter");
+                                          setShowDateFilter(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                          dateFilter === "quarter"
+                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
+                                            : "text-white/80 hover:text-white hover:bg-white/10"
+                                        }`}
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <span>Ce trimestre</span>
+                                          {dateFilter === "quarter" && (
+                                            <span className="text-[#3CD4AB]">
+                                              ✓
+                                            </span>
+                                          )}
+                                        </div>
+                                      </button>
+                                    </li>
+                                    <li>
+                                      <button
+                                        onClick={() => {
+                                          setDateFilter("6months");
+                                          setShowDateFilter(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                          dateFilter === "6months"
+                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
+                                            : "text-white/80 hover:text-white hover:bg-white/10"
+                                        }`}
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <span>Derniers 6 mois</span>
+                                          {dateFilter === "6months" && (
+                                            <span className="text-[#3CD4AB]">
+                                              ✓
+                                            </span>
+                                          )}
+                                        </div>
+                                      </button>
+                                    </li>
+                                    <li>
+                                      <button
+                                        onClick={() => {
+                                          setDateFilter("year");
+                                          setShowDateFilter(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
+                                          dateFilter === "year"
+                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
+                                            : "text-white/80 hover:text-white hover:bg-white/10"
+                                        }`}
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <span>Cette année</span>
+                                          {dateFilter === "year" && (
+                                            <span className="text-[#3CD4AB]">
+                                              ✓
+                                            </span>
+                                          )}
+                                        </div>
+                                      </button>
+                                    </li>
+                                  </ul>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Revenue Report Link */}
+                          <button
+                            onClick={() => setCurrentPage("portfolio")}
+                            className="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-[#3CD4AB] hover:text-[#3CD4AB] hover:bg-[#3CD4AB]/10 px-4 py-2 transition-all duration-200 border border-[#3CD4AB]/30 hover:border-[#3CD4AB]/50 group"
+                          >
+                            <span>Rapport Complet</span>
+                            <svg
+                              className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 8l4 4m0 0l-4 4m4-4H3"
+                              />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              </div>
-
             )}
 
             {/* Investments Page */}
@@ -2321,8 +2681,15 @@ const UserDashboard = () => {
 
                 {!userResults || !userResults.matchedProducts?.length ? (
                   <div className="p-6 bg-white/5 border border-white/10 rounded-lg text-center">
-                    <p className="text-white/70 mb-3">Aucun produit recommandé pour le moment.</p>
-                    <Link to="/simulation" className="inline-block px-4 py-2 rounded-lg bg-[#3CD4AB] text-[#0F0F19] hover:bg-[#2bb894] font-semibold">Compléter votre profil</Link>
+                    <p className="text-white/70 mb-3">
+                      Aucun produit recommandé pour le moment.
+                    </p>
+                    <Link
+                      to="/simulation"
+                      className="inline-block px-4 py-2 rounded-lg bg-[#3CD4AB] text-[#0F0F19] hover:bg-[#2bb894] font-semibold"
+                    >
+                      Compléter votre profil
+                    </Link>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -2352,29 +2719,49 @@ const UserDashboard = () => {
                         <div className="space-y-3">
                           {/* ROI Information */}
                           <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                            <div className="text-xs text-blue-400 mb-2 font-medium">ROI sur 10,000 Dhs</div>
+                            <div className="text-xs text-blue-400 mb-2 font-medium">
+                              ROI sur 10,000 Dhs
+                            </div>
                             <div className="grid grid-cols-3 gap-2 text-xs">
                               <div className="text-center">
-                                <div className={`font-semibold ${ROICalculator.getROIColor(investment.roi.roi1Year)}`}>
-                                  {ROICalculator.formatROI(investment.roi.roi1Year)}
+                                <div
+                                  className={`font-semibold ${ROICalculator.getROIColor(
+                                    investment.roi.roi1Year
+                                  )}`}
+                                >
+                                  {ROICalculator.formatROI(
+                                    investment.roi.roi1Year
+                                  )}
                                 </div>
                                 <div className="text-white/60">1 an</div>
                               </div>
                               <div className="text-center">
-                                <div className={`font-semibold ${ROICalculator.getROIColor(investment.roi.roi3Years)}`}>
-                                  {ROICalculator.formatROI(investment.roi.roi3Years)}
+                                <div
+                                  className={`font-semibold ${ROICalculator.getROIColor(
+                                    investment.roi.roi3Years
+                                  )}`}
+                                >
+                                  {ROICalculator.formatROI(
+                                    investment.roi.roi3Years
+                                  )}
                                 </div>
                                 <div className="text-white/60">3 ans</div>
                               </div>
                               <div className="text-center">
-                                <div className={`font-semibold ${ROICalculator.getROIColor(investment.roi.roi5Years)}`}>
-                                  {ROICalculator.formatROI(investment.roi.roi5Years)}
+                                <div
+                                  className={`font-semibold ${ROICalculator.getROIColor(
+                                    investment.roi.roi5Years
+                                  )}`}
+                                >
+                                  {ROICalculator.formatROI(
+                                    investment.roi.roi5Years
+                                  )}
                                 </div>
                                 <div className="text-white/60">5 ans</div>
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="flex justify-between">
                             <span className="text-white/60">Risque</span>
                             <div className="flex items-center">
@@ -2391,7 +2778,7 @@ const UserDashboard = () => {
                               </span>
                             </div>
                           </div>
-                          
+
                           <div className="flex justify-between">
                             <span className="text-white/60">
                               Investissement min.
@@ -2400,12 +2787,16 @@ const UserDashboard = () => {
                               {investment.min.toLocaleString()} Dhs
                             </span>
                           </div>
-                          
+
                           {/* Additional ROI Details */}
                           <div className="text-xs text-white/60 space-y-1 pt-2 border-t border-white/10">
                             <div className="flex justify-between">
                               <span>ROI annuel:</span>
-                              <span className={`font-medium ${ROICalculator.getROIColor(investment.roi.annual)}`}>
+                              <span
+                                className={`font-medium ${ROICalculator.getROIColor(
+                                  investment.roi.annual
+                                )}`}
+                              >
                                 {investment.roi.annual}%
                               </span>
                             </div>
@@ -2858,17 +3249,28 @@ const UserDashboard = () => {
                         >
                           <div className="flex gap-4">
                             <img
-                              src={article.image || "/public/assets/marketstock.png"}
+                              src={
+                                article.image ||
+                                "/public/assets/marketstock.png"
+                              }
                               alt={article.title}
                               className="w-24 h-24 object-cover rounded-lg"
                             />
                             <div className="flex-1">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="inline-block bg-[#3CD4AB]/20 text-[#3CD4AB] px-2 py-1 rounded text-xs font-medium">
-                                  {article.source || 'Source inconnue'}
+                                  {article.source || "Source inconnue"}
                                 </span>
                                 <span className="text-white/60 text-sm">
-                                  {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
+                                  {article.publishedAt
+                                    ? new Date(
+                                        article.publishedAt
+                                      ).toLocaleDateString("fr-FR", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric"
+                                      })
+                                    : ""}
                                 </span>
                               </div>
                               <h3 className="text-white font-semibold text-lg mb-2">
@@ -2892,26 +3294,56 @@ const UserDashboard = () => {
 
                     <div className="space-y-6">
                       <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                        <h3 className="text-xl font-bold text-white mb-4">Marché Crypto</h3>
+                        <h3 className="text-xl font-bold text-white mb-4">
+                          Marché Crypto
+                        </h3>
                         <div className="space-y-4">
                           {marketQuotes.map((q, idx) => {
                             const change = q.change || 0;
                             const changePct = q.changesPercentage || 0;
                             const positive = change >= 0;
                             return (
-                              <div key={idx} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                                <span className="text-white font-medium">{q.label || q.symbol}</span>
+                              <div
+                                key={idx}
+                                className="flex justify-between items-center p-3 bg-white/5 rounded-lg"
+                              >
+                                <span className="text-white font-medium">
+                                  {q.label || q.symbol}
+                                </span>
                                 <div className="text-right">
-                                  <div className="text-white">{q.price ? q.price.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--'}</div>
-                                  <div className={`text-sm font-semibold ${positive ? 'text-[#3CD4AB]' : 'text-red-400'}`}>
-                                    {positive ? '+' : ''}{change.toFixed ? change.toFixed(2) : change} ({changePct.toFixed ? changePct.toFixed(2) : changePct}%)
+                                  <div className="text-white">
+                                    {q.price
+                                      ? q.price.toLocaleString("fr-FR", {
+                                          minimumFractionDigits: 2,
+                                          maximumFractionDigits: 2
+                                        })
+                                      : "--"}
+                                  </div>
+                                  <div
+                                    className={`text-sm font-semibold ${
+                                      positive
+                                        ? "text-[#3CD4AB]"
+                                        : "text-red-400"
+                                    }`}
+                                  >
+                                    {positive ? "+" : ""}
+                                    {change.toFixed
+                                      ? change.toFixed(2)
+                                      : change}{" "}
+                                    (
+                                    {changePct.toFixed
+                                      ? changePct.toFixed(2)
+                                      : changePct}
+                                    %)
                                   </div>
                                 </div>
                               </div>
                             );
                           })}
                           {marketQuotes.length === 0 && (
-                            <div className="text-center text-white/60">Données indisponibles</div>
+                            <div className="text-center text-white/60">
+                              Données indisponibles
+                            </div>
                           )}
                         </div>
                       </div>
@@ -3573,15 +4005,29 @@ const UserDashboard = () => {
                     {/* User Info Display */}
                     <div className="p-4 bg-white/5 rounded-lg">
                       <div className="flex items-center space-x-4 mb-4">
-                        <img 
-                          src={userData?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'} 
-                          alt="Avatar" 
+                        <img
+                          src={
+                            userData?.avatar ||
+                            "https://api.dicebear.com/7.x/avataaars/svg?seed=User"
+                          }
+                          alt="Avatar"
                           className="w-16 h-16 rounded-full"
                         />
                         <div>
-                          <h4 className="text-white font-semibold">{userData?.name || 'Utilisateur'}</h4>
-                          <p className="text-white/60 text-sm">{userData?.email}</p>
-                          <p className="text-white/40 text-xs">Membre depuis {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString('fr-FR') : 'récemment'}</p>
+                          <h4 className="text-white font-semibold">
+                            {userData?.name || "Utilisateur"}
+                          </h4>
+                          <p className="text-white/60 text-sm">
+                            {userData?.email}
+                          </p>
+                          <p className="text-white/40 text-xs">
+                            Membre depuis{" "}
+                            {userData?.createdAt
+                              ? new Date(userData.createdAt).toLocaleDateString(
+                                  "fr-FR"
+                                )
+                              : "récemment"}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -3592,7 +4038,11 @@ const UserDashboard = () => {
                         onClick={() => {
                           setShowSettingsModal(false);
                           // Add reset data functionality here
-                          if (window.confirm('Êtes-vous sûr de vouloir réinitialiser toutes vos données ? Cette action est irréversible.')) {
+                          if (
+                            window.confirm(
+                              "Êtes-vous sûr de vouloir réinitialiser toutes vos données ? Cette action est irréversible."
+                            )
+                          ) {
                             setUserBalance(0);
                             setInvestmentHistory([]);
                             setTransactionsHistory([]);
@@ -3621,13 +4071,22 @@ const UserDashboard = () => {
                       >
                         🔄 Réinitialiser toutes les données
                       </button>
-                      
+
                       <button
                         onClick={() => {
-                          console.log('Logout button clicked in settings modal');
-                          // logout();
-                          console.log('Logout function called from settings, navigating to signin');
-                          navigate('/signin');
+                          setShowSettingsModal(false);
+                          localStorage.removeItem("isLogin");
+                          setIsLoggedIn(false);
+                          console.log(
+                            "Logout function called from settings, navigating to login"
+                          );
+                          // Use window.location as fallback if navigate doesn't work
+                          try {
+                            navigate("/login");
+                          } catch (error) {
+                            console.error("Navigation error:", error);
+                            window.location.href = "/login";
+                          }
                         }}
                         className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
                       >
