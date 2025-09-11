@@ -3,8 +3,8 @@ import { useLoading } from './LoadingContext'
 import PeSkeleton from './PeSkeleton'
 import { UserContext } from '../Context/UserContext.jsx'
 
-const Pe = () => {
-    const { updateStepAnswers } = useContext(UserContext)
+const Pe = ({ allAnswers }) => {
+    const { updateStepAnswers, stepAnswers } = useContext(UserContext)
     const [peAnswers, setPeAnswers] = useState([])
     const { isLoading } = useLoading()
 
@@ -42,13 +42,31 @@ const Pe = () => {
         })
     }
 
+    // Initialize from global answers only when actually different
     useEffect(() => {
-        // Filter out empty answers and update step answers
-        const validAnswers = peAnswers.filter(answer => answer.q && answer.answer)
-        updateStepAnswers(1, validAnswers) // Step 1 for PE
-        console.log("PE All Answers Updated:", validAnswers)
-    }, [peAnswers, updateStepAnswers])
+        const stepIndex = 1
+        const incoming = allAnswers?.[stepIndex] || []
+        const same = JSON.stringify(incoming) === JSON.stringify(peAnswers)
+        if ((!peAnswers.length && incoming.length) || !same) {
+            setPeAnswers(incoming)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allAnswers])
 
+    useEffect(() => {
+        const stepIndex = 1
+        // Filter out empty/sparse answers defensively
+        const validAnswers = (peAnswers || []).filter(a =>
+            a && a.q && (Array.isArray(a.answer) ? a.answer.length > 0 : a.answer != null && a.answer !== '')
+        )
+        const prevForStep = stepAnswers?.[stepIndex] || []
+        const isSame = JSON.stringify(prevForStep) === JSON.stringify(validAnswers)
+        if (!isSame) {
+            updateStepAnswers(stepIndex, validAnswers) // Step 1 for PE
+            console.log("PE All Answers Updated:", validAnswers)
+        }
+    }, [peAnswers, stepAnswers, updateStepAnswers])
+    
   const lstquestion = [
     {
             question: "Quelle méthode utilisez-vous pour épargner ?",
@@ -166,40 +184,40 @@ const Pe = () => {
       {lstquestion.map((question, index) => (
                 <React.Fragment key={`question-${index}`}>
                     <div className=" flex flex-row items-start justify-between w-full gap-4 mt-8">
-           <label className="text-gray-50 w-1/2">{question.question}</label>
-           {question.type === "radio" ? (
-             <div className="flex gap-10 w-1/2 justify-start">
-               {question.options.map((option, optionIndex) => (
+          <label className="text-gray-50 w-1/2">{question.question}</label>
+          {question.type === "radio" ? (
+            <div className="flex gap-10 w-1/2 justify-start">
+              {question.options.map((option, optionIndex) => (
                                     <label key={`radio-${index}-${optionIndex}`} className="flex items-center gap-2 cursor-pointer">
-                   <input
-                     type="radio"
-                     name={`question-${index}`}
+                  <input
+                    type="radio"
+                    name={`question-${index}`}
                                             value={option.label}
-                     className="w-4 h-4 text-green-50 accent-emerald-400 rounded-full"
+                    className="w-4 h-4 text-green-50 accent-emerald-400 rounded-full"
                                             onChange={() => handleRadioChange(index, option.label)}
                                             checked={peAnswers[index]?.answer === option.label}
-                   />
-                   {option.icon}
-                   <span className="text-gray-50">{option.label}</span>
+                  />
+                  {option.icon}
+                  <span className="text-gray-50">{option.label}</span>
                                     </label>
-               ))}
-             </div>
-           ) : (
-             <form className="w-1/2">
+              ))}
+            </div>
+          ) : (
+            <form className="w-1/2">
                                 <select 
                                     className="w-full font-light rounded-lg border-none bg-white/80 p-2 placeholder-gray-500"
                                     onChange={(e) => handleSelectChange(index, e.target.value)}
                                     value={peAnswers[index]?.answer || "select"}
                                 >
                                     <option className='text-gray-500' value="select">Sélectionnez une option</option>
-                 {question.options.map((option, optionIndex) => (
+                {question.options.map((option, optionIndex) => (
                                         <option key={`option-${index}-${optionIndex}`} value={option.label}>{option.label}</option>
-                 ))}
-               </select>
-             </form>
-           )}
-     </div>
-     {index !== lstquestion.length - 1 && <hr className='border-0.5 border-gray-500 w-full mt-4' />}
+                ))}
+              </select>
+            </form>
+          )}
+    </div>
+    {index !== lstquestion.length - 1 && <hr className='border-0.5 border-gray-500 w-full mt-4' />}
                 </React.Fragment>
       ))}
     </div>

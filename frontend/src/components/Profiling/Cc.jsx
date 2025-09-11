@@ -4,14 +4,19 @@ import CcSkeleton from './CcSkeleton'
 import { UserContext } from '../Context/UserContext.jsx'
 
 const Cc = ({ allAnswers }) => {
-    const { updateStepAnswers } = useContext(UserContext)
+    const { updateStepAnswers, stepAnswers } = useContext(UserContext)
     const [kycAnswers , setKycAnswers] = useState([])
 
-    // Initialize answers from previous steps or existing answers
+    // Initialize answers from previous steps or existing answers (guarded)
     useEffect(() => {
-        if (allAnswers && allAnswers[0]) {
-            setKycAnswers(allAnswers[0])
+        const incoming = allAnswers && allAnswers[0] ? allAnswers[0] : []
+        // Only set if local is empty OR content differs
+        const incomingStr = JSON.stringify(incoming)
+        const localStr = JSON.stringify(kycAnswers)
+        if ((kycAnswers.length === 0 && incoming.length > 0) || incomingStr !== localStr) {
+            setKycAnswers(incoming)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allAnswers])
 
     const handleRadioChange = (questionIndex, value) => {
@@ -49,11 +54,16 @@ const Cc = ({ allAnswers }) => {
     }
 
     useEffect(() => {
-        // Filter out empty answers and update step answers
-        const validAnswers = kycAnswers.filter(answer => answer.q && answer.answer)
-        updateStepAnswers(0, validAnswers) // Step 0 for CC
-        console.log("CC All Answers Updated:", validAnswers)
-    }, [kycAnswers, updateStepAnswers])
+        // Filter out empty answers and update step answers (guarded)
+        const validAnswers = (kycAnswers || []).filter(a =>
+            a && a.q && (Array.isArray(a.answer) ? a.answer.length > 0 : a.answer != null && a.answer !== '')
+        );
+        const prevForStep = stepAnswers && stepAnswers[0] ? stepAnswers[0] : []
+        const isSame = JSON.stringify(prevForStep) === JSON.stringify(validAnswers)
+        if (!isSame) {
+            updateStepAnswers(0, validAnswers) // Step 0 for CC
+        }
+    }, [kycAnswers, stepAnswers, updateStepAnswers])
     
     const { isLoading } = useLoading()
     const lstquestion = [
