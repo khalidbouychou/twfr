@@ -503,13 +503,13 @@ const customStyles = `
 
   const formatCurrency = (amount) => {
     if (isNaN(amount) || amount === null || amount === undefined) {
-      return '0 Dhs';
+      return '0 MAD';
     }
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'MAD',
       minimumFractionDigits: 0
-    }).format(amount).replace('MAD', 'Dhs');
+    }).format(amount).replace('MAD', 'MAD');
   };
 
   const formatPercentage = (percentage) => {
@@ -661,7 +661,7 @@ const customStyles = `
     // Show success notification
     const successNotif = {
       id: Date.now(),
-      message: `Investissement de ${decision.totalAmount.toLocaleString()} Dhs effectué avec succès`,
+      message: `Investissement de ${decision.totalAmount.toLocaleString()} MAD effectué avec succès`,
       time: "À l'instant",
       type: "success",
       title: "Investissement Réussi",
@@ -1025,8 +1025,8 @@ const customStyles = `
                           <tr key={index} className="border-t border-gray-700 hover:bg-gray-800/50">
                             <td className="p-3 font-medium text-white">{holding.name}</td>
                             <td className="p-3 text-center text-gray-300">{holding.quantity}</td>
-                            <td className="p-3 text-center text-gray-300">{holding.purchasePrice} Dhs</td>
-                            <td className="p-3 text-center text-gray-300">{holding.currentPrice} Dhs</td>
+                            <td className="p-3 text-center text-gray-300">{holding.purchasePrice} MAD</td>
+                            <td className="p-3 text-center text-gray-300">{holding.currentPrice} MAD</td>
                             <td className="p-3 text-center text-accent font-semibold">{formatCurrency(holding.value)}</td>
                             <td className="p-3 text-center text-green-400 font-semibold">{holding.pl}</td>
                           </tr>
@@ -1254,7 +1254,7 @@ const customStyles = `
                             {/* ROI Information for Recommended Products */}
                             {product.roi_annuel && (
                               <div className="mt-3 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                                <div className="text-xs text-blue-400 mb-2 font-medium">ROI sur 10,000 Dhs</div>
+                                <div className="text-xs text-blue-400 mb-2 font-medium">ROI sur 10,000 MAD</div>
                                 <div className="grid grid-cols-3 gap-2 text-xs">
                                   <div className="text-center">
                                     <div className="font-semibold text-green-600">
@@ -1402,7 +1402,7 @@ const customStyles = `
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Montant (Dhs)
+                    Montant (MAD)
                   </label>
                   <input
                     type="number"

@@ -59,7 +59,7 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
     if (recommendations?.matchedProducts) {
       const initialAmounts = {};
       recommendations.matchedProducts.forEach(product => {
-        initialAmounts[product.id] = 1000; // Default 1000 Dhs
+        initialAmounts[product.id] = 1000; // Default 1000 MAD
       });
       setInvestmentAmounts(initialAmounts);
     }
@@ -455,7 +455,7 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                   {/* ROI Projections */}
                   {(product.rendement_annuel_moyen !== undefined || product.roi_annuel !== undefined) && (
                     <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                      <div className="text-sm font-medium text-gray-700 mb-2">Projections ROI (10,000 Dhs)</div>
+                      <div className="text-sm font-medium text-gray-700 mb-2">Projections ROI (10,000 MAD)</div>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div className="text-center">
                           <div className="font-semibold text-green-600">
@@ -675,7 +675,7 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                 </label>
                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                   <div className="text-2xl font-bold text-green-800">
-                    {simulationResults?.totalInvested?.toLocaleString() || 0} Dhs
+                    {simulationResults?.totalInvested?.toLocaleString() || 0} MAD
                   </div>
                 </div>
               </div>
@@ -710,11 +710,11 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                         value={investmentAmounts[product.id] || 0}
                         onChange={(e) => handleInvestmentAmountChange(product.id, e.target.value)}
                         className="flex-1 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Montant en Dhs"
+                        placeholder="Montant en MAD"
                         min="0"
                         step="100"
                       />
-                      <span className="text-gray-500">Dhs</span>
+                      <span className="text-gray-500">MAD</span>
                     </div>
                   </div>
                 ))}
@@ -729,15 +729,15 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600">{simulationResults.totalInvested.toLocaleString()}</div>
-                    <div className="text-sm text-gray-600">Total Investi (Dhs)</div>
+                    <div className="text-sm text-gray-600">Total Investi (MAD)</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">{simulationResults.totalExpectedValue.toLocaleString()}</div>
-                    <div className="text-sm text-gray-600">Valeur Attendue (Dhs)</div>
+                    <div className="text-sm text-gray-600">Valeur Attendue (MAD)</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-600">+{simulationResults.totalReturn.toLocaleString()}</div>
-                    <div className="text-sm text-gray-600">Gain Total (Dhs)</div>
+                    <div className="text-sm text-gray-600">Gain Total (MAD)</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-orange-600">+{simulationResults.totalReturnPercentage.toFixed(1)}%</div>
@@ -769,9 +769,9 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                               </div>
                             </div>
                           </td>
-                          <td className="p-3 text-center">{result.amount.toLocaleString()} Dhs</td>
-                          <td className="p-3 text-center text-green-600 font-medium">{result.expectedValue.toLocaleString()} Dhs</td>
-                          <td className="p-3 text-center text-blue-600 font-medium">+{(result.expectedValue - result.amount).toLocaleString()} Dhs</td>
+                          <td className="p-3 text-center">{result.amount.toLocaleString()} MAD</td>
+                          <td className="p-3 text-center text-green-600 font-medium">{result.expectedValue.toLocaleString()} MAD</td>
+                          <td className="p-3 text-center text-blue-600 font-medium">+{(result.expectedValue - result.amount).toLocaleString()} MAD</td>
                           <td className="p-3 text-center">
                             <span className={`font-medium ${ROICalculator.getROIColor(result.roi5Years)}`}>
                               +{result.roi5Years.toFixed(1)}%
@@ -827,7 +827,7 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                 </div>
                 <div>
                   <span className="text-gray-600">Montant Total:</span>
-                  <div className="font-medium text-gray-800">{simulationResults.totalInvested.toLocaleString()} Dhs</div>
+                  <div className="font-medium text-gray-800">{simulationResults.totalInvested.toLocaleString()} MAD</div>
                 </div>
                 <div>
                   <span className="text-gray-600">Rendement Attendu:</span>

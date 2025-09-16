@@ -80,8 +80,9 @@ const UserDashboard = () => {
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Read userProfileData and userResults from localStorage
-  const [userProfileData, setUserProfileData] = useState(null);
+  const [, setUserProfileData] = useState(null);
   const [userResults, setUserResults] = useState(null);
+  const [localUserAnswers, setLocalUserAnswers] = useState(null);
 
   // Read data from localStorage
   useEffect(() => {
@@ -106,7 +107,92 @@ const UserDashboard = () => {
         setUserResults(null);
       }
     }
+
+    const storedUserAnswers = localStorage.getItem("userAnswers");
+    if (storedUserAnswers) {
+      try {
+        const parsedUserAnswers = JSON.parse(storedUserAnswers);
+        setLocalUserAnswers(parsedUserAnswers);
+      } catch (error) {
+        console.error("Error parsing stored userAnswers:", error);
+        setLocalUserAnswers(null);
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    // When userAnswers exist, (re)generate recommendations and persist them
+    if (localUserAnswers && Array.isArray(localUserAnswers) && localUserAnswers.length > 0) {
+      try {
+        const results = recommendationEngine.generateCompleteRecommendation(localUserAnswers);
+        setUserResults(results);
+        try {
+          localStorage.setItem("userResults", JSON.stringify(results));
+        } catch {
+          // ignore
+        }
+
+        // Update portfolio widgets based on results
+        if (results && results.allocation) {
+          const newPortfolioData = {
+            ...portfolioData,
+            portfolioBreakdown: results.allocation.map((item) => ({
+              name: item.name,
+              value: (item.value / 100) * portfolioData.totalInvested,
+              color: item.color
+            })),
+            products: (results.matchedProducts || []).slice(0, 4).map((product) => ({
+              name: product.nom_produit,
+              currentValue: Math.round(
+                (product.overallCompatibility / 100) * (portfolioData.totalInvested / 4) * 1.05
+              ),
+              investedAmount: Math.round(
+                (product.overallCompatibility / 100) * (portfolioData.totalInvested / 4)
+              ),
+              performance: Math.round((product.overallCompatibility || 0) * 0.1),
+              risk: parseInt(product.risque),
+              category: product.nom_produit.split(" ")[0]
+            }))
+          };
+          setPortfolioData(newPortfolioData);
+          setRecommendations(results.recommendations || []);
+          setUserRiskProfile(results.riskProfile || null);
+        }
+      } catch (e) {
+        console.error("Error generating recommendations from userAnswers:", e);
+      }
+    }
+  }, [localUserAnswers]);
+
+  useEffect(() => {
+    // If we already have userResults (from storage or generation), reflect them into portfolio widgets too
+    if (userResults && userResults.allocation) {
+      const newPortfolioData = {
+        ...portfolioData,
+        portfolioBreakdown: userResults.allocation.map((item) => ({
+          name: item.name,
+          value: (item.value / 100) * portfolioData.totalInvested,
+          color: item.color
+        })),
+        products: (userResults.matchedProducts || []).slice(0, 4).map((product) => ({
+          name: product.nom_produit,
+          currentValue: Math.round(
+            (product.overallCompatibility / 100) * (portfolioData.totalInvested / 4) * 1.05
+          ),
+          investedAmount: Math.round(
+            (product.overallCompatibility / 100) * (portfolioData.totalInvested / 4)
+          ),
+          performance: Math.round((product.overallCompatibility || 0) * 0.1),
+          risk: parseInt(product.risque),
+          category: product.nom_produit.split(" ")[0]
+        }))
+      };
+
+      setPortfolioData(newPortfolioData);
+      setRecommendations(userResults.recommendations || []);
+      setUserRiskProfile(userResults.riskProfile || null);
+    }
+  }, [userResults]);
 
   useEffect(() => {
     // Actualités via fournisseurs multiples (FR): Newsdata -> GNews -> NewsAPI -> Mediastack -> ContextualWeb
@@ -295,41 +381,6 @@ const UserDashboard = () => {
     loadQuotes();
   }, []);
 
-  useEffect(() => {
-    if (userProfileData && Object.keys(userProfileData).length > 0) {
-      const results =
-        recommendationEngine.generateCompleteRecommendation(userProfileData);
-
-      const newPortfolioData = {
-        ...portfolioData,
-        portfolioBreakdown: results.allocation.map((item) => ({
-          name: item.name,
-          value: (item.value / 100) * portfolioData.totalInvested,
-          color: item.color
-        })),
-        products: results.matchedProducts.slice(0, 4).map((product) => ({
-          name: product.nom_produit,
-          currentValue: Math.round(
-            (product.overallCompatibility / 100) *
-              (portfolioData.totalInvested / 4) *
-              1.05
-          ),
-          investedAmount: Math.round(
-            (product.overallCompatibility / 100) *
-              (portfolioData.totalInvested / 4)
-          ),
-          performance: Math.round(product.overallCompatibility * 0.1),
-          risk: parseInt(product.risque),
-          category: product.nom_produit.split(" ")[0]
-        }))
-      };
-
-      setPortfolioData(newPortfolioData);
-      setRecommendations(results.recommendations);
-      setUserRiskProfile(results.riskProfile);
-    }
-  }, [userProfileData]);
-
   const [notifications, setNotifications] = useState([]);
 
   const [showInvestPopup, setShowInvestPopup] = useState(false);
@@ -400,13 +451,13 @@ const UserDashboard = () => {
       ]);
       const newNotif = {
         id: Date.now(),
-        message: `Solde ajouté: +${amount.toLocaleString()} Dhs via ${paymentMethodName}`,
+        message: `Solde ajouté: +${amount.toLocaleString()} MAD via ${paymentMethodName}`,
         time: "À l'instant",
         type: "success",
         title: "Dépôt Réussi",
-        details: `Votre solde a été augmenté de ${amount.toLocaleString()} Dhs via ${paymentMethodName}. Votre nouveau solde disponible est de ${(
+        details: `Votre solde a été augmenté de ${amount.toLocaleString()} MAD via ${paymentMethodName}. Votre nouveau solde disponible est de ${(
           userBalance + amount
-        ).toLocaleString()} Dhs. Vous pouvez maintenant utiliser ces fonds pour de nouveaux investissements.`,
+        ).toLocaleString()} MAD. Vous pouvez maintenant utiliser ces fonds pour de nouveaux investissements.`,
         astuce:
           "💡 Astuce: Gardez toujours une réserve d'urgence équivalente à 3-6 mois de dépenses avant d'investir.",
         isRead: false
@@ -424,7 +475,7 @@ const UserDashboard = () => {
           time: "À l'instant",
           type: "error",
           title: "Retrait Échoué",
-          details: `Impossible de retirer ${amount.toLocaleString()} Dhs. Votre solde actuel est de ${userBalance.toLocaleString()} Dhs. Veuillez ajuster le montant du retrait.`,
+          details: `Impossible de retirer ${amount.toLocaleString()} MAD. Votre solde actuel est de ${userBalance.toLocaleString()} MAD. Veuillez ajuster le montant du retrait.`,
           astuce:
             "💡 Astuce: Vérifiez toujours votre solde disponible avant d'effectuer un retrait.",
           isRead: false
@@ -450,13 +501,13 @@ const UserDashboard = () => {
       ]);
       const successNotif = {
         id: Date.now(),
-        message: `Retrait effectué: -${amount.toLocaleString()} Dhs vers ${paymentMethodName}`,
+        message: `Retrait effectué: -${amount.toLocaleString()} MAD vers ${paymentMethodName}`,
         time: "À l'instant",
         type: "info",
         title: "Retrait Réussi",
-        details: `Votre retrait de ${amount.toLocaleString()} Dhs vers ${paymentMethodName} a été traité avec succès. Votre nouveau solde disponible est de ${(
+        details: `Votre retrait de ${amount.toLocaleString()} MAD vers ${paymentMethodName} a été traité avec succès. Votre nouveau solde disponible est de ${(
           userBalance - amount
-        ).toLocaleString()} Dhs. Les fonds seront transférés sous 1-3 jours ouvrables.`,
+        ).toLocaleString()} MAD. Les fonds seront transférés sous 1-3 jours ouvrables.`,
         astuce:
           "💡 Astuce: Les retraits peuvent prendre 1-3 jours ouvrables selon la méthode de paiement choisie.",
         isRead: false
@@ -507,11 +558,11 @@ const UserDashboard = () => {
 
       const profitWithdrawNotif = {
         id: Date.now(),
-        message: `Profits retirés: ${totalProfits.toLocaleString()} Dhs vers ${paymentMethodName}`,
+        message: `Profits retirés: ${totalProfits.toLocaleString()} MAD vers ${paymentMethodName}`,
         time: "À l'instant",
         type: "success",
         title: "Profits Retirés avec Succès",
-        details: `Vos profits de ${totalProfits.toLocaleString()} Dhs ont été retirés vers ${paymentMethodName}. Les fonds seront transférés sous 1-3 jours ouvrables. Vos investissements continuent de fonctionner avec le capital initial.`,
+        details: `Vos profits de ${totalProfits.toLocaleString()} MAD ont été retirés vers ${paymentMethodName}. Les fonds seront transférés sous 1-3 jours ouvrables. Vos investissements continuent de fonctionner avec le capital initial.`,
         astuce:
           "💡 Astuce: Retirer régulièrement vos profits vous permet de sécuriser vos gains tout en gardant votre capital investi.",
         isRead: false
@@ -548,11 +599,11 @@ const UserDashboard = () => {
 
       const profitAddNotif = {
         id: Date.now(),
-        message: `Profits ajoutés au solde: +${totalProfits.toLocaleString()} Dhs`,
+        message: `Profits ajoutés au solde: +${totalProfits.toLocaleString()} MAD`,
         time: "À l'instant",
         type: "success",
         title: "Profits Ajoutés au Solde",
-        details: `Vos profits de ${totalProfits.toLocaleString()} Dhs ont été ajoutés à votre solde disponible. Vous pouvez maintenant utiliser ces fonds pour de nouveaux investissements.`,
+        details: `Vos profits de ${totalProfits.toLocaleString()} MAD ont été ajoutés à votre solde disponible. Vous pouvez maintenant utiliser ces fonds pour de nouveaux investissements.`,
         astuce:
           "💡 Astuce: Ajouter vos profits au solde vous permet de réinvestir immédiatement dans de nouveaux produits.",
         isRead: false
@@ -682,14 +733,26 @@ const UserDashboard = () => {
 
   const updatePortfolioData = () => {
     const stats = calculatePortfolioStats(investmentHistory);
+
+    // Build last 6 months labels in fr
+    const monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'short' });
+    const now = new Date();
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const label = monthFormatter.format(d);
+      return label.charAt(0).toUpperCase() + label.slice(1);
+    });
+
+    const performanceHistory = months.map((label, index) => ({
+      date: label,
+      value: stats.totalInvested * (0.95 + index * 0.02),
+      benchmark: stats.totalInvested * (0.92 + index * 0.015)
+    }));
+
     setPortfolioData((prev) => ({
       ...prev,
       ...stats,
-      performanceHistory: prev.performanceHistory.map((entry, index) => ({
-        ...entry,
-        value: stats.totalInvested * (0.95 + index * 0.02), // Simulate growth over time
-        benchmark: stats.totalInvested * (0.92 + index * 0.015)
-      }))
+      performanceHistory
     }));
   };
 
@@ -875,7 +938,7 @@ const UserDashboard = () => {
       time: "À l'instant",
       type: "success",
       title: "Simulation Créée",
-      details: `Votre simulation avec un capital de ${capital.toLocaleString()} Dhs a été créée. Rendement projeté: ${result.totalReturn.toFixed(
+      details: `Votre simulation avec un capital de ${capital.toLocaleString()} MAD a été créée. Rendement projeté: ${result.totalReturn.toFixed(
         1
       )}% sur ${newSimulation.duration}.`,
       astuce:
@@ -1033,7 +1096,7 @@ const UserDashboard = () => {
 
     if (amount < selectedInvestment.min) {
       alert(
-        `Le montant minimum d'investissement est de ${selectedInvestment.min.toLocaleString()} Dhs`
+        `Le montant minimum d'investissement est de ${selectedInvestment.min.toLocaleString()} MAD`
       );
       return;
     }
@@ -1071,13 +1134,13 @@ const UserDashboard = () => {
 
     const investNotif = {
       id: Date.now(),
-      message: `Investissement de ${amount.toLocaleString()} Dhs dans ${
+      message: `Investissement de ${amount.toLocaleString()} MAD dans ${
         selectedInvestment.name
       } effectué avec succès`,
       time: "À l'instant",
       type: "success",
       title: "Investissement Réussi",
-      details: `Votre investissement de ${amount.toLocaleString()} Dhs dans ${
+      details: `Votre investissement de ${amount.toLocaleString()} MAD dans ${
         selectedInvestment.name
       } a été traité avec succès. Votre portefeuille a été mis à jour et vous pouvez suivre la performance de cet investissement dans la section Portefeuille.`,
       astuce:
@@ -1118,25 +1181,20 @@ const UserDashboard = () => {
 
           if (profitRatio > 0.5) return investment; // Cap at 50% profit
 
-          const growthRate = Math.random() * 0.004 + 0.001; // 0.1% to 0.5%
-          const additionalProfit = investment.amount * growthRate;
-
-          const newCurrentValue =
-            (investment.currentValue || investment.amount) + additionalProfit;
-          const newProfit = newCurrentValue - investment.amount;
+          // Increase profit by 5% every tick (20s)
+          const newProfit = Math.round(currentProfit * 1.05);
+          const newCurrentValue = investment.amount + newProfit;
           const returnPercentage = (newProfit / investment.amount) * 100;
 
           return {
             ...investment,
             currentValue: Math.round(newCurrentValue),
             profit: Math.round(newProfit),
-            return: `${
-              returnPercentage >= 0 ? "+" : ""
-            }${returnPercentage.toFixed(1)}%`
+            return: `${returnPercentage >= 0 ? "+" : ""}${returnPercentage.toFixed(1)}%`
           };
         });
       });
-    }, 30000); // Update every 30 seconds
+    }, 20000); // Update every 20 seconds
 
     return () => clearInterval(interval);
   }, [investmentHistory.length]);
@@ -1250,7 +1308,7 @@ const UserDashboard = () => {
                     ></path>
                   </svg>
                   <span className="text-white font-semibold text-sm">
-                    {userBalance.toLocaleString()} Dhs
+                    {userBalance.toLocaleString()} MAD
                   </span>
                 </div>
 
@@ -1498,7 +1556,7 @@ const UserDashboard = () => {
                     ></path>
                   </svg>
                   <span className="text-white font-semibold">
-                    {userBalance.toLocaleString()} Dhs
+                    {userBalance.toLocaleString()} MAD
                   </span>
                 </div>
               </div>
@@ -1772,7 +1830,7 @@ const UserDashboard = () => {
                           Solde
                         </p>
                         <p className="text-2xl font-bold text-white">
-                          {userBalance.toLocaleString()} Dhs
+                          {userBalance.toLocaleString()} MAD
                         </p>
                       </div>
                     </div>
@@ -1799,7 +1857,7 @@ const UserDashboard = () => {
                           Total Investi
                         </p>
                         <p className="text-2xl font-bold text-white">
-                          {portfolioData.totalInvested.toLocaleString()} Dhs
+                          {portfolioData.totalInvested.toLocaleString()} MAD
                         </p>
                       </div>
                     </div>
@@ -1828,7 +1886,7 @@ const UserDashboard = () => {
                           Profits Totaux
                         </p>
                         <p className="text-2xl font-bold text-green-400">
-                          {calculateTotalProfits().toLocaleString()} Dhs
+                          {calculateTotalProfits().toLocaleString()} MAD
                         </p>
                       </div>
                     </div>
@@ -2016,22 +2074,22 @@ const UserDashboard = () => {
                               <p className="text-white font-medium">
                                 {t.type === "deposit" && (
                                   <span className="text-[#3CD4AB]">
-                                    +{t.amount.toLocaleString()} Dhs
+                                    +{t.amount.toLocaleString()} MAD
                                   </span>
                                 )}
                                 {t.type === "withdraw" && (
                                   <span className="text-red-400">
-                                    -{t.amount.toLocaleString()} Dhs
+                                    -{t.amount.toLocaleString()} MAD
                                   </span>
                                 )}
                                 {t.type === "profit_withdraw" && (
                                   <span className="text-orange-400">
-                                    -{t.amount.toLocaleString()} Dhs
+                                    -{t.amount.toLocaleString()} MAD
                                   </span>
                                 )}
                                 {t.type === "profit_to_balance" && (
                                   <span className="text-green-400">
-                                    +{t.amount.toLocaleString()} Dhs
+                                    +{t.amount.toLocaleString()} MAD
                                   </span>
                                 )}
                               </p>
@@ -2093,7 +2151,7 @@ const UserDashboard = () => {
                           {calculateInvestmentHistoryWithReturns()
                             .reduce((sum, inv) => sum + inv.currentValue, 0)
                             .toLocaleString()}{" "}
-                          Dhs
+                          MAD
                         </p>
                       </div>
                     </div>
@@ -2132,7 +2190,7 @@ const UserDashboard = () => {
                               0
                             ) - portfolioData.totalInvested
                           ).toLocaleString()}{" "}
-                          Dhs
+                          MAD
                         </p>
                       </div>
                     </div>
@@ -2211,7 +2269,7 @@ const UserDashboard = () => {
                                 {item.percentage}%
                               </div>
                               <div className="text-white/60 text-sm">
-                                {item.amount.toLocaleString()} Dhs
+                                {item.amount.toLocaleString()} MAD
                               </div>
                             </div>
                           </div>
@@ -2265,7 +2323,7 @@ const UserDashboard = () => {
                             </div>
                             <div className="text-right">
                               <div className="text-white font-semibold">
-                                {investment.amount.toLocaleString()} Dhs
+                                {investment.amount.toLocaleString()} MAD
                               </div>
                               <div className="flex items-center justify-end space-x-2">
                                 <div
@@ -2279,7 +2337,7 @@ const UserDashboard = () => {
                                 </div>
                                 <div className="text-white/60 text-xs">
                                   ({investment.currentValue.toLocaleString()}{" "}
-                                  Dhs)
+                                  MAD)
                                 </div>
                               </div>
                             </div>
@@ -2297,8 +2355,8 @@ const UserDashboard = () => {
 
                 {/* Notification History Section */}
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
+                <div className="flex  gap-4 flex-col-reverse">
+                  <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm overflow-y-auto">
                     <h3 className="text-xl font-bold text-white mb-4">
                       Historique des Notifications
                     </h3>
@@ -2358,15 +2416,15 @@ const UserDashboard = () => {
                   </div>
 
                   {/* Investment Revenue Chart */}
-                  <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm flex justify-center">
-                    <div className="w-full max-w-sm bg-white/5 rounded-lg shadow-sm border border-white/10 p-4 md:p-6">
+                  <div className="mt-8 p-6   border border-white/10 rounded-lg shadow backdrop-blur-sm flex justify-center overflow-hidden bg-white/5">
+                    <div className="w-full  bg-white/5 rounded-lg shadow-sm border border-white/10 p-4 md:p-6 h-[450px]">
                       <div className="flex justify-between border-white/20 border-b pb-3">
                         <dl>
                           <dt className="text-base font-normal text-white/60 pb-1">
                             Profit
                           </dt>
                           <dd className="leading-none text-3xl font-bold text-white">
-                            {calculateTotalProfits().toLocaleString()} Dhs
+                            {calculateTotalProfits().toLocaleString()} MAD
                           </dd>
                         </dl>
                         <div>
@@ -2398,7 +2456,7 @@ const UserDashboard = () => {
                             Investi
                           </dt>
                           <dd className="leading-none text-xl font-bold text-[#3CD4AB]">
-                            {portfolioData.totalInvested.toLocaleString()} Dhs
+                            {portfolioData.totalInvested.toLocaleString()} MAD
                           </dd>
                         </dl>
                         <dl>
@@ -2406,7 +2464,7 @@ const UserDashboard = () => {
                             Revenus
                           </dt>
                           <dd className="leading-none text-xl font-bold text-green-400">
-                            +{calculateTotalProfits().toLocaleString()} Dhs
+                            +{calculateTotalProfits().toLocaleString()} MAD
                           </dd>
                         </dl>
                       </div>
@@ -2720,7 +2778,7 @@ const UserDashboard = () => {
                           {/* ROI Information */}
                           <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                             <div className="text-xs text-blue-400 mb-2 font-medium">
-                              ROI sur 10,000 Dhs
+                              ROI sur 10,000 MAD
                             </div>
                             <div className="grid grid-cols-3 gap-2 text-xs">
                               <div className="text-center">
@@ -2784,7 +2842,7 @@ const UserDashboard = () => {
                               Investissement min.
                             </span>
                             <span className="text-white">
-                              {investment.min.toLocaleString()} Dhs
+                              {investment.min.toLocaleString()} MAD
                             </span>
                           </div>
 
@@ -2846,14 +2904,14 @@ const UserDashboard = () => {
                             Solde disponible:
                           </span>
                           <span className="text-[#3CD4AB] font-semibold">
-                            {userBalance.toLocaleString()} Dhs
+                            {userBalance.toLocaleString()} MAD
                           </span>
                         </div>
                       </div>
 
                       <div>
                         <label className="block text-white/80 text-sm font-medium mb-2">
-                          Capital Initial (Dhs)
+                          Capital Initial (MAD)
                         </label>
                         <input
                           type="number"
@@ -3037,7 +3095,7 @@ const UserDashboard = () => {
                                   Capital initial
                                 </span>
                                 <div className="text-white">
-                                  {sim.initialCapital.toLocaleString()} Dhs
+                                  {sim.initialCapital.toLocaleString()} MAD
                                 </div>
                               </div>
                               <div>
@@ -3045,7 +3103,7 @@ const UserDashboard = () => {
                                   Valeur actuelle
                                 </span>
                                 <div className="text-[#3CD4AB]">
-                                  {sim.currentValue.toLocaleString()} Dhs
+                                  {sim.currentValue.toLocaleString()} MAD
                                 </div>
                               </div>
                             </div>
@@ -3165,7 +3223,7 @@ const UserDashboard = () => {
                               Capital initial:
                             </span>
                             <span className="text-white">
-                              {simulation.initialCapital.toLocaleString()} Dhs
+                              {simulation.initialCapital.toLocaleString()} MAD
                             </span>
                           </div>
                           <div className="flex justify-between">
@@ -3173,7 +3231,7 @@ const UserDashboard = () => {
                               Valeur actuelle:
                             </span>
                             <span className="text-[#3CD4AB]">
-                              {simulation.currentValue.toLocaleString()} Dhs
+                              {simulation.currentValue.toLocaleString()} MAD
                             </span>
                           </div>
                           <div className="flex justify-between">
@@ -3387,8 +3445,8 @@ const UserDashboard = () => {
                     <div>
                       <label className="block text-white/80 text-sm font-medium mb-2">
                         {balanceOperation === "add"
-                          ? "Montant à ajouter (Dhs)"
-                          : "Montant à retirer (Dhs)"}
+                          ? "Montant à ajouter (MAD)"
+                          : "Montant à retirer (MAD)"}
                       </label>
                       <input
                         type="number"
@@ -3405,7 +3463,7 @@ const UserDashboard = () => {
                       />
                       {balanceOperation === "withdraw" && (
                         <p className="text-white/60 text-sm mt-1">
-                          Solde disponible: {userBalance.toLocaleString()} Dhs
+                          Solde disponible: {userBalance.toLocaleString()} MAD
                         </p>
                       )}
                     </div>
@@ -3591,7 +3649,7 @@ const UserDashboard = () => {
                           Profits disponibles:
                         </span>
                         <span className="text-2xl font-bold text-[#3CD4AB]">
-                          {calculateTotalProfits().toLocaleString()} Dhs
+                          {calculateTotalProfits().toLocaleString()} MAD
                         </span>
                       </div>
                     </div>
@@ -3813,7 +3871,7 @@ const UserDashboard = () => {
                           Investissement minimum:
                         </span>
                         <span className="text-white font-semibold ml-2">
-                          {selectedInvestment.min.toLocaleString()} Dhs
+                          {selectedInvestment.min.toLocaleString()} MAD
                         </span>
                       </div>
                     </div>
@@ -3824,7 +3882,7 @@ const UserDashboard = () => {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-white/60">Solde disponible:</span>
                       <span className="text-[#3CD4AB] font-semibold">
-                        {userBalance.toLocaleString()} Dhs
+                        {userBalance.toLocaleString()} MAD
                       </span>
                     </div>
                     {investAmount && (
@@ -3839,7 +3897,7 @@ const UserDashboard = () => {
                               : "text-red-400"
                           }`}
                         >
-                          {calculateRemainingBalance().toLocaleString()} Dhs
+                          {calculateRemainingBalance().toLocaleString()} MAD
                         </span>
                       </div>
                     )}
@@ -3849,14 +3907,14 @@ const UserDashboard = () => {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-white/80 text-sm font-medium mb-2">
-                        Montant à investir (Dhs)
+                        Montant à investir (MAD)
                       </label>
                       <input
                         type="number"
                         value={investAmount}
                         onChange={handleInvestAmountChange}
                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none"
-                        placeholder={`Minimum ${selectedInvestment.min.toLocaleString()} Dhs`}
+                        placeholder={`Minimum ${selectedInvestment.min.toLocaleString()} MAD`}
                         min={selectedInvestment.min}
                         max={userBalance}
                       />
@@ -3864,7 +3922,7 @@ const UserDashboard = () => {
                         parseFloat(investAmount) < selectedInvestment.min && (
                           <p className="text-red-400 text-sm mt-1">
                             Le montant minimum est de{" "}
-                            {selectedInvestment.min.toLocaleString()} Dhs
+                            {selectedInvestment.min.toLocaleString()} MAD
                           </p>
                         )}
                       {investAmount &&

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef , useContext } from 'react';
 // import { Link, useNavigate } from 'react-router-dom';
 import { Link} from 'react-router-dom';
 import {UserContext}  from './Context/UserContext.jsx'
+import { PopupModal } from 'react-calendly';
+import emailjs from 'emailjs-com';
 
 
 const Navbar = () => {
@@ -11,8 +13,52 @@ const Navbar = () => {
   const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState('home');
   const productsDropdownRef = useRef(null);
-  const { isLoggedIn } = useContext(UserContext);
+  const { isLoggedIn, userProfileData } = useContext(UserContext);
+  const [isCalendlyOpen, setIsCalendlyOpen] = useState(false);
   
+  // EmailJS env configuration
+  const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+  const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+  const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+  // Lock page scroll when Calendly is open
+  useEffect(() => {
+    if (!isCalendlyOpen) return;
+
+    const htmlEl = document.documentElement;
+    const bodyEl = document.body;
+
+    const prevHtmlOverflow = htmlEl.style.overflow;
+    const prevBodyOverflow = bodyEl.style.overflow;
+    const prevBodyPosition = bodyEl.style.position;
+    const prevBodyTop = bodyEl.style.top;
+    const prevBodyLeft = bodyEl.style.left;
+    const prevBodyRight = bodyEl.style.right;
+    const prevBodyWidth = bodyEl.style.width;
+
+    const scrollY = window.scrollY || window.pageYOffset;
+
+    htmlEl.style.overflow = 'hidden';
+    bodyEl.style.overflow = 'hidden';
+    bodyEl.style.position = 'fixed';
+    bodyEl.style.top = `-${scrollY}px`;
+    bodyEl.style.left = '0';
+    bodyEl.style.right = '0';
+    bodyEl.style.width = '100%';
+
+    return () => {
+      htmlEl.style.overflow = prevHtmlOverflow;
+      bodyEl.style.overflow = prevBodyOverflow;
+      bodyEl.style.position = prevBodyPosition;
+      bodyEl.style.top = prevBodyTop;
+      bodyEl.style.left = prevBodyLeft;
+      bodyEl.style.right = prevBodyRight;
+      bodyEl.style.width = prevBodyWidth;
+      // Restore scroll position
+      const y = Math.abs(parseInt(prevBodyTop || '0', 10)) || scrollY;
+      window.scrollTo(0, y);
+    };
+  }, [isCalendlyOpen]);
 
   // Close desktop dropdown when clicking outside
   useEffect(() => {
@@ -40,6 +86,34 @@ const Navbar = () => {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
+  };
+
+  const handleCalendlyScheduled = (e) => {
+    try {
+      // Calendly posts a message with payload including invitee
+      const payload = e?.data?.payload || e?.data;
+      const invitee = payload?.invitee || {};
+      const event = payload?.event || {};
+
+      const recipientEmail = invitee.email || userProfileData?.email || userProfileData?.mail || '';
+      const recipientName = invitee.name || userProfileData?.fullName || userProfileData?.name || '';
+
+      const templateParams = {
+        to_email: recipientEmail,
+        to_name: recipientName || 'Client',
+        event_name: event.name || 'Rendez-vous',
+        event_start_time: event.start_time || '',
+        event_end_time: event.end_time || '',
+      };
+
+      if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY && recipientEmail) {
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
+      }
+    } catch {
+      // noop
+    } finally {
+      setIsCalendlyOpen(false);
+    }
   };
 
   return (
@@ -121,6 +195,9 @@ const Navbar = () => {
             Se connecter
           </Link>
          )}
+          <button onClick={() => setIsCalendlyOpen(true)} className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] border border-solid border-[#3CD4AB]">
+            Contactez un expert
+          </button>
 
         </div>
 
@@ -190,6 +267,9 @@ const Navbar = () => {
               onClick={() => { setActiveMenu('contact'); closeMenu(); }}
             >Contact</a>
             
+            <button onClick={() => setIsCalendlyOpen(true)} className="w-11/12 text-center text-white px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] border border-solid border-[#3CD4AB]">
+              Contactez un expert
+            </button>
           </div>
           <div className="flex flex-col items-center space-y-4 pb-8">
             <Link to="/simulation" className="w-11/12 text-center text-[#3CD4AB] px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white border border-solid border-[#3CD4AB]">
@@ -207,6 +287,20 @@ const Navbar = () => {
           </div>
         </div>
       )}
+
+      {/* Calendly Modal */}
+      <PopupModal
+        url={import.meta.env.VITE_CALENDLY_URL || ''}
+        onModalClose={() => setIsCalendlyOpen(false)}
+        onEventScheduled={handleCalendlyScheduled}
+        open={isCalendlyOpen}
+        rootElement={document.getElementById('root')}
+        prefill={{
+          name: userProfileData?.fullName || userProfileData?.name,
+          email: userProfileData?.email || userProfileData?.mail,
+        }}
+       
+      />
     </nav>
   );
 };

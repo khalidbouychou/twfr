@@ -32,7 +32,7 @@ const QUESTION_CATEGORIES = [
     key: 'financial',
     title: 'Profil Financier',
     questions: [
-      { key: 'incomeRange', label: 'Sélectionnez votre tranche de revenus', type: 'select', options: ['Moins de 3000 Dhs', '3000 - 6000 Dhs', 'Plus de 6000 Dhs'] },
+      { key: 'incomeRange', label: 'Sélectionnez votre tranche de revenus', type: 'select', options: ['Moins de 3000 MAD', '3000 - 6000 MAD', 'Plus de 6000 MAD'] },
       { key: 'recurringExpenses', label: 'Dépenses récurrentes mensuelles (MAD)', type: 'number' },
       { key: 'expensesPercentage', label: 'Pourcentage des dépenses récurrentes', type: 'radio', options: ['Faible (moins de 30%)', 'Modéré (30-45%)', 'Élevé (plus de 45%)'] },
     ],

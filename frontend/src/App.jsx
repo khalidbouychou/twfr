@@ -138,6 +138,13 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<UserDashboard />} />
+          {/* <Route path="/dashboard" element={<>
+           <div className="min-h-[60vh] flex flex-col items-center justify-center text-center">
+              <h1 className="text-2xl font-bold">Tableau de bord</h1>
+              <p className="text-gray-500">Le tableau de bord est en cours de développement...</p>
+              <p className="text-gray-500">Bientôt, vous pourrez consulter votre portefeuille et vos investissements ici.</p>
+            </div>
+          </>} /> */}
           {/* <Route path="/portfolio" element={<InvestmentPortfolio />} /> */}
           <Route path="/simulation" element={<Stepper/>} />
           {/* <Route path="/simulation" element={<FinancialProfilingStepper/>} /> */}

@@ -28,7 +28,7 @@ const REAL_PRODUCTS = realProducts.map(product => ({
                  product.famille === "épargne" ? 0.5 : 1.0,
   compatibilite: {
     age: { "0-18": 0.9, "19-59": 0.8, "60+": 0.9 },
-    incomeRange: { "Moins de 3000 Dhs": 0.9, "3000 - 6000 Dhs": 0.8, "Plus de 6000 Dhs": 0.7 },
+    incomeRange: { "Moins de 3000 MAD": 0.9, "3000 - 6000 MAD": 0.8, "Plus de 6000 MAD": 0.7 },
     savingsDuration: { "Court terme": 0.9, "Moyen terme": 0.7, "Long terme": 0.5 },
     riskTolerance: { "Faible": 0.9, "Modéré": 0.7, "Élevé": 0.4 }
   }
@@ -196,7 +196,7 @@ export class RecommendationEngine {
       return "Risque trop élevé pour votre profil";
     }
     
-    if (product.montant_min > 5000 && userAnswers.incomeRange === "Moins de 3000 Dhs") {
+    if (product.montant_min > 5000 && userAnswers.incomeRange === "Moins de 3000 MAD") {
       return "Montant minimum trop élevé pour vos revenus";
     }
     

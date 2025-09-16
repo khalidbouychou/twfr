@@ -63,13 +63,14 @@ const Pf = () => {
 
     useEffect(() => {
         // Filter out empty answers and update step answers
-        const validAnswers = pfAnswers.filter(answer => {
+        const validAnswers = (pfAnswers || [])
+            .filter((answer) => !!answer && typeof answer === 'object')
+            .filter((answer) => {
             if (!answer.q) return false;
-            // Handle both string and array answers
             if (Array.isArray(answer.answer)) {
                 return answer.answer.length > 0;
             }
-            return answer.answer && answer.answer !== "";
+                return answer.answer !== undefined && answer.answer !== null && answer.answer !== "";
         });
         updateStepAnswers(2, validAnswers) // Step 2 for PF
         console.log("PF All Answers Updated:", validAnswers)

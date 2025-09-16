@@ -1,58 +1,32 @@
 import React, { useContext, useState } from 'react'
 import { UserContext } from '../Context/UserContext.jsx'
+import { RecommendationEngine } from '../Algo'
 
 const ConfirmationPopup = () => {
     const { 
         userAnswers, 
         showConfirmationPopup, 
         setShowConfirmationPopup, 
-        modifyAnswer,
-        currentEditingStep,
-        setCurrentEditingStep,
         stepAnswers
     } = useContext(UserContext)
     
-    const [editingAnswer, setEditingAnswer] = useState(null)
-    const [tempAnswer, setTempAnswer] = useState('')
+    const [activeStep, setActiveStep] = useState(0)
+    const [showThankYou, setShowThankYou] = useState(false)
+    const [recommendationResults, setRecommendationResults] = useState(null)
 
     if (!showConfirmationPopup) return null
 
-    const handleModify = (answer, stepIndex, questionIndex) => {
-        setEditingAnswer({ stepIndex, questionIndex, originalAnswer: answer })
-        setTempAnswer(Array.isArray(answer.answer) ? answer.answer.join(', ') : answer.answer)
-        setCurrentEditingStep(stepIndex)
-    }
-
-    const handleSaveModification = () => {
-        if (editingAnswer) {
-            modifyAnswer(editingAnswer.stepIndex, editingAnswer.questionIndex, tempAnswer)
-            setEditingAnswer(null)
-            setTempAnswer('')
-            setCurrentEditingStep(null)
-        }
-    }
-
-    const handleCancelModification = () => {
-        setEditingAnswer(null)
-        setTempAnswer('')
-        setCurrentEditingStep(null)
-    }
-
-    const getStepName = (stepIndex) => {
-        const stepNames = {
-            0: "Coordonnées et Caractéristiques",
-            1: "Profil d'Épargne", 
-            2: "Profil Financier",
-            3: "Profil d'Investisseur",
-            4: "ESG"
-        }
-        return stepNames[stepIndex] || `Étape ${stepIndex + 1}`
+    const stepNames = {
+        0: "Coordonnées et Caractéristiques",
+        1: "Profil d'Épargne", 
+        2: "Profil Financier",
+        3: "Profil d'Investisseur",
+        4: "ESG"
     }
 
     const getAnswersByStep = () => {
         const answersByStep = {}
         userAnswers.forEach((answer, index) => {
-            // Find which step this answer belongs to
             let stepIndex = -1
             for (let i = 0; i < 5; i++) {
                 if (stepAnswers[i] && stepAnswers[i].some(stepAnswer => 
@@ -62,7 +36,6 @@ const ConfirmationPopup = () => {
                     break
                 }
             }
-            
             if (stepIndex !== -1) {
                 if (!answersByStep[stepIndex]) {
                     answersByStep[stepIndex] = []
@@ -75,155 +48,132 @@ const ConfirmationPopup = () => {
 
     const answersByStep = getAnswersByStep()
 
-    return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000
-        }}>
-            <div style={{
-                backgroundColor: 'white',
-                padding: '20px',
-                borderRadius: '8px',
-                maxWidth: '90%',
-                maxHeight: '90%',
-                overflow: 'auto',
-                width: '800px'
-            }}>
-                <h2>Récapitulatif de vos réponses</h2>
-                
-                {Object.entries(answersByStep).map(([stepIndex, answers]) => (
-                    <div key={stepIndex} style={{ marginBottom: '20px' }}>
-                        <h3 style={{ 
-                            color: '#3CD4AB', 
-                            borderBottom: '2px solid #3CD4AB',
-                            paddingBottom: '5px',
-                            marginBottom: '10px'
-                        }}>
-                            {getStepName(parseInt(stepIndex))}
-                        </h3>
-                        
-                        {answers.map((answer, answerIndex) => (
-                            <div key={answerIndex} style={{ 
-                                marginBottom: '15px',
-                                padding: '10px',
-                                border: '1px solid #e0e0e0',
-                                borderRadius: '5px',
-                                backgroundColor: editingAnswer?.stepIndex === parseInt(stepIndex) && 
-                                               editingAnswer?.questionIndex === answerIndex ? '#f0f8ff' : 'white'
-                            }}>
-                                <strong>Question:</strong> {answer.q}<br/>
-                                
-                                {editingAnswer?.stepIndex === parseInt(stepIndex) && 
-                                 editingAnswer?.questionIndex === answerIndex ? (
-                                    <div style={{ marginTop: '10px' }}>
-                                        <strong>Réponse:</strong>
-                                        <input
-                                            type="text"
-                                            value={tempAnswer}
-                                            onChange={(e) => setTempAnswer(e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                padding: '5px',
-                                                marginTop: '5px',
-                                                border: '1px solid #ccc',
-                                                borderRadius: '3px'
-                                            }}
-                                        />
-                                        <div style={{ marginTop: '10px' }}>
-                                            <button 
-                                                onClick={handleSaveModification}
-                                                style={{
-                                                    padding: '5px 15px',
-                                                    backgroundColor: '#3CD4AB',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '3px',
-                                                    cursor: 'pointer',
-                                                    marginRight: '10px'
-                                                }}
-                                            >
-                                                Sauvegarder
-                                            </button>
-                                            <button 
-                                                onClick={handleCancelModification}
-                                                style={{
-                                                    padding: '5px 15px',
-                                                    backgroundColor: '#ccc',
-                                                    color: 'black',
-                                                    border: 'none',
-                                                    borderRadius: '3px',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                Annuler
-                                            </button>
+    const handleConfirm = () => {
+        localStorage.setItem('userAnswers', JSON.stringify(userAnswers))
+        try {
+            const engine = new RecommendationEngine()
+            const results = engine.generateCompleteRecommendation(userAnswers)
+            localStorage.setItem('userResults', JSON.stringify(results))
+            setRecommendationResults(results)
+        } catch (e) {
+            console.error('Recommendation generation failed:', e)
+            setRecommendationResults(null)
+        }
+        setShowThankYou(true)
+    }
+
+    const handleGoToDashboard = () => {
+        window.location.href = '/dashboard'
+    }
+
+    // Thank you popup
+    if (showThankYou) {
+        return (
+            <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1000]">
+                <div className="bg-white p-8 rounded-lg max-w-2xl w-[90%]">
+                    <div className="mb-6 text-center">
+                        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Merci !</h2>
+                        <p className="text-gray-600">
+                            Votre profil a été enregistré. Voici vos recommandations personnalisées.
+                        </p>
+                    </div>
+
+                    {recommendationResults && Array.isArray(recommendationResults.matchedProducts) && recommendationResults.matchedProducts.length > 0 && (
+                        <div className="mb-6">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-3">Produits recommandés</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {recommendationResults.matchedProducts.slice(0, 6).map((p, idx) => (
+                                    <div key={p.id || idx} className="border border-gray-200 rounded-lg p-3 flex items-start gap-3 bg-white">
+                                        <img src={p.avatar} alt={p.nom_produit} className="w-12 h-12 rounded object-cover" />
+                                        <div className="flex-1">
+                                            <div className="font-medium text-gray-800 line-clamp-2">{p.nom_produit}</div>
+                                            <div className="text-sm text-gray-500">Risque: {p.risque}/7 • ROI: {(p.rendement_annuel_moyen ?? p.roi_annuel ?? 5)}%</div>
+                                            <div className="text-sm text-emerald-600">Compatibilité: {Math.round(p.overallCompatibility)}%</div>
                                         </div>
                                     </div>
-                                ) : (
-                                    <div>
-                                        <strong>Réponse:</strong> {
-                                            Array.isArray(answer.answer) 
-                                                ? answer.answer.join(', ') 
-                                                : answer.answer
-                                        }
-                                        {answer.category && <><br/><strong>Catégorie:</strong> {answer.category}</>}
-                                        <button 
-                                            onClick={() => handleModify(answer, parseInt(stepIndex), answerIndex)}
-                                            style={{
-                                                marginLeft: '10px',
-                                                padding: '3px 8px',
-                                                backgroundColor: '#89559F',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '3px',
-                                                cursor: 'pointer',
-                                                fontSize: '12px'
-                                            }}
-                                        >
-                                            Modifier
-                                        </button>
-                                    </div>
-                                )}
+                                ))}
                             </div>
+                        </div>
+                    )}
+
+                    <button 
+                        onClick={handleGoToDashboard}
+                        className="w-full px-6 py-3 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition-colors"
+                    >
+                        Aller au dashboard
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[1000]">
+            <div className="bg-white p-5 rounded-lg max-w-[90%] max-h-[90%] overflow-auto w-[900px]">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Récapitulatif de vos réponses</h2>
+
+                {/* Category menu */}
+                <div className="w-full overflow-x-auto">
+                    <div className="flex gap-2 whitespace-nowrap border-b border-gray-200 pb-2">
+                        {[0,1,2,3,4].map((idx) => (
+                            <button
+                                key={idx}
+                                className={`px-3 py-2 rounded-md text-sm transition-colors ${activeStep === idx ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                                onClick={() => setActiveStep(idx)}
+                            >
+                                {stepNames[idx]}
+                            </button>
                         ))}
                     </div>
-                ))}
-                
-                <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                </div>
+
+                {/* Answers list for active category */}
+                <div className="mt-4">
+                    <h3 className="text-emerald-600 border-b-2 border-emerald-400 pb-1 mb-3 font-medium">
+                        {stepNames[activeStep]}
+                    </h3>
+
+                    {Array.isArray(answersByStep[activeStep]) && answersByStep[activeStep].length > 0 ? (
+                        <div className="space-y-3">
+                            {answersByStep[activeStep].map((answer, i) => (
+                                <div key={i} className="p-3 border border-gray-200 rounded bg-white">
+                                    <div className="text-gray-800">
+                                        <span className="font-semibold">Question: </span>{answer.q}
+                                    </div>
+                                    <div className="text-gray-700 mt-1">
+                                        <span className="font-semibold">Réponse: </span>
+                                        {Array.isArray(answer.answer) ? answer.answer.join(', ') : answer.answer}
+                                    </div>
+                                    {answer.category && (
+                                        <div className="text-gray-600 mt-1">
+                                            <span className="font-semibold">Catégorie: </span>{answer.category}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-gray-500 italic">Aucune réponse pour cette catégorie.</div>
+                    )}
+                </div>
+
+                <div className="mt-6 text-center space-x-3">
                     <button 
-                        onClick={() => setShowConfirmationPopup(false)}
-                        style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#3CD4AB',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            marginRight: '10px'
-                        }}
+                        onClick={handleConfirm}
+                        className="px-6 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors"
                     >
-                        Valider les réponses
+                        Confirmer
                     </button>
                     <button 
                         onClick={() => setShowConfirmationPopup(false)}
-                        style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#ccc',
-                            color: 'black',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
+                        className="px-6 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
                     >
-                        Annuler
+                        Fermer
                     </button>
                 </div>
             </div>

@@ -37,13 +37,13 @@ class RecommendationEngine {
     }
 
     // Income factor
-    if (userData.incomeRange === 'Moins de 3000 Dhs') {
+    if (userData.incomeRange === 'Moins de 3000 MAD') {
       riskScore += 1;
       riskFactors.push({ factor: 'Revenu faible', score: 1, weight: this.riskWeights.income });
-    } else if (userData.incomeRange === '3000 - 6000 Dhs') {
+    } else if (userData.incomeRange === '3000 - 6000 MAD') {
       riskScore += 2;
       riskFactors.push({ factor: 'Revenu moyen', score: 2, weight: this.riskWeights.income });
-    } else if (userData.incomeRange === 'Plus de 6000 Dhs') {
+    } else if (userData.incomeRange === 'Plus de 6000 MAD') {
       riskScore += 3;
       riskFactors.push({ factor: 'Revenu élevé', score: 3, weight: this.riskWeights.income });
     }

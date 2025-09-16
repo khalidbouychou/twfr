@@ -1,3 +1,1 @@
-import { createContext } from 'react';
-
-export const UserContext = createContext(); 
+export { UserContext, UserProvider } from './UserContext.jsx'; 
