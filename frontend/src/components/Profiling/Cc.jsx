@@ -36,7 +36,7 @@ const Cc = ({ allAnswers }) => {
     }
 
     const handleSelectChange = (questionIndex, value) => {
-        if (value === "select") return // Don't log placeholder selection
+        if (value === "") return // Don't log placeholder selection
         
         setKycAnswers(prev => {
             const newAnswers = [...prev]
@@ -164,10 +164,10 @@ const Cc = ({ allAnswers }) => {
     <div className="p-2 mt-4  rounded-lg shadow-md">
       {lstquestion.map((question, index) => (
          <React.Fragment key={`question-${index}`}>
-            <div className=" flex flex-row items-start justify-between w-full gap-2 mt-8">
+            <div className=" flex flex-row items-start justify-between w-full gap-2 mt-6">
            <label className="text-gray-50 w-1/2">{question.question}</label>
            {question.type === "radio" ? (
-             <div className="flex gap-10 w-1/2 justify-start">
+             <div className="flex gap-30 w-1/2 justify-start">
                {question.options.map((option, optionIndex) => (
                  <label key={`radio-${index}-${optionIndex}`} className="flex items-center gap-2 cursor-pointer">
                    <input
@@ -177,6 +177,7 @@ const Cc = ({ allAnswers }) => {
                      className="w-4 h-4 text-green-50 accent-emerald-400 rounded-full"
                      onChange={() => handleRadioChange(index, option.label)}
                      checked={kycAnswers[index]?.answer === option.label}
+                     required
                    />
                    {option.icon}
                    <span className="text-gray-50">{option.label}</span>
@@ -188,9 +189,10 @@ const Cc = ({ allAnswers }) => {
                <select 
                  className="w-full font-light rounded-lg border-none bg-gray-200 p-2"
                  onChange={(e) => handleSelectChange(index, e.target.value)}
-                 value={kycAnswers[index]?.answer || "select"}
+                 value={kycAnswers[index]?.answer || ""}
+                 required
                >
-                 <option className='text-gray-500' value="select">Sélectionnez une option</option>
+                 <option className='text-gray-500' value="">Sélectionnez une option</option>
 
                  {question.options.map((option, optionIndex) => (
                      <option key={`option-${index}-${optionIndex}`} value={option.label}>{option.label}</option>

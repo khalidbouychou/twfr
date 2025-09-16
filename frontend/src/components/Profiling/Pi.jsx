@@ -70,7 +70,7 @@ const Pi = () => {
   };
 
     const handleSelectChange = (questionIndex, value) => {
-        if (value === "select") return // Don't log placeholder selection
+        if (value === "") return // Don't log placeholder selection
         
         setPiAnswers(prev => {
             const newAnswers = [...prev]
@@ -211,7 +211,7 @@ const Pi = () => {
     }
 
   return (
-    <div className="p-2  rounded-lg shadow-md">
+    <div className="p-3  rounded-lg shadow-md">
     {lstquestion.map((question, index) => (
                 <React.Fragment key={`question-${index}`}>
                     <div className=" flex flex-row items-start justify-between w-full  mt-4">
@@ -219,7 +219,7 @@ const Pi = () => {
          {question.type === "checkbox" ? (
            <div className="flex flex-col items-start gap-2 w-1/2">
              {question.options.map((option, optionIndex) => (
-                                    <div key={`checkbox-${index}-${optionIndex}`}>
+                                   <div key={`checkbox-${index}-${optionIndex}`}>
                  <label className="flex items-center gap-4 cursor-pointer">
                    <input
                      type="checkbox"
@@ -228,8 +228,9 @@ const Pi = () => {
                      checked={selectedOptions[index]?.[option.value] || false}
                      onChange={(e) => handleCheckboxChange(index, option.value, e.target.checked)}
                      className="w-5 h-5 text-green-50 accent-emerald-400 rounded-full"
+                     required={!(piAnswers[index]?.answer?.length > 0)}
                    />
-                   <span className="text-gray-500">{option.label}</span>
+                   <span className="text-gray-50">{option.label}</span>
                  </label>
                  {option.value === "Autres" && selectedOptions[index]?.[option.value] && (
                    <div className="ml-9 mt-2">
@@ -239,6 +240,7 @@ const Pi = () => {
                        value={otherInputs[index] || ""}
                        onChange={(e) => handleOtherInputChange(index, e.target.value)}
                        className="w-full font-light rounded-lg border border-gray-300 bg-gray-200 p-2 text-gray-700 placeholder-gray-500"
+                       required
                      />
                    </div>
                  )}
@@ -256,6 +258,7 @@ const Pi = () => {
                                             className="w-4 h-4 text-green-50 accent-emerald-400 rounded-full"
                                             onChange={() => handleRadioChange(index, option.label)}
                                             checked={piAnswers[index]?.answer === option.label}
+                                            required
                                         />
                                         <span className="text-gray-50">{option.label}</span>
                                     </label>
@@ -266,13 +269,14 @@ const Pi = () => {
                                 <select 
                                     className="w-full font-light rounded-lg border-none bg-white/80 p-2"
                                     onChange={(e) => handleSelectChange(index, e.target.value)}
-                                    value={piAnswers[index]?.answer || "select"}
+                                    value={piAnswers[index]?.answer || ""}
+                                    required
                                 >
-                                    <option className='text-gray-500' value="select">Sélectionnez une option</option>
-               {question.options.map((option, optionIndex) => (
+                                    <option className='text-gray-500' value="">Sélectionnez une option</option>
+              {question.options.map((option, optionIndex) => (
                                         <option key={`option-${index}-${optionIndex}`} value={option.label}>{option.label}</option>
-               ))}
-             </select>
+              ))}
+            </select>
            </form>
          )}
    </div>

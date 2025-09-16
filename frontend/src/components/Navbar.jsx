@@ -119,7 +119,7 @@ const Navbar = () => {
   return (
     <nav className=" top-0 w-full   text-white">
   
-      <div className="max-w-7xl mx-auto py-4 flex items-center justify-between px-4 md:px-0 ">
+      <div className="max-w-7xl mx-auto py-4 flex items-center justify-between px-4 md:px-0">
         {/* Logo */}
         <Link to="/">
           <img src="/logo.svg" alt="tawfirai" className="h-15 w-auto" />

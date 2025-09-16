@@ -9,7 +9,7 @@ const Pf = () => {
     const { isLoading } = useLoading()
 
     const handleSelectChange = (questionIndex, value) => {
-        if (value === "select") return // Don't log placeholder selection
+        if (value === "") return // Don't log placeholder selection
         
         setPfAnswers(prev => {
             const newAnswers = [...prev]
@@ -183,8 +183,9 @@ const Pf = () => {
                    name={`question-${index}`}
                    value={option.value}
                    className="w-5 h-5 text-green-50 accent-emerald-400 rounded-full"
-                                            onChange={(e) => handleCheckboxChange(index, option.value, e.target.checked)}
-                                            checked={pfAnswers[index]?.answer?.includes(option.value) || false}
+                                        onChange={(e) => handleCheckboxChange(index, option.value, e.target.checked)}
+                                        checked={pfAnswers[index]?.answer?.includes(option.value) || false}
+                   required={!(pfAnswers[index]?.answer?.length > 0)}
                  />
                  <span className="text-gray-50">{option.label}</span>
                </label>
@@ -195,13 +196,14 @@ const Pf = () => {
                                 <select 
                                     className="w-full font-light rounded-lg border-none bg-white/80 p-2"
                                     onChange={(e) => handleSelectChange(index, e.target.value)}
-                                    value={pfAnswers[index]?.answer || "select"}
+                                    value={pfAnswers[index]?.answer || ""}
+                                    required
                                 >
-                                    <option className='text-gray-500' value="select">Sélectionnez une option</option>
-               {question.options.map((option, optionIndex) => (
+                                    <option className='text-gray-500' value="">Sélectionnez une option</option>
+              {question.options.map((option, optionIndex) => (
                                         <option key={`option-${index}-${optionIndex}`} value={option.label}>{option.label}</option>
-               ))}
-             </select>
+              ))}
+            </select>
            </form>
          )}
    </div>

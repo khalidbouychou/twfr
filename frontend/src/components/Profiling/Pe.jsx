@@ -25,7 +25,7 @@ const Pe = ({ allAnswers }) => {
     }
 
     const handleSelectChange = (questionIndex, value) => {
-        if (value === "select") return // Don't log placeholder selection
+        if (value === "") return // Don't log placeholder selection
         
         setPeAnswers(prev => {
             const newAnswers = [...prev]
@@ -192,10 +192,11 @@ const Pe = ({ allAnswers }) => {
                   <input
                     type="radio"
                     name={`question-${index}`}
-                                            value={option.label}
+                                        value={option.label}
                     className="w-4 h-4 text-green-50 accent-emerald-400 rounded-full"
-                                            onChange={() => handleRadioChange(index, option.label)}
-                                            checked={peAnswers[index]?.answer === option.label}
+                                        onChange={() => handleRadioChange(index, option.label)}
+                                        checked={peAnswers[index]?.answer === option.label}
+                    required
                   />
                   {option.icon}
                   <span className="text-gray-50">{option.label}</span>
@@ -207,9 +208,10 @@ const Pe = ({ allAnswers }) => {
                                 <select 
                                     className="w-full font-light rounded-lg border-none bg-white/80 p-2 placeholder-gray-500"
                                     onChange={(e) => handleSelectChange(index, e.target.value)}
-                                    value={peAnswers[index]?.answer || "select"}
+                                    value={peAnswers[index]?.answer || ""}
+                                    required
                                 >
-                                    <option className='text-gray-500' value="select">Sélectionnez une option</option>
+                                    <option className='text-gray-500' value="">Sélectionnez une option</option>
                 {question.options.map((option, optionIndex) => (
                                         <option key={`option-${index}-${optionIndex}`} value={option.label}>{option.label}</option>
                 ))}

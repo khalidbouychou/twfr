@@ -9,7 +9,7 @@ const Esg = () => {
     const { isLoading } = useLoading()
 
     const handleSelectChange = (categoryIndex, questionType, questionIndex, value) => {
-        if (value === "select") return // Don't log placeholder selection
+        if (value === "") return // Don't log placeholder selection
         
         const questionKey = `${categoryIndex}-${questionType}-${questionIndex}`
         const question = lstquestion[categoryIndex][questionType][questionIndex]
@@ -197,9 +197,10 @@ const Esg = () => {
                                         className="w-full p-2 border rounded-md bg-white/80"
                                         name={`q1-${categoryIndex}-${q1Index}`}
                                         onChange={(e) => handleSelectChange(categoryIndex, 'q1', q1Index, e.target.value)}
-                                        value={esgAnswers[`${categoryIndex}-q1-${q1Index}`]?.answer || "select"}
+                                        value={esgAnswers[`${categoryIndex}-q1-${q1Index}`]?.answer || ""}
+                                        required
                                     >
-                                        <option className='text-green-500' value="select">Sélectionnez une option</option>
+                                        <option className='text-green-500' value="">Sélectionnez une option</option>
                                         {question.options.map((option, optionIndex) => (
                                             <option key={`q1-option-${categoryIndex}-${q1Index}-${optionIndex}`} value={option.value}>
                                                 {option.label}
@@ -226,9 +227,10 @@ const Esg = () => {
                                         className="w-full p-2 border rounded-md bg-white/80"
                                         name={`q2-${categoryIndex}-${q2Index}`}
                                         onChange={(e) => handleSelectChange(categoryIndex, 'q2', q2Index, e.target.value)}
-                                        value={esgAnswers[`${categoryIndex}-q2-${q2Index}`]?.answer || "select"}
+                                        value={esgAnswers[`${categoryIndex}-q2-${q2Index}`]?.answer || ""}
+                                        required
                                     >
-                                        <option className='text-green-500' value="select">Sélectionnez une option</option>
+                                        <option className='text-green-500' value="">Sélectionnez une option</option>
                                         {question.options.map((option, optionIndex) => (
                                             <option key={`q2-option-${categoryIndex}-${q2Index}-${optionIndex}`} value={option.value}>
                                                 {option.label}
