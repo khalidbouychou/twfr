@@ -183,8 +183,8 @@ const Pf = () => {
                    name={`question-${index}`}
                    value={option.value}
                    className="w-5 h-5 text-green-50 accent-emerald-400 rounded-full"
-                                        onChange={(e) => handleCheckboxChange(index, option.value, e.target.checked)}
-                                        checked={pfAnswers[index]?.answer?.includes(option.value) || false}
+                                            onChange={(e) => handleCheckboxChange(index, option.value, e.target.checked)}
+                                            checked={pfAnswers[index]?.answer?.includes(option.value) || false}
                    required={!(pfAnswers[index]?.answer?.length > 0)}
                  />
                  <span className="text-gray-50">{option.label}</span>
@@ -200,10 +200,10 @@ const Pf = () => {
                                     required
                                 >
                                     <option className='text-gray-500' value="">Sélectionnez une option</option>
-              {question.options.map((option, optionIndex) => (
+               {question.options.map((option, optionIndex) => (
                                         <option key={`option-${index}-${optionIndex}`} value={option.label}>{option.label}</option>
-              ))}
-            </select>
+               ))}
+             </select>
            </form>
          )}
    </div>

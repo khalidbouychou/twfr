@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -8,16 +8,19 @@ import Faq from "./components/Faq";
 import MainSections from "./components/MainSections";
 import HowItWorks from "./components/HowItWorks";
 import Products from "./components/Products";
-import Reviews from "./components/Feedbacks";
+// import Reviews from "./components/Feedbacks";
+import Reviews from "./components/Reviews";
 import News from "./components/News";
 import Footer from "./components/Footer";
 import Contactus from "./components/Contactus";
 import FinancialProfilingStepper from './components/Profiling/FinancialProfilingStepper';
 import UserDashboard from './components/Dashboard/UserDashboard';
 import InvestmentPortfolio from './components/Invest/InvestmentPortfolio';
-import { UserProvider } from './components/Context/UserContext.jsx';
+import { UserProvider, UserContext } from './components/Context/UserContext.jsx';
 import Login from './components/Login/Login';
 import Stepper from './components/Profiling/Stepper';
+import TawfirStats from "./components/TawfirState";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // const Test = () => {
 //   // App.jsx
@@ -25,8 +28,7 @@ import Stepper from './components/Profiling/Stepper';
 //   const [category, setCategory] = useState("");
 //   const [budget, setBudget] = useState("");
 //   const [suggestions, setSuggestions] = useState([]);
-
-
+//
 // // Mock product list (could be from Excel export converted to JSON)
 // const products = [
 //   { id: 1, name: "Laptop Pro", category: "tech", budget: "high" },
@@ -34,8 +36,7 @@ import Stepper from './components/Profiling/Stepper';
 //   { id: 3, name: "Gaming Chair", category: "furniture", budget: "mid" },
 //   { id: 4, name: "Office Desk", category: "furniture", budget: "high" },
 // ];
-
-
+//
 // const handleSubmit = (e) => {
 //   e.preventDefault();
 //   // Simple filter logic
@@ -46,11 +47,11 @@ import Stepper from './components/Profiling/Stepper';
 //   );
 //   setSuggestions(filtered);
 // };
-
+//
 // return (
 //   <div className="container mx-auto bg-amber-50" style={{ padding: "2rem", fontFamily: "sans-serif" }}>
 //     <h1>Product Discovery</h1>
-
+//
 //     <form onSubmit={handleSubmit}>
 //       <label>
 //         Category:
@@ -60,9 +61,9 @@ import Stepper from './components/Profiling/Stepper';
 //           <option value="furniture">Furniture</option>
 //         </select>
 //       </label>
-
+//
 //       <br />
-
+//
 //       <label>
 //         Budget:
 //         <select value={budget} onChange={(e) => setBudget(e.target.value)}>
@@ -72,11 +73,11 @@ import Stepper from './components/Profiling/Stepper';
 //           <option value="high">High</option>
 //         </select>
 //       </label>
-
+//
 //       <br />
 //       <button type="submit">Get Suggestions</button>
 //     </form>
-
+//
 //     <h2>Suggested Products:</h2>
 //     <ul>
 //       {suggestions.length > 0 ? (
@@ -87,7 +88,7 @@ import Stepper from './components/Profiling/Stepper';
 //     </ul>
 //   </div>
 // );
-
+//
 // };
 
 const LandingPage = () => (
@@ -97,6 +98,7 @@ const LandingPage = () => (
     <MainSections />
     <HowItWorks />
     <Products />
+    <TawfirStats/>
     <News />
     <Reviews />
     <Faq />
@@ -105,8 +107,19 @@ const LandingPage = () => (
   </>
 );
 
+function RequireAuth({ children }) {
+  const { isLoggedIn } = useContext(UserContext);
+  return isLoggedIn ? children : <Navigate to="/login" replace />;
+}
+
+function RedirectIfAuth({ children }) {
+  const { isLoggedIn } = useContext(UserContext);
+  return !isLoggedIn ? children : <Navigate to="/dashboard" replace />;
+}
+
 const App = () => {
   const [loading, setLoading] = useState(true);
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
   useEffect(() => {
     AOS.init({
@@ -131,14 +144,15 @@ const App = () => {
 
   return (
     <UserProvider>
+      <GoogleOAuthProvider clientId={googleClientId}>
       <BrowserRouter>
         <Routes>
           {/* <Route path="/test" element={<Test/>} /> */}
           {/* Public routes */}
-          <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<RedirectIfAuth><Login /></RedirectIfAuth>} />
           <Route path="/" element={<LandingPage />} />
-          <Route path="/dashboard" element={<UserDashboard />} />
-          {/* <Route path="/dashboard" element={<>
+            <Route path="/dashboard" element={<RequireAuth><UserDashboard /></RequireAuth>} />
+            {/* <Route path="/dashboard" element<>
            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center">
               <h1 className="text-2xl font-bold">Tableau de bord</h1>
               <p className="text-gray-500">Le tableau de bord est en cours de développement...</p>
@@ -153,6 +167,7 @@ const App = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </GoogleOAuthProvider>
     </UserProvider>
   );
 };

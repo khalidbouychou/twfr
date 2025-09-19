@@ -4,26 +4,40 @@ const reviews = [
   {
     avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
     name: 'Hector Gibbons',
-    date: 'July 12, 2021',
+    role: 'Investisseur particulier',
     rating: 5,
-    text: `Blown away by how polished this icon pack is. Everything looks so consistent and each SVG is optimized out of the box so I can use it directly with confidence. It would take me several hours to create a single icon this good, so it's a steal at this price.`,
+    text: `Blown away by how polished this experience is. Les recommandations sont claires et l’interface est ultra fluide.`,
   },
   {
     avatar: 'https://randomuser.me/api/portraits/men/44.jpg',
     name: 'Mark Edwards',
-    date: 'July 6, 2021',
+    role: 'Entrepreneur',
     rating: 4,
-    text: `Really happy with look and options of these icons. I've found uses for them everywhere in my recent projects. I hope there will be 20px versions in the future!`,
+    text: `Vraiment satisfait des insights. J’ai trouvé des opportunités adaptées à mon profil en quelques minutes.`,
+  },
+  {
+    avatar: 'https://randomuser.me/api/portraits/women/55.jpg',
+    name: 'Sofia Ramos',
+    role: 'Analyste',
+    rating: 5,
+    text: `Des suggestions pertinentes et un vrai gain de temps. J’aime particulièrement la clarté des explications.`,
+  },
+  {
+    avatar: 'https://randomuser.me/api/portraits/men/12.jpg',
+    name: 'Yassin M.',
+    role: 'Étudiant',
+    rating: 5,
+    text: `Parfait pour démarrer sereinement. Les objectifs et la gestion des risques sont bien expliqués.`,
   },
 ];
 
 function StarRating({ rating }) {
   return (
-    <div className="flex items-center mb-2">
+    <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((i) => (
         <svg
           key={i}
-          className={`w-6 h-6 ${i <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+          className={`w-4 h-4 ${i <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
           fill={i <= rating ? 'currentColor' : 'none'}
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -40,29 +54,67 @@ function StarRating({ rating }) {
   );
 }
 
-const Reviews = () => {
-  return (
-    <div className="max-w-2xl mx-auto py-12 px-4">
-      {reviews.map((review, idx) => (
-        <div key={review.name} className="flex items-start gap-4 mb-10">
-          <img
-            src={review.avatar}
-            alt={review.name}
-            className="w-12 h-12 rounded-full object-cover mt-1"
-          />
-          <div className="flex-1">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
-              <span className="font-bold text-gray-900">{review.name}</span>
-              <span className="text-gray-500 text-sm">{review.date}</span>
-            </div>
-            <StarRating rating={review.rating} />
-            <p className="text-gray-700 leading-relaxed mb-2">{review.text}</p>
-            {idx !== reviews.length - 1 && (
-              <hr className="my-8 border-gray-200" />
-            )}
-          </div>
+const ReviewCard = ({ r }) => (
+  <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4 min-w-[320px] max-w-[360px]">
+    <img src={r.avatar} alt={r.name} className="w-10 h-10 rounded-full object-cover mt-1" />
+    <div className="flex-1">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-white font-semibold leading-tight">{r.name}</div>
+          <div className="text-white/60 text-xs">{r.role}</div>
         </div>
-      ))}
+        <StarRating rating={r.rating} />
+      </div>
+      <p className="text-white/80 text-sm mt-2 leading-relaxed">{r.text}</p>
+    </div>
+  </div>
+);
+
+const Reviews = () => {
+  // duplicate rows for seamless scroll
+  const row = [...reviews, ...reviews];
+
+  return (
+    <div className="max-w-6xl mx-auto py-12 px-4">
+      <style>{`
+        @keyframes scroll-x {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        @keyframes scroll-x-reverse {
+          from { transform: translateX(-50%); }
+          to { transform: translateX(0); }
+        }
+      `}</style>
+
+      <h3 className="text-center text-2xl md:text-3xl font-bold text-white mb-8">Ce que disent nos utilisateurs</h3>
+
+      {/* Row 1 */}
+      <div className="relative overflow-hidden">
+        <div
+          className="flex w-[200%] gap-6"
+          style={{ animation: 'scroll-x 28s linear infinite' }}
+        >
+          {row.map((r, i) => (
+            <ReviewCard r={r} key={`r1-${i}-${r.name}`} />
+          ))}
+        </div>
+      </div>
+
+      {/* Spacing */}
+      <div className="h-8" />
+
+      {/* Row 2 (reverse) */}
+      <div className="relative overflow-hidden">
+        <div
+          className="flex w-[200%] gap-6"
+          style={{ animation: 'scroll-x-reverse 30s linear infinite' }}
+        >
+          {row.map((r, i) => (
+            <ReviewCard r={r} key={`r2-${i}-${r.name}`} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

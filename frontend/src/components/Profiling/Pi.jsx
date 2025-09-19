@@ -219,7 +219,7 @@ const Pi = () => {
          {question.type === "checkbox" ? (
            <div className="flex flex-col items-start gap-2 w-1/2">
              {question.options.map((option, optionIndex) => (
-                                   <div key={`checkbox-${index}-${optionIndex}`}>
+                                    <div key={`checkbox-${index}-${optionIndex}`}>
                  <label className="flex items-center gap-4 cursor-pointer">
                    <input
                      type="checkbox"
@@ -273,10 +273,10 @@ const Pi = () => {
                                     required
                                 >
                                     <option className='text-gray-500' value="">Sélectionnez une option</option>
-              {question.options.map((option, optionIndex) => (
+               {question.options.map((option, optionIndex) => (
                                         <option key={`option-${index}-${optionIndex}`} value={option.label}>{option.label}</option>
-              ))}
-            </select>
+               ))}
+             </select>
            </form>
          )}
    </div>

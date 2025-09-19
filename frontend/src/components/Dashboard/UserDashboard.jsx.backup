@@ -30,11 +30,7 @@ const UserDashboard = () => {
   const userData = {
     name: userProfileData?.fullName || userProfileData?.name || "Utilisateur",
     email: userProfileData?.email || "",
-    avatar:
-      userProfileData?.avatar ||
-      userProfileData?.picture ||
-      userProfileData?.imageUrl ||
-      "https://api.dicebear.com/7.x/avataaars/svg?seed=User",
+    avatar: userProfileData?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=User",
     createdAt: new Date()
   };
 
@@ -142,12 +138,27 @@ const UserDashboard = () => {
             portfolioBreakdown: results.allocation.map((item) => ({
               name: item.name,
               value: (item.value / 100) * portfolioData.totalInvested,
+              color: item.color
             })),
+            products: (results.matchedProducts || []).slice(0, 4).map((product) => ({
+              name: product.nom_produit,
+              currentValue: Math.round(
+                (product.overallCompatibility / 100) * (portfolioData.totalInvested / 4) * 1.05
+              ),
+              investedAmount: Math.round(
+                (product.overallCompatibility / 100) * (portfolioData.totalInvested / 4)
+              ),
+              performance: Math.round((product.overallCompatibility || 0) * 0.1),
+              risk: parseInt(product.risque),
+              category: product.nom_produit.split(" ")[0]
+            }))
           };
           setPortfolioData(newPortfolioData);
+          setRecommendations(results.recommendations || []);
+          setUserRiskProfile(results.riskProfile || null);
         }
-      } catch (error) {
-        console.error("Error generating recommendations:", error);
+      } catch (e) {
+        console.error("Error generating recommendations from userAnswers:", e);
       }
     }
   }, [localUserAnswers]);

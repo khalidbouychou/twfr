@@ -4,6 +4,14 @@ import { Link} from 'react-router-dom';
 import {UserContext}  from './Context/UserContext.jsx'
 import { PopupModal } from 'react-calendly';
 import emailjs from 'emailjs-com';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "./ui/dropdown-menu";
+import { UserRoundCog, LogOut, Calculator, MessageCircle } from "lucide-react";
 
 
 const Navbar = () => {
@@ -116,6 +124,8 @@ const Navbar = () => {
     }
   };
 
+  const avatarSrc = userProfileData?.avatar || userProfileData?.picture || userProfileData?.imageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User';
+
   return (
     <nav className=" top-0 w-full   text-white">
   
@@ -182,22 +192,60 @@ const Navbar = () => {
 
         {/* Desktop Buttons */}
         <div className="hidden md:flex items-center space-x-4">
-          <Link to="/simulation" className="text-[#3CD4AB] px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white border border-solid border-[#3CD4AB]">
+          <Link to="/simulation" className="flex items-center gap-2 text-[#3CD4AB] px-6 py-2 bg-transparent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white transition-all duration-200">
+            <Calculator className="w-5 h-5" />
             Simuler un projet
           </Link>
+          <button onClick={() => setIsCalendlyOpen(true)} className="flex items-center gap-2 text-white px-6 py-2 bg-transparent rounded-full text-lg hover:bg-[#3CD4AB] transition-all duration-200">
+            <MessageCircle className="w-5 h-5" />
+            Contactez un expert
+          </button>
          {console.log(isLoggedIn)}
          {isLoggedIn ? (
-          <Link to="/dashboard" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
-            Mon Profile
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="inline-flex items-center justify-center">
+                <img
+                  src={avatarSrc}
+                  alt="Avatar"
+                  className="w-9 h-9 rounded-full border border-white/20 hover:border-[#89559F] transition-colors"
+                />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48 bg-[#0F0F19] border border-[#89559F]/30" align="end">
+              <div className="p-3 border-b border-white/10">
+                <div className="text-white font-medium">
+                  {userProfileData?.fullName || userProfileData?.name || "Utilisateur"}
+                </div>
+              </div>
+              <DropdownMenuItem
+                onClick={() => window.location.href = '/dashboard'}
+                className="text-white hover:bg-white/10 cursor-pointer"
+              >
+                <UserRoundCog className="w-4 h-4 mr-2" />
+                Mon profil
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem
+                onClick={() => {
+                  localStorage.removeItem('isLogin');
+                  localStorage.removeItem('googleProfile');
+                  localStorage.removeItem('googleCredential');
+                  localStorage.removeItem('userProfileData');
+                  window.location.href = '/login';
+                }}
+                className="text-red-400 hover:bg-red-400/10 cursor-pointer"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Déconnexion
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
          ) : (
           <Link  to="/login" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
             Se connecter
           </Link>
          )}
-          <button onClick={() => setIsCalendlyOpen(true)} className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] border border-solid border-[#3CD4AB]">
-            Contactez un expert
-          </button>
 
         </div>
 
@@ -267,23 +315,27 @@ const Navbar = () => {
               onClick={() => { setActiveMenu('contact'); closeMenu(); }}
             >Contact</a>
             
-            <button onClick={() => setIsCalendlyOpen(true)} className="w-11/12 text-center text-white px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] border border-solid border-[#3CD4AB]">
+            <button onClick={() => setIsCalendlyOpen(true)} className="flex items-center justify-center gap-2 w-11/12 text-center text-white px-6 py-3 bg-transparent rounded-full text-lg hover:bg-[#3CD4AB] transition-all duration-200">
+              <MessageCircle className="w-5 h-5" />
               Contactez un expert
             </button>
           </div>
           <div className="flex flex-col items-center space-y-4 pb-8">
-            <Link to="/simulation" className="w-11/12 text-center text-[#3CD4AB] px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white border border-solid border-[#3CD4AB]">
+            <Link to="/simulation" className="flex items-center justify-center gap-2 w-11/12 text-center text-[#3CD4AB] px-6 py-3 bg-transparent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white transition-all duration-200">
+              <Calculator className="w-5 h-5" />
               Commencez la simulation
             </Link>
-            <Link to="/dashboard" className="w-11/12 text-center text-white px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
-              Mon Profile
+            {isLoggedIn ? (
+              <Link to="/dashboard" className="w-11/12 text-center">
+                <div className="w-full flex justify-center">
+                  <img src={avatarSrc} alt="Avatar" className="w-12 h-12 rounded-full border border-white/20" />
+                </div>
             </Link>
-            <Link to="/signin" className="w-11/12 text-center text-white px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
+            ) : (
+              <Link to="/login" className="w-11/12 text-center text-white px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
               Se connecter
             </Link>
-            <Link to="/signup" className="w-11/12 text-center text-[#3CD4AB] px-6 py-3 border border-[#3CD4AB] rounded-full text-lg hover:bg-[#3CD4AB] hover:text-[#0F0F19] transition-colors">
-              S'inscrire
-            </Link>
+            )}
           </div>
         </div>
       )}

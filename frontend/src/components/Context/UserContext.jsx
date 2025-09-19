@@ -56,7 +56,14 @@ export const UserProvider = ({ children }) => {
       const savedProfile = localStorage.getItem('userProfileData');
       const savedResults = localStorage.getItem('userResults');
       const savedComplete = localStorage.getItem('isProfileComplete');
-      
+      // Try google profile if userProfileData is missing
+      if (!savedProfile) {
+        const googleProfile = localStorage.getItem('googleProfile');
+        if (googleProfile) {
+          const gp = JSON.parse(googleProfile);
+          setUserProfileData({ fullName: gp.name, email: gp.email, avatar: gp.picture });
+        }
+      }
       if (savedProfile) setUserProfileData(JSON.parse(savedProfile));
       if (savedResults) setUserResults(JSON.parse(savedResults));
       if (savedComplete !== null) setIsProfileComplete(savedComplete === 'true');
@@ -70,6 +77,11 @@ export const UserProvider = ({ children }) => {
     const handleStorageChange = () => {
       const loginStatus = localStorage.getItem('isLogin');
       setIsLoggedIn(loginStatus === 'true');
+      // Also refresh profile on storage changes
+      try {
+        const savedProfile = localStorage.getItem('userProfileData');
+        if (savedProfile) setUserProfileData(JSON.parse(savedProfile));
+      } catch {}
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -123,6 +135,8 @@ export const UserProvider = ({ children }) => {
       localStorage.removeItem('userResults');
       localStorage.setItem('isProfileComplete', 'false');
       localStorage.removeItem('isLogin');
+      localStorage.removeItem('googleProfile');
+      localStorage.removeItem('googleCredential');
     } catch {
       console.log('Error clearing user data');
     }
@@ -146,6 +160,8 @@ export const UserProvider = ({ children }) => {
       localStorage.removeItem('userResults');
       localStorage.setItem('isProfileComplete', 'false');
       localStorage.removeItem('isLogin');
+      localStorage.removeItem('googleProfile');
+      localStorage.removeItem('googleCredential');
     } catch {
       console.log('Error during logout');
     }
