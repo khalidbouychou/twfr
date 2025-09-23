@@ -124,7 +124,8 @@ const Navbar = () => {
     }
   };
 
-  const avatarSrc = userProfileData?.avatar || userProfileData?.picture || userProfileData?.imageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User';
+  const fallbackAvatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=User';
+  const avatarSrc = userProfileData?.avatar || userProfileData?.picture || userProfileData?.imageUrl || fallbackAvatar;
 
   return (
     <nav className=" top-0 w-full   text-white">
@@ -208,7 +209,8 @@ const Navbar = () => {
                 <img
                   src={avatarSrc}
                   alt="Avatar"
-                  className="w-9 h-9 rounded-full border border-white/20 hover:border-[#89559F] transition-colors"
+                  className="w-9 h-9 rounded-full object-cover border border-white/20 hover:border-[#89559F] transition-colors"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }}
                 />
               </button>
             </DropdownMenuTrigger>
@@ -328,7 +330,7 @@ const Navbar = () => {
             {isLoggedIn ? (
               <Link to="/dashboard" className="w-11/12 text-center">
                 <div className="w-full flex justify-center">
-                  <img src={avatarSrc} alt="Avatar" className="w-12 h-12 rounded-full border border-white/20" />
+                  <img src={avatarSrc} alt="Avatar" className="w-12 h-12 rounded-full object-cover border border-white/20" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }} />
                 </div>
             </Link>
             ) : (

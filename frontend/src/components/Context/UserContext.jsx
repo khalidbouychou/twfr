@@ -53,15 +53,16 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     try {
       // Get from localStorage instead of cookies
-      const savedProfile = localStorage.getItem('userProfileData');
-      const savedResults = localStorage.getItem('userResults');
-      const savedComplete = localStorage.getItem('isProfileComplete');
+      const savedProfile = localStorage?.getItem('userProfileData');
+      const savedResults = localStorage?.getItem('userResults');
+      const savedComplete = localStorage?.getItem('isProfileComplete');
       // Try google profile if userProfileData is missing
       if (!savedProfile) {
-        const googleProfile = localStorage.getItem('googleProfile');
+        const googleProfile = localStorage?.getItem('googleProfile');
         if (googleProfile) {
           const gp = JSON.parse(googleProfile);
-          setUserProfileData({ fullName: gp.name, email: gp.email, avatar: gp.picture });
+          console.log("google profile", gp);
+          setUserProfileData({ fullName: gp?.name, email: gp?.email, avatar: gp?.picture });
         }
       }
       if (savedProfile) setUserProfileData(JSON.parse(savedProfile));
@@ -81,7 +82,9 @@ export const UserProvider = ({ children }) => {
       try {
         const savedProfile = localStorage.getItem('userProfileData');
         if (savedProfile) setUserProfileData(JSON.parse(savedProfile));
-      } catch {}
+      } catch {
+        console.log('Error rehydrating user data');
+      }
     };
 
     window.addEventListener('storage', handleStorageChange);

@@ -27,6 +27,7 @@ const UserDashboard = () => {
   const { pendingInvestment, clearPendingInvestment } = useUserContext();
 
   // Prefer profile from context (Google or manual); fallback simple
+  const fallbackAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
   const userData = {
     name: userProfileData?.fullName || userProfileData?.name || "Utilisateur",
     email: userProfileData?.email || "",
@@ -34,7 +35,7 @@ const UserDashboard = () => {
       userProfileData?.avatar ||
       userProfileData?.picture ||
       userProfileData?.imageUrl ||
-      "https://api.dicebear.com/7.x/avataaars/svg?seed=User",
+      fallbackAvatar,
     createdAt: new Date()
   };
 
@@ -382,8 +383,19 @@ const UserDashboard = () => {
   const [transactionsHistory, setTransactionsHistory] = useState([]);
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [dateFilter, setDateFilter] = useState("6months");
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+  const [investRange, setInvestRange] = useState("month");
 
   const notificationRef = useRef(null);
+  const invListRef = useRef(null);
+
+  const scrollInvestments = (delta) => {
+    const el = invListRef.current;
+    if (!el) return;
+    const firstItem = el.querySelector('[data-inv-item]');
+    const itemH = firstItem ? firstItem.offsetHeight + 16 : 72; // item height + gap
+    el.scrollBy({ top: delta * itemH, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -769,7 +781,7 @@ const UserDashboard = () => {
     );
 
     investmentHistory.forEach((investment) => {
-      const sector = sectorMapping[investment.name] || "Autres";
+      const sector = investment.sector || sectorMapping[investment.name] || getSectorFromName(investment.name) || "Autres";
       if (!sectorTotals[sector]) {
         sectorTotals[sector] = 0;
       }
@@ -871,6 +883,20 @@ const UserDashboard = () => {
       totalReturn: Math.round(totalReturn * 100) / 100,
       monthlyGrowth: Math.round((finalReturn / 12) * 100 * 100) / 100
     };
+  };
+
+  // Infer sector from product name using simple keyword mapping
+  const getSectorFromName = (name = "") => {
+    const n = String(name).toLowerCase();
+    if (/(immobilier|reit)/i.test(n)) return "Immobilier";
+    if (/(tech|technologie|it|software|saas)/i.test(n)) return "Technologie";
+    if (/(actions|equity|stock)/i.test(n)) return "Finance";
+    if (/(obligation|bond|état)/i.test(n)) return "Finance";
+    if (/(matière|commodit|or|pétrole)/i.test(n)) return "Matières Premières";
+    if (/(euro|fonds euro)/i.test(n)) return "Finance";
+    if (/(livret|épargne)/i.test(n)) return "Finance";
+    if (/(opcv m|opcvm)/i.test(n)) return "Finance";
+    return "Autres";
   };
 
   const handleCreateSimulation = () => {
@@ -1105,6 +1131,7 @@ const UserDashboard = () => {
       currentValue: amount + initialProfit,
       profit: initialProfit,
       date: new Date().toLocaleDateString("fr-FR"),
+      sector: getSectorFromName(selectedInvestment.name),
       return: `+${((initialProfit / amount) * 100).toFixed(1)}%`
     };
     setInvestmentHistory((prev) => [newInvestment, ...prev]);
@@ -1243,9 +1270,82 @@ const UserDashboard = () => {
     });
   }, [userResults]);
 
+  // Build investment time series from transactions history (type: invest)
+  const buildInvestmentTimeSeries = (range) => {
+    const now = Date.now();
+    const invests = (transactionsHistory || []).filter((t) => t.type === "invest");
+
+    const bins = [];
+    const pushBin = (startMs, endMs, label) => bins.push({ startMs, endMs, label });
+
+    const dayMs = 24 * 60 * 60 * 1000;
+    const hourMs = 60 * 60 * 1000;
+
+    if (range === "day") {
+      // Last 24 hours, hourly bins
+      for (let i = 23; i >= 0; i--) {
+        const end = now - i * hourMs;
+        const start = end - hourMs;
+        const d = new Date(end);
+        const label = d.toLocaleTimeString("fr-FR", { hour: "2-digit" });
+        pushBin(start, end, label);
+      }
+    } else if (range === "week") {
+      // Last 7 days, daily bins
+      for (let i = 6; i >= 0; i--) {
+        const end = now - i * dayMs;
+        const start = end - dayMs;
+        const d = new Date(end);
+        const label = d.toLocaleDateString("fr-FR", { weekday: "short" });
+        pushBin(start, end, label.charAt(0).toUpperCase() + label.slice(1));
+      }
+    } else if (range === "month") {
+      // Last 30 days, daily bins
+      for (let i = 29; i >= 0; i--) {
+        const end = now - i * dayMs;
+        const start = end - dayMs;
+        const d = new Date(end);
+        const label = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+        pushBin(start, end, label);
+      }
+    } else if (range === "year") {
+      // Last 12 months, monthly bins
+      const endDate = new Date();
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(endDate.getFullYear(), endDate.getMonth() - i + 1, 1);
+        const startD = new Date(endDate.getFullYear(), endDate.getMonth() - i, 1);
+        const label = startD.toLocaleDateString("fr-FR", { month: "short" });
+        pushBin(startD.getTime(), d.getTime(), label.charAt(0).toUpperCase() + label.slice(1));
+      }
+    }
+
+    const data = bins.map((bin) => {
+      const amount = invests.reduce((sum, t) => {
+        // Use the numeric id timestamp for reliable time bucketing
+        const ts = typeof t.id === "number" ? t.id : Date.parse(t.date || 0);
+        if (ts >= bin.startMs && ts < bin.endMs) {
+          return sum + (t.amount || 0);
+        }
+        return sum;
+      }, 0);
+      return { date: bin.label, amount: Math.round(amount) };
+    });
+
+    return data;
+  };
+
+  const investmentTimeSeries = useMemo(
+    () => buildInvestmentTimeSeries(investRange),
+    [transactionsHistory, investRange]
+  );
+
   return (
     <>
       <div className="bg-[#0F0F19] min-h-screen">
+        <style>{`
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        `}</style>
         {/* Header */}
         <header className="fixed top-0 left-0 right-0 z-40 bg-[#0F0F19] border-b border-[#89559F]/20">
           <div className="px-4 py-3">
@@ -1364,7 +1464,8 @@ const UserDashboard = () => {
                         "https://api.dicebear.com/7.x/avataaars/svg?seed=User"
                       }
                       alt="Avatar"
-                      className="w-7 h-7 rounded-full"
+                      className="w-7 h-7 rounded-full object-cover"
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }}
                     />
                     <span className="text-white text-sm hidden xl:block">
                       {userData?.name || "Utilisateur"}
@@ -1409,6 +1510,12 @@ const UserDashboard = () => {
                         <button
                           onClick={() => {
                            localStorage.removeItem('isLogin');
+                           localStorage.removeItem('userProfileData');
+                           localStorage.removeItem('userResults');
+                          //  localStorage.removeItem('isProfileComplete');
+                           localStorage.removeItem('googleProfile');
+                          //  localStorage.removeItem('userBalance');
+                          //  localStorage.removeItem('investmentHistory');
                            setIsLoggedIn(false);
                            navigate('/login');
                             setShowUserMenu(false);
@@ -1606,10 +1713,11 @@ const UserDashboard = () => {
                 <img
                   src={
                     userData?.avatar ||
-                    "https://api.dicebear.com/7.x/avataaars/svg?seed=User"
+                    fallbackAvatar
                   }
                   alt="Avatar"
-                  className="w-12 h-12 rounded-full"
+                  className="w-12 h-12 rounded-full object-cover"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }}
                 />
                 <div className="flex-1">
                   <div className="text-white font-semibold">
@@ -1664,12 +1772,16 @@ const UserDashboard = () => {
           
           
         <aside
-          className={`fixed top-0 left-0 z-40 w-64 h-screen pt-5 transition-transform ${
+          onMouseEnter={() => setIsSidebarHovered(true)}
+          onMouseLeave={() => setIsSidebarHovered(false)}
+          className={`fixed top-0 left-0 z-40 h-screen pt-5 transition-all duration-200 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } bg-[#0F0F19] border-r border-white/10 md:translate-x-0`}
+          } ${isSidebarHovered ? "w-64" : "w-16"} bg-[#0F0F19] border-r border-white/10 md:translate-x-0`}
         >
-          <div className='flex  justify-center'>
-           <a href='/' className='cursor-pointer'><img src="../../../public/logo.svg" className="w-15 h-15" alt="" /></a>
+          <div className='flex items-center justify-center px-2'>
+            <a href='/' className='cursor-pointer'>
+              <img src="../../../public/logo.svg" className={`${isSidebarHovered ? "w-10 h-10" : "w-8 h-8"}`} alt="" />
+            </a>
           </div>
           <div className="h-full px-3 pb-4 overflow-y-auto bg-[#0F0F19]">
             <ul className="space-y-2 pt-4">
@@ -1690,7 +1802,7 @@ const UserDashboard = () => {
                     <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>
                     <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>
                   </svg>
-                  <span className="ml-3">Dashboard</span>
+                  <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Dashboard</span>
                 </button>
               </li>
               <li>
@@ -1709,7 +1821,7 @@ const UserDashboard = () => {
                   >
                     <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"></path>
                   </svg>
-                  <span className="ml-3">Portefeuille</span>
+                  <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Portefeuille</span>
                 </button>
               </li>
               <li>
@@ -1732,7 +1844,7 @@ const UserDashboard = () => {
                       clipRule="evenodd"
                     ></path>
                   </svg>
-                  <span className="ml-3">Investissements</span>
+                  <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Investissements</span>
                 </button>
               </li>
               <li>
@@ -1752,7 +1864,7 @@ const UserDashboard = () => {
                     <path d="M8.707 7.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l2-2a1 1 0 00-1.414-1.414L11 7.586V3a1 1 0 10-2 0v4.586l-.293-.293z"></path>
                     <path d="M3 5a2 2 0 012-2h1V1a1 1 0 112 0v1h1a2 2 0 012 2v1a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM3 11a2 2 0 012-2h10a2 2 0 012 2v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4z"></path>
                   </svg>
-                  <span className="ml-3">Simulations</span>
+                  <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Simulations</span>
                 </button>
               </li>
               <li>
@@ -1775,7 +1887,7 @@ const UserDashboard = () => {
                       clipRule="evenodd"
                     ></path>
                   </svg>
-                  <span className="ml-3">Actualités</span>
+                  <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Actualités</span>
                 </button>
               </li>
             </ul>
@@ -1957,85 +2069,48 @@ const UserDashboard = () => {
                   <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-white font-semibold">
-                        Évolution du Portefeuille
+                        Investissements dans le temps
                       </h3>
+                      <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
+                        <button
+                          onClick={() => setInvestRange("day")}
+                          className={`text-xs px-2 py-1 rounded ${investRange === "day" ? "bg-[#3CD4AB] text-[#0F0F19]" : "text-white/80 hover:text-white"}`}
+                        >
+                          Jour
+                        </button>
+                        <button
+                          onClick={() => setInvestRange("week")}
+                          className={`text-xs px-2 py-1 rounded ${investRange === "week" ? "bg-[#3CD4AB] text-[#0F0F19]" : "text-white/80 hover:text-white"}`}
+                        >
+                          Semaine
+                        </button>
+                        <button
+                          onClick={() => setInvestRange("month")}
+                          className={`text-xs px-2 py-1 rounded ${investRange === "month" ? "bg-[#3CD4AB] text-[#0F0F19]" : "text-white/80 hover:text-white"}`}
+                        >
+                          Mois
+                        </button>
+                        <button
+                          onClick={() => setInvestRange("year")}
+                          className={`text-xs px-2 py-1 rounded ${investRange === "year" ? "bg-[#3CD4AB] text-[#0F0F19]" : "text-white/80 hover:text-white"}`}
+                        >
+                          Année
+                        </button>
+                      </div>
                     </div>
                     <div className="h-60">
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart
-                          data={portfolioData.performanceHistory}
-                          margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
-                        >
-                          <defs>
-                            <linearGradient
-                              id="colorValue"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#3CD4AB"
-                                stopOpacity={0.6}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="#3CD4AB"
-                                stopOpacity={0}
-                              />
-                            </linearGradient>
-                            <linearGradient
-                              id="colorBenchmark"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#89559F"
-                                stopOpacity={0.5}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="#89559F"
-                                stopOpacity={0}
-                              />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#ffffff20"
-                          />
-                          <XAxis dataKey="date" stroke="#ffffff80" />
-                          <YAxis stroke="#ffffff80" />
+                        <BarChart data={investmentTimeSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
+                          <XAxis dataKey="date" stroke="#ffffff80" tick={{ fill: "#ffffff80", fontSize: 12 }} interval={Math.ceil((investmentTimeSeries.length || 1) / 8)} />
+                          <YAxis stroke="#ffffff80" tick={{ fill: "#ffffff80", fontSize: 12 }} />
                           <Tooltip
-                            contentStyle={{
-                              backgroundColor: "#0F0F19",
-                              border: "1px solid #ffffff20",
-                              borderRadius: "8px",
-                              color: "#ffffff"
-                            }}
+                            formatter={(value) => [`${Number(value).toLocaleString()} MAD`, "Montant"]}
+                            labelStyle={{ color: "#ffffff" }}
+                            contentStyle={{ backgroundColor: "#0F0F19", border: "1px solid #ffffff20", borderRadius: 8, color: "#fff" }}
                           />
-                          <Legend />
-                          <Area
-                            type="monotone"
-                            dataKey="value"
-                            name="Portefeuille"
-                            stroke="#3CD4AB"
-                            fillOpacity={1}
-                            fill="url(#colorValue)"
-                          />
-                          <Area
-                            type="monotone"
-                            dataKey="benchmark"
-                            name="Benchmark"
-                            stroke="#89559F"
-                            fillOpacity={1}
-                            fill="url(#colorBenchmark)"
-                          />
-                        </AreaChart>
+                          <Bar dataKey="amount" name="Investi" fill="#3CD4AB" radius={[4, 4, 0, 0]} />
+                        </BarChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
@@ -2047,13 +2122,19 @@ const UserDashboard = () => {
                         Historique des Transactions
                       </h3>
                     </div>
-                    {transactionsHistory.length === 0 ? (
-                      <p className="text-white/60">
-                        Aucune transaction pour le moment.
-                      </p>
-                    ) : (
-                      <ul className="divide-y divide-white/10">
-                        {transactionsHistory.slice(0, 8).map((t) => (
+                    <div className={`relative ${transactionsHistory.length > 8 ? "pt-8" : ""}`}>
+                      {transactionsHistory.length > 8 && (
+                        <div className="absolute -top-1 right-0 flex gap-2">
+                          <button onClick={() => document.getElementById('txHistory')?.scrollBy({ top: -72, behavior: 'smooth' })} className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10">↑</button>
+                          <button onClick={() => document.getElementById('txHistory')?.scrollBy({ top: 72, behavior: 'smooth' })} className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10">↓</button>
+                        </div>
+                      )}
+                      <ul
+                        id="txHistory"
+                        className={`${transactionsHistory.length > 8 ? "max-h-80 overflow-y-scroll no-scrollbar" : ""} divide-y divide-white/10`}
+                        style={{ scrollBehavior: 'smooth' }}
+                      >
+                        {transactionsHistory.map((t) => (
                           <li
                             key={t.id}
                             className="py-3 flex items-center justify-between"
@@ -2096,7 +2177,7 @@ const UserDashboard = () => {
                           </li>
                         ))}
                       </ul>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2234,7 +2315,7 @@ const UserDashboard = () => {
                     <h3 className="text-xl font-bold text-white mb-4">
                       Répartition par Secteur
                     </h3>
-                    <div className="space-y-4">
+                    <div className="space-y-4 max-h-80 overflow-y-scroll no-scrollbar">
                       {calculateSectorBreakdown().length > 0 ? (
                         calculateSectorBreakdown().map((item, index) => (
                           <div
@@ -2291,11 +2372,34 @@ const UserDashboard = () => {
                     <h3 className="text-xl font-bold text-white mb-4">
                       Historique d'Investissements
                     </h3>
+                    <div className={`space-y-4 relative ${calculateInvestmentHistoryWithReturns().length >= 5 ? "pt-10" : ""}`}>
+                      {calculateInvestmentHistoryWithReturns().length >= 5 && (
+                        <div className="absolute -top-2 right-0 flex gap-2">
+                          <button
+                            onClick={() => scrollInvestments(-1)}
+                            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            onClick={() => scrollInvestments(1)}
+                            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10"
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      )}
+                      <div
+                        ref={invListRef}
+                        className={`${calculateInvestmentHistoryWithReturns().length >= 5 ? "max-h-80 overflow-y-scroll no-scrollbar" : ""}`}
+                        style={{ scrollBehavior: "smooth" }}
+                      >
                     <div className="space-y-4">
                       {calculateInvestmentHistoryWithReturns().map(
                         (investment) => (
                           <div
                             key={investment.id}
+                            data-inv-item
                             className="flex justify-between items-center p-3 bg-white/5 rounded-lg"
                           >
                             <div>
@@ -2332,6 +2436,8 @@ const UserDashboard = () => {
                           </div>
                         )
                       )}
+                      </div>
+                      </div>
                       {investmentHistory.length === 0 && (
                         <div className="text-center text-white/60 py-4">
                           Aucun investissement pour le moment
@@ -2344,10 +2450,36 @@ const UserDashboard = () => {
                 {/* Notification History Section */}
 
                 <div className="flex  gap-4 flex-col-reverse">
-                  <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm overflow-y-auto">
+                  <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
                     <h3 className="text-xl font-bold text-white mb-4">
                       Historique des Notifications
                     </h3>
+                    <div className={`space-y-4 relative ${notificationHistory.length >= 5 ? "pt-10" : ""}`}>
+                      {notificationHistory.length >= 5 && (
+                        <div className="absolute -top-2 right-0 flex gap-2">
+                          <button
+                            onClick={() => {
+                              const el = document.getElementById('notifHistory');
+                              if (!el) return;
+                              el.scrollBy({ top: -80, behavior: 'smooth' });
+                            }}
+                            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            onClick={() => {
+                              const el = document.getElementById('notifHistory');
+                              if (!el) return;
+                              el.scrollBy({ top: 80, behavior: 'smooth' });
+                            }}
+                            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10"
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      )}
+                      <div id="notifHistory" className={`${notificationHistory.length >= 5 ? "max-h-80 overflow-y-scroll no-scrollbar" : ""}`} style={{ scrollBehavior: 'smooth' }}>
                     <div className="space-y-4">
                       {notificationHistory.length > 0 ? (
                         notificationHistory.map((notification) => (
@@ -2400,6 +2532,8 @@ const UserDashboard = () => {
                           </p>
                         </div>
                       )}
+                      </div>
+                      </div>
                     </div>
                   </div>
 
@@ -4054,10 +4188,11 @@ const UserDashboard = () => {
                         <img
                           src={
                             userData?.avatar ||
-                            "https://api.dicebear.com/7.x/avataaars/svg?seed=User"
+                            fallbackAvatar
                           }
                           alt="Avatar"
-                          className="w-16 h-16 rounded-full"
+                          className="w-16 h-16 rounded-full object-cover"
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }}
                         />
                         <div>
                           <h4 className="text-white font-semibold">
