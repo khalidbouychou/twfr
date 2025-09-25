@@ -2,7 +2,7 @@ const products = [
   {
     id:"Compte-sur-Carnet",
     title: "Compte sur Carnet",
-    icon: "../../public/assets/saving.svg",
+    icon: "https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706762/tawfir-ai/saving.svg",
     description: "Un produit d'épargne garanti, offrant une liquidité immédiate. Il est destiné aux investisseurs conservateurs à la recherche de sécurité, avec une fiscalité de 30% de retenue à la source.",
     features: [
       "Sécurité du capital",
@@ -14,7 +14,7 @@ const products = [
   {
     id:"Dépôt-à-Terme",
     title: "Dépôt à Terme",
-    icon: "../../public/assets/deposit.svg",
+    icon: "https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706760/tawfir-ai/deposit.svg",
     description: "Un produit bancaire garanti avec un rendement fixe, mais avec des pénalités si retiré avant l’échéance. Il est adapté aux investisseurs à faible risque et aux objectifs de court terme.",
     features: [
       "Taux d'intérêt fixe",
@@ -26,7 +26,7 @@ const products = [
   {
     id:"Gestion-sous-Mandat",
     title: "OPCVM Actions",
-    icon: "../../public/assets/OPCVM.svg",
+    icon: "https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706758/tawfir-ai/OPCVM.svg",
     description: "Fonds d'investissement en actions, permettant aux investisseurs d'accéder aux marchés boursiers tout en diversifiant leurs placements. Ce produit est destiné aux investisseurs prêts à prendre plus de risques pour un potentiel de rendement plus élevé.",
     features: [
       "Accès à des marchés diversifiés",
@@ -38,7 +38,7 @@ const products = [
   {
     id:"OPCVM-Monétaires",
     title: "Gestion sous Mandat",
-    icon: "../../public/assets/service.svg",
+    icon: "https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706756/tawfir-ai/service.svg",
     description: "Un service où les portefeuilles d'investissement sont gérés par des professionnels, afin d'optimiser la performance selon les objectifs financiers du client. Ce produit est destiné à ceux qui souhaitent déléguer la gestion de leurs investissements dans des actions.",
     features: [
       "Gestion déléguée à des experts",
@@ -50,7 +50,7 @@ const products = [
   {
     id:"OPCVM-Actions",
     title: "OPCVM Monétaires",
-    icon: "../../public/assets/marketstock.png",
+    icon: "https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706713/tawfir-ai/marketstock.png",
     description: "Un produit d'investissement à court terme, sécurisé et peu risqué, adapté aux investisseurs cherchant à conserver leur capital tout en obtenant un rendement modéré. Il est souvent utilisé pour des objectifs à court terme, comme des économies de précaution.",
     features: [
       "Placement à court terme",
@@ -62,7 +62,7 @@ const products = [
   {
     id:"Produits_Structurés-Capital_Garanti",
     title: "Produits Structurés - Capital Garanti",
-    icon: "../../public/assets/products.svg",
+    icon: "https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706764/tawfir-ai/products.svg",
     description: "Des produits financiers qui offrent une garantie de capital, tout en offrant une exposition à des rendements potentiels plus élevés en fonction des performances du marché. Idéal pour les investisseurs qui recherchent à la fois sécurité et potentiel de gain.",
     features: [
       "Protection partielle ou totale du capital",
@@ -103,3 +103,5 @@ export default function Products() {
     </section>
   );
 }
+
+

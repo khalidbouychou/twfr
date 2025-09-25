@@ -8,88 +8,18 @@ import Faq from "./components/Faq";
 import MainSections from "./components/MainSections";
 import HowItWorks from "./components/HowItWorks";
 import Products from "./components/Products";
-// import Reviews from "./components/Feedbacks";
 import Reviews from "./components/Reviews";
 import News from "./components/News";
 import Footer from "./components/Footer";
 import Contactus from "./components/Contactus";
-import FinancialProfilingStepper from './components/Profiling/FinancialProfilingStepper';
 import UserDashboard from './components/Dashboard/UserDashboard';
-import InvestmentPortfolio from './components/Invest/InvestmentPortfolio';
-import { UserProvider, UserContext } from './components/Context/UserContext.jsx';
+import { UserContext } from './components/Context/UserContext.jsx';
 import Login from './components/Login/Login';
 import Stepper from './components/Profiling/Stepper';
 import TawfirStats from "./components/TawfirState";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import Loader from "./components/Loader";
 
-// const Test = () => {
-//   // App.jsx
-//   // Form state
-//   const [category, setCategory] = useState("");
-//   const [budget, setBudget] = useState("");
-//   const [suggestions, setSuggestions] = useState([]);
-//
-// // Mock product list (could be from Excel export converted to JSON)
-// const products = [
-//   { id: 1, name: "Laptop Pro", category: "tech", budget: "high" },
-//   { id: 2, name: "Budget Phone", category: "tech", budget: "low" },
-//   { id: 3, name: "Gaming Chair", category: "furniture", budget: "mid" },
-//   { id: 4, name: "Office Desk", category: "furniture", budget: "high" },
-// ];
-//
-// const handleSubmit = (e) => {
-//   e.preventDefault();
-//   // Simple filter logic
-//   const filtered = products.filter(
-//     (p) =>
-//       (category ? p.category === category : true) &&
-//       (budget ? p.budget === budget : true)
-//   );
-//   setSuggestions(filtered);
-// };
-//
-// return (
-//   <div className="container mx-auto bg-amber-50" style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-//     <h1>Product Discovery</h1>
-//
-//     <form onSubmit={handleSubmit}>
-//       <label>
-//         Category:
-//         <select value={category} onChange={(e) => setCategory(e.target.value)}>
-//           <option value="">-- Select --</option>
-//           <option value="tech">Tech</option>
-//           <option value="furniture">Furniture</option>
-//         </select>
-//       </label>
-//
-//       <br />
-//
-//       <label>
-//         Budget:
-//         <select value={budget} onChange={(e) => setBudget(e.target.value)}>
-//           <option value="">-- Select --</option>
-//           <option value="low">Low</option>
-//           <option value="mid">Mid</option>
-//           <option value="high">High</option>
-//         </select>
-//       </label>
-//
-//       <br />
-//       <button type="submit">Get Suggestions</button>
-//     </form>
-//
-//     <h2>Suggested Products:</h2>
-//     <ul>
-//       {suggestions.length > 0 ? (
-//         suggestions.map((p) => <li key={p.id}>{p.name}</li>)
-//       ) : (
-//         <p>No suggestions yet. Fill the form!</p>
-//       )}
-//     </ul>
-//   </div>
-// );
-//
-// };
 
 const LandingPage = () => (
   <>
@@ -134,8 +64,8 @@ const App = () => {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#0F0F19] z-50">
-        <div className="w-10 h-10 border-4 border-[#3CD4AB] border-t-transparent rounded-full animate-spin"></div>
+      <div className="fixed inset-0 flex flex-col items-center justify-center  z-50">
+        <Loader />
       </div>
     );
   }
@@ -143,7 +73,6 @@ const App = () => {
  
 
   return (
-    <UserProvider>
       <GoogleOAuthProvider clientId={googleClientId}>
       <BrowserRouter>
         <Routes>
@@ -168,7 +97,6 @@ const App = () => {
         </Routes>
       </BrowserRouter>
       </GoogleOAuthProvider>
-    </UserProvider>
   );
 };
 

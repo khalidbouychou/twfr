@@ -1,0 +1,266 @@
+import React from "react";
+import { getImageUrl, CloudinaryImage } from "../lib/cloudinary";
+
+const sections = [
+  {
+    img: "public/svg_team.svg",
+    title: "Qui sommes-nous ?",
+    desc: "Découvrez la vision et l\
+expertise
+de
+Tawfir.AI
+dans
+le
+domaine
+de
+l\épargne intelligente",
+    bg: "bg-[#89559F]",
+  },
+  {
+    img: "public/saving.svg",
+    title: "Pourquoi épargner ?",
+    desc: "Comprendre les bénéfices concrets de l\épargne
+pour
+sécuriser
+votre
+avenir
+financier,
+    bg: bg-[#3CD4AB],
+  },
+  {
+    img: public/tawfir.svg,
+    title: Pourquoi
+Tawfir.AI
+?,
+    desc: Notre
+approche
+unique
+nos
+valeurs
+et
+notre
+engagement
+envers
+votre
+réussite
+financière,
+    bg: bg-[#89559F],
+  },
+  {
+    img: public/free.svg,
+    title: Application
+gratuite,
+    desc: Accès
+complet
+sans
+frais
+pour
+tous
+les
+utilisateurs,
+    bg: bg-[#3CD4AB],
+  },
+];
+
+const MainSections = () => {
+  return (
+    <section id=About
+us className=w-full
+py-15
+bg-gray-50
+rounded-2xl>
+      <h2 className=block
+text-2xl
+md:text-4xl
+font-bold
+text-center
+w-full
+mb-15>
+        À propos de TawfirAI
+      </h2>
+      <div className=max-w-7xl
+mx-auto
+flex
+p-10
+gap-20
+md:px-0 data-aos=fade-up>
+        {sections.map((section) => (
+          <div
+            key={section.title}
+            className={w-full rounded-2xl px-6 py-8 shadow-lg justify-start items-center transition-transform hover:scale-105 duration-200}
+          >
+            <div className=w-full
+mb-12
+overflow-hidden
+rounded-t-xl
+flex
+justify-center>
+              <CloudinaryImage 
+                src={section.img} 
+                alt={section.title}
+                className=w-40
+h-40
+object-contain
+                options={{ width: 160, height: 160, quality: auto }}
+              />
+            </div>
+            <div className=flex
+items-center
+justify-center
+mb-2>
+              <h2 className=text-xl
+font-bold
+text-gray-950
+text-center
+mr-2>
+                {section.title}
+              </h2>
+            </div>
+            <p className=text-base
+text-gray-900
+leading-relaxed
+text-center>
+              {section.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default MainSections;' > src/components/MainSections-Cloudinary.jsx
+q
+echo '# Cloudinary Integration Complete! 🎉
+
+## What was accomplished:
+
+✅ **47 images uploaded** to Cloudinary successfully
+✅ **Environment variables** configured with your credentials
+✅ **Cloudinary utility functions** created in src/lib/cloudinary.js
+✅ **Image mappings** generated for all uploaded images
+
+## How to use Cloudinary images in your components:
+
+### Method 1: Using the CloudinaryImage component
+`jsx
+import { CloudinaryImage } from ../lib/cloudinary;
+
+<CloudinaryImage 
+  src=public/logo.png 
+  alt=Logo
+  className=w-20
+h-20
+  options={{ width: 80, height: 80, quality: auto }}
+/>
+`
+
+### Method 2: Using the getImageUrl function
+`jsx
+import { getImageUrl } from ../lib/cloudinary;
+
+const imageUrl = getImageUrl(public/team.jpg, { width: 300, height: 200 });
+<img src={imageUrl} alt=Team className=w-full />
+`
+
+### Method 3: Direct URL (for known mappings)
+`jsx
+// The imageMappings object contains all your uploaded images
+import { imageMappings } from ../lib/cloudinary;
+
+<img src={imageMappings[public/logo.png]} alt=Logo />
+`
+
+## Available transformation options:
+- width: Set image width
+- height: Set image height  
+- crop: Crop mode (fill, fit, scale, etc.)
+- quality: Image quality (auto, 80, 90, etc.)
+- ormat: Output format (auto, webp, jpg, png)
+
+## Next steps:
+1. Update your components to use CloudinaryImage or getImageUrl
+2. Remove local image files from public folder (optional)
+3. Test your application to ensure images load correctly
+
+Your images are now hosted on Cloudinary and will load faster! 🚀' > CLOUDINARY_SETUP.md
+q
+echo 'import React from react;
+import { getImageUrl } from ../lib/cloudinary;
+
+const sections = [
+  {
+    img: public/svg_team.svg,
+    title: Qui
+sommes-nous
+?,
+    desc: Découvrez
+la
+vision
+et
+l\expertise de Tawfir.AI dans le domaine de l\épargne
+intelligente,
+    bg: bg-[#89559F],
+  },
+  {
+    img: public/saving.svg,
+    title: Pourquoi
+épargner
+?,
+    desc: Comprendre
+les
+bénéfices
+concrets
+de
+l\épargne pour sécuriser votre avenir financier",
+    bg: "bg-[#3CD4AB]",
+  },
+  {
+    img: "public/tawfir.svg",
+    title: "Pourquoi Tawfir.AI ?",
+    desc: "Notre approche unique, nos valeurs et notre engagement envers votre réussite financière",
+    bg: "bg-[#89559F]",
+  },
+  {
+    img: "public/free.svg",
+    title: "Application gratuite",
+    desc: "Accès complet sans frais pour tous les utilisateurs",
+    bg: "bg-[#3CD4AB]",
+  },
+];
+
+const MainSections = () => {
+  return (
+    <section id="About us" className="w-full py-15 bg-gray-50 rounded-2xl">
+      <h2 className="block text-2xl md:text-4xl font-bold text-center w-full mb-15">
+        À propos de TawfirAI
+      </h2>
+      <div className="max-w-7xl mx-auto flex p-10 gap-20 md:px-0" data-aos="fade-up">
+        {sections.map((section) => (
+          <div
+            key={section.title}
+            className={`w-full rounded-2xl px-6 py-8 shadow-lg justify-start items-center transition-transform hover:scale-105 duration-200`}
+          >
+            <div className="w-full mb-12 overflow-hidden rounded-t-xl flex justify-center">
+              <img 
+                src={getImageUrl(section.img, { width: 160, height: 160, quality: "auto" })} 
+                alt={section.title} 
+                className="w-40 h-40 object-contain" 
+              />
+            </div>
+            <div className="flex items-center justify-center mb-2">
+              <h2 className="text-xl font-bold text-gray-950 text-center mr-2">
+                {section.title}
+              </h2>
+            </div>
+            <p className="text-base text-gray-900 leading-relaxed text-center">
+              {section.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default MainSections;

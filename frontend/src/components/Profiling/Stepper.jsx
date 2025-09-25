@@ -77,7 +77,7 @@ const Stepper = () => {
         <a href="/" className="text-gray-200 text-l font-light hover:text-gray-700 ">Retour</a> 
         </div> 
         <div className="flex  justify-end items-center w-1/2">
-          <a href="/"><img src="../../../public/logo.svg" alt="logo" className="w-12 h-12" /></a>
+          <a href="/"><img src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" alt="logo" className="w-12 h-12" /></a>
         </div>
       </div>
                 
@@ -110,3 +110,5 @@ const Stepper = () => {
 };
 
 export default Stepper;
+
+

@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Column 1: About */}
           <div className='   flex justify-center items-center flex-col gap-4'>
-            <img src="../../public/logo.png" alt=""  className='w-20 h-20 mb-4'/>
+            <img src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.png" alt=""  className='w-20 h-20 mb-4'/>
             <h3 className="text-lg font-semibold mb-4">À propos</h3>
             <p className="text-gray-400 text-sm">
               Nous sommes une app dédiée à rendre l'épargne et l'investissement accessibles à tous, en utilisant la technologie et l'intelligence artificielle pour simplifier vos décisions financières.
@@ -55,3 +55,5 @@ const Footer = () => {
 };
 
 export default Footer;
+
+

@@ -1,78 +1,46 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  IoChevronBack, 
-  IoSearch, 
-  IoNotifications, 
-  IoInformationCircle, 
-  IoArrowForward,
-  IoTrendingUp,
-  IoTrendingDown,
-  IoClose,
   IoCheckmarkCircle,
   IoWarning,
-  IoInformation
+  IoInformation,
+  IoClose,
+  IoInformationCircle,
+  IoTrendingUp,
+  IoTrendingDown
 } from 'react-icons/io5';
-import { ROICalculator, RecommendationEngine } from '../Algo';
+
 import { useUserContext } from '../Context/useUserContext';
 import DrivenInvestmentRecommendations from './DrivenInvestmentRecommendations';
 
-// Custom CSS to hide default scrollbars
+import tawfirProducts from '../Products/Tawfir_Products.json';
+
 const customStyles = `
-  /* Hide default scrollbars */
-  ::-webkit-scrollbar {
-    width: 0px;
-    background: transparent;
-  }
-  
-  /* For Firefox */
-  * {
-    scrollbar-width: none;
-  }
-  
-  /* For IE and Edge */
-  * {
-    -ms-overflow-style: none;
-  }
-  
-  /* Custom scrollbar styles for our components */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
   }
-  
   .custom-scrollbar::-webkit-scrollbar-track {
     background: #374151;
-    border-radius: 3px;
+    border-radius: 2px;
   }
-  
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #3CD4AB;
-    border-radius: 3px;
+    background: #6B7280;
+    border-radius: 2px;
   }
-  
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #2BB89A;
-  }
-  
-  /* For Firefox custom scrollbar */
-  .custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: #3CD4AB #374151;
+    background: #9CA3AF;
   }
 `;
 
-  import tawfirProducts from '../Products/Tawfir_Products.json';
-  
-  const InvestmentPortfolio = () => {
-  const { userProfile, userResults } = useUserContext();
-  const [activeSection, setActiveSection] = useState('investments'); // 'investments', 'history', 'recommended'
+const InvestmentPortfolio = () => {
+  const { userResults, userInvestments, addUserInvestment, setUserInvestments } = useUserContext();
+  const [activeSection, setActiveSection] = useState('holdings');
   const [localRecommendations, setLocalRecommendations] = useState(null);
   const [showBuySellPopup, setShowBuySellPopup] = useState(false);
-  const [buySellMode, setBuySellMode] = useState('buy'); // 'buy' or 'sell'
+  const [buySellMode, setBuySellMode] = useState('buy');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedInvestment, setSelectedInvestment] = useState(null);
   const [sellAmount, setSellAmount] = useState('');
   const [accountBalance, setAccountBalance] = useState(0); // Reset to zero balance
-  const [userInvestments, setUserInvestments] = useState([]); // Reset to empty array
   const [investmentHistory, setInvestmentHistory] = useState([]); // Reset to empty array
   const [toasts, setToasts] = useState([]);
   const [showBalanceModal, setShowBalanceModal] = useState(false);
@@ -83,7 +51,6 @@ const customStyles = `
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [showProfitModal, setShowProfitModal] = useState(false);
   const [profitOperation, setProfitOperation] = useState('withdraw'); // 'withdraw' or 'add'
-
 
   // Removed automatic investment growth simulation
 
@@ -96,7 +63,7 @@ const customStyles = `
       try {
         const parsedRecommendations = JSON.parse(storedRecommendations);
         setLocalRecommendations(parsedRecommendations);
-        console.log('Loaded recommendations from localStorage:', parsedRecommendations);
+        // Loaded recommendations from localStorage
       } catch (error) {
         console.error('Error parsing stored recommendations:', error);
       }
@@ -104,8 +71,8 @@ const customStyles = `
     
     if (storedProfile) {
       try {
-        const parsedProfile = JSON.parse(storedProfile);
-        console.log('Loaded profile from localStorage:', parsedProfile);
+        JSON.parse(storedProfile);
+        // Loaded profile from localStorage
       } catch (error) {
         console.error('Error parsing stored profile:', error);
       }
@@ -115,7 +82,7 @@ const customStyles = `
   // Force re-render when userInvestments changes to update profit display
   React.useEffect(() => {
     // This will trigger a re-render when userInvestments changes
-    console.log('User investments updated:', userInvestments);
+    // userInvestments updated
   }, [userInvestments]);
 
   // Toast notification system
@@ -169,11 +136,7 @@ const customStyles = `
       return total + Math.max(0, profit);
     }, 0);
     
-    // Debug: log the calculation
-    console.log('Profit calculation:', {
-      investments: userInvestments,
-      total: total
-    });
+    // Debug: profit calculation
     
     return total;
   };
@@ -183,7 +146,7 @@ const customStyles = `
     localStorage.removeItem('userResults');
     localStorage.removeItem('userProfileData');
     setLocalRecommendations(null);
-    console.log('LocalStorage data cleared');
+    // LocalStorage data cleared
   };
 
   const refreshLocalRecommendations = () => {
@@ -192,7 +155,7 @@ const customStyles = `
       try {
         const parsedRecommendations = JSON.parse(storedRecommendations);
         setLocalRecommendations(parsedRecommendations);
-        console.log('Refreshed recommendations from localStorage:', parsedRecommendations);
+        // Refreshed recommendations from localStorage
       } catch (error) {
         console.error('Error parsing stored recommendations:', error);
       }
@@ -218,12 +181,7 @@ const customStyles = `
       const paymentMethodName = paymentMethodNames[selectedPaymentMethod] || 'PayPal';
 
       // Reset all investment profits
-      setUserInvestments(prev => prev.map(inv => ({
-        ...inv,
-        currentValue: inv.investedAmount,
-        dailyChange: 0,
-        dailyChangePercent: 0
-      })));
+      setUserInvestments(prev => prev.map(inv => ({ ...inv, currentValue: inv.investedAmount, dailyChange: 0, dailyChangePercent: 0 })));
 
       showToast(`Profits retirés: ${formatCurrency(totalProfits)} via ${paymentMethodName}`, 'success');
     } else {
@@ -231,12 +189,7 @@ const customStyles = `
       setAccountBalance(prev => prev + totalProfits);
       
       // Reset all investment profits
-      setUserInvestments(prev => prev.map(inv => ({
-        ...inv,
-        currentValue: inv.investedAmount,
-        dailyChange: 0,
-        dailyChangePercent: 0
-      })));
+      setUserInvestments(prev => prev.map(inv => ({ ...inv, currentValue: inv.investedAmount, dailyChange: 0, dailyChangePercent: 0 })));
 
       showToast(`Profits ajoutés au solde: ${formatCurrency(totalProfits)}`, 'success');
     }
@@ -264,17 +217,6 @@ const customStyles = `
       return;
     }
 
-    // Add to user investments
-    const newInvestment = {
-      ...selectedInvestmentProduct,
-      id: Date.now(),
-      investedAmount: amount,
-      currentValue: amount, // Start with same value as invested amount (no profit initially)
-      dailyChange: 0,
-      dailyChangePercent: 0,
-      investmentDate: new Date().toISOString()
-    };
-
     // Add to investment history
     const newHistoryEntry = {
       id: Date.now() + 1,
@@ -285,7 +227,20 @@ const customStyles = `
       type: "buy"
     };
 
-    setUserInvestments(prev => [...prev, newInvestment]);
+    // Add to userInvestments in context with proper category
+    addUserInvestment({
+      picture: selectedInvestmentProduct.avatar || "",
+      nameProduct: selectedInvestmentProduct.name,
+      category: selectedInvestmentProduct.category || "other",
+      valueInvested: amount,
+      currentValue: amount, // Start with same value as invested amount
+      date: new Date().toISOString(),
+      roi_product: selectedInvestmentProduct.expectedReturn || 0,
+      investedAmount: amount,
+      dailyChange: 0,
+      dailyChangePercent: 0,
+      investmentDate: new Date().toISOString()
+    });
     setInvestmentHistory(prev => [newHistoryEntry, ...prev]);
     setAccountBalance(prev => Math.max(0, prev - amount));
     setShowInvestmentModal(false);
@@ -537,17 +492,6 @@ const customStyles = `
       return;
     }
 
-    // Add to user investments
-    const newInvestment = {
-      ...selectedProduct,
-      id: Date.now(),
-      investedAmount: amount,
-      currentValue: amount,
-      dailyChange: 0,
-      dailyChangePercent: 0,
-      investmentDate: new Date().toISOString()
-    };
-
     // Add to investment history
     const newHistoryEntry = {
       id: Date.now() + 1,
@@ -558,7 +502,20 @@ const customStyles = `
       type: "buy"
     };
 
-    setUserInvestments(prev => [...prev, newInvestment]);
+    // Add to userInvestments in context with proper category
+    addUserInvestment({
+      picture: selectedProduct.avatar || "",
+      nameProduct: selectedProduct.name,
+      category: selectedProduct.category || "other",
+      valueInvested: amount,
+      currentValue: amount,
+      date: new Date().toISOString(),
+      roi_product: selectedProduct.expectedReturn || 0,
+      investedAmount: amount,
+      dailyChange: 0,
+      dailyChangePercent: 0,
+      investmentDate: new Date().toISOString()
+    });
     setInvestmentHistory(prev => [newHistoryEntry, ...prev]);
     setAccountBalance(prev => Math.max(0, prev - amount));
     setShowBuySellPopup(false);
@@ -598,11 +555,7 @@ const customStyles = `
     };
 
     // Update user investments
-    setUserInvestments(prev => prev.map(inv => 
-      inv.id === selectedInvestment.id 
-        ? { ...inv, currentValue: Math.max(0, inv.currentValue - amount) }
-        : inv
-    ));
+    setUserInvestments(prev => prev.map(inv => inv.id === selectedInvestment.id ? { ...inv, currentValue: Math.max(0, inv.currentValue - amount) } : inv));
 
     // Add to account balance
     setAccountBalance(prev => prev + amount);
@@ -620,7 +573,7 @@ const customStyles = `
 
   // Handle investment decisions from Driven Investment Recommendations
   const handleInvestmentDecision = (decision) => {
-    console.log('Investment decision made:', decision);
+    // Investment decision made
     
     // Create investment history entries for each product
     const newInvestments = decision.investments.map(investment => ({
@@ -644,36 +597,15 @@ const customStyles = `
     setInvestmentHistory(prev => [...newInvestments, ...prev]);
     
     // Update user balance
-    setUserBalance(prev => Math.max(0, prev - decision.totalAmount));
+    // Balance update handled by context
     
     // Add to transaction history
-    setTransactionsHistory(prev => [
-      {
-        id: Date.now(),
-        type: "driven_investment",
-        amount: decision.totalAmount,
-        method: `Scénario: ${decision.scenario.name}`,
-        date: new Date().toLocaleString("fr-FR"),
-      },
-      ...prev,
-    ]);
+    // Transaction history handled by context
 
     // Show success notification
-    const successNotif = {
-      id: Date.now(),
-      message: `Investissement de ${decision.totalAmount.toLocaleString()} MAD effectué avec succès`,
-      time: "À l'instant",
-      type: "success",
-      title: "Investissement Réussi",
-      details: `Votre investissement basé sur le scénario "${decision.scenario.name}" a été traité avec succès. Rendement attendu: +${decision.expectedReturn.toFixed(1)}% sur la période sélectionnée.`,
-      astuce: "💡 Astuce: Suivez régulièrement la performance de vos investissements et ajustez votre stratégie si nécessaire.",
-      isRead: false
-    };
-    setNotifications(prev => [successNotif, ...prev.slice(0, 2)]);
-    setNotificationHistory(prev => [
-      { ...successNotif, receivedAt: new Date().toLocaleString("fr-FR") },
-      ...prev,
-    ]);
+    showToast(`Investissement de ${decision.totalAmount.toLocaleString()} MAD effectué avec succès`, 'success');
+    // Notifications handled by context
+    // Notification history handled by context
 
     // Switch to holdings view to show new investments
     setActiveSection('holdings');
@@ -717,28 +649,6 @@ const customStyles = `
       default:
         return 'bg-blue-600 border-blue-500';
     }
-  };
-
-  // Calculate ROI for investments
-  const calculateInvestmentROI = (investment) => {
-    const daysSinceInvestment = Math.floor(
-      (new Date() - new Date(investment.date)) / (1000 * 60 * 60 * 24)
-    );
-    const years = daysSinceInvestment / 365;
-    
-    if (years <= 0) return null;
-    
-    const currentValue = investment.currentValue || investment.amount;
-    const totalReturn = currentValue - investment.amount;
-    const roiPercentage = (totalReturn / investment.amount) * 100;
-    const annualizedROI = roiPercentage / years;
-    
-    return {
-      totalReturn,
-      roiPercentage: Math.round(roiPercentage * 100) / 100,
-      annualizedROI: Math.round(annualizedROI * 100) / 100,
-      years: Math.round(years * 100) / 100
-    };
   };
 
   // Get ROI color based on performance
@@ -788,7 +698,7 @@ const customStyles = `
           <div className="flex items-center justify-between px-4 py-3">
             <div>
               <div className='flex items-center space-x-10'>
-              <img src="../../../public/logo.svg" alt="Portfolio" className="w-10 h-10" />
+              <img src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" alt="Portfolio" className="w-10 h-10" />
               <h1 className="text-xl font-bold">Portefeuille</h1>
               </div>
               {/* <p className="text-sm text-gray-400">Gestion détaillée de votre portefeuille</p> */}
@@ -797,6 +707,7 @@ const customStyles = `
               <div className="text-right">
                 <p className="text-xs text-gray-400">Solde disponible</p>
                 <p className="text-lg font-bold text-accent">{formatCurrency(accountBalance)}</p>
+                <p className="text-xs text-gray-400">Investissements: {userInvestments.length}</p>
               </div>
               {calculateTotalProfits() > 0 && (
                 <div className="text-right">
@@ -814,6 +725,8 @@ const customStyles = `
               >
                 + Ajouter
               </button>
+              
+
               
               {/* LocalStorage Management Buttons */}
               {localRecommendations && (
@@ -1129,12 +1042,7 @@ const customStyles = `
                       )}
                     </div>
                   ))}
-                  {getFilteredInvestments().length === 0 && (
-                    <div className="text-center py-8">
-                      <p className="text-gray-400">Aucun investissement trouvé</p>
-                      <p className="text-gray-500 text-sm mt-1">Commencez à investir pour voir votre portefeuille ici</p>
-                    </div>
-                  )}
+                  
                 </div>
               </div>
             )}
@@ -1883,6 +1791,13 @@ const customStyles = `
       </div>
     </>
   );
-};
+}
 
 export default InvestmentPortfolio; 
+
+
+
+
+
+
+

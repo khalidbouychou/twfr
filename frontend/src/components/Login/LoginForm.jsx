@@ -163,7 +163,7 @@ const LoginForm = ({ onSwitchToSignup }) => {
                   navigate('/dashboard');
                 }}
                 onError={() => {
-                  console.log('Google Login Failed');
+                  // Google Login Failed - error handled silently
                 }}
                 theme="filled_black"
                 padding= "10px"
@@ -171,6 +171,7 @@ const LoginForm = ({ onSwitchToSignup }) => {
                 shape="pill"
                 size="large"
                 logo_alignment="left"
+                use_fedcm_for_prompt={true}
                 context="signin"
               />
             </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useContext } from "react";
 import { UserContext } from "../Context/UserContext";
 import { useNavigate, Link } from "react-router-dom";
 import { LogOut, UserRoundCog } from "lucide-react";
+import Dashboardchart from "../Charts/Dashboardchart";
 import {
   PieChart,
   Pie,
@@ -20,11 +21,13 @@ import {
   Area
 } from "recharts";
 import { RecommendationEngine, ROICalculator } from "../Algo";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "../ui/chart.jsx";
 import { useUserContext } from "../Context/useUserContext";
+import { RadarChart as RChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 
 const UserDashboard = () => {
-  const { setIsLoggedIn, userProfileData } = useContext(UserContext);
-  const { pendingInvestment, clearPendingInvestment } = useUserContext();
+  const { setIsLoggedIn, userProfileData, userInvestments } = useContext(UserContext);
+  const { pendingInvestment, clearPendingInvestment, addUserInvestment, investmentProductsList } = useUserContext();
 
   // Prefer profile from context (Google or manual); fallback simple
   const fallbackAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
@@ -60,14 +63,14 @@ const UserDashboard = () => {
     dailyVariation: 0, // Start at 0
     monthlyGrowth: 0, // Start at 0
     portfolioBreakdown: [], // Start empty
-    performanceHistory: [
-      { date: "Jan", value: 0, benchmark: 0 },
-      { date: "Fév", value: 0, benchmark: 0 },
-      { date: "Mar", value: 0, benchmark: 0 },
-      { date: "Avr", value: 0, benchmark: 0 },
-      { date: "Mai", value: 0, benchmark: 0 },
-      { date: "Juin", value: 0, benchmark: 0 }
-    ],
+    // performanceHistory: [
+    //   { date: "Jan", value: 0, benchmark: 0 },
+    //   { date: "Fév", value: 0, benchmark: 0 },
+    //   { date: "Mar", value: 0, benchmark: 0 },
+    //   { date: "Avr", value: 0, benchmark: 0 },
+    //   { date: "Mai", value: 0, benchmark: 0 },
+    //   { date: "Juin", value: 0, benchmark: 0 }
+    // ],
     products: [] // Start empty, will be populated with real investments
   });
 
@@ -88,8 +91,7 @@ const UserDashboard = () => {
   const [userResults, setUserResults] = useState(null);
   const [localUserAnswers, setLocalUserAnswers] = useState(null);
 
-  // Read data from localStorage
-  useEffect(() => {
+useEffect(() => {
     const storedUserProfile = localStorage.getItem("userProfileData");
     if (storedUserProfile) {
       try {
@@ -124,7 +126,7 @@ const UserDashboard = () => {
     }
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     // When userAnswers exist, (re)generate recommendations and persist them
     if (localUserAnswers && Array.isArray(localUserAnswers) && localUserAnswers.length > 0) {
       try {
@@ -153,7 +155,7 @@ const UserDashboard = () => {
     }
   }, [localUserAnswers]);
 
-  useEffect(() => {
+useEffect(() => {
     // If we already have userResults (from storage or generation), reflect them into portfolio widgets too
     if (userResults && userResults.allocation) {
       const newPortfolioData = {
@@ -183,7 +185,7 @@ const UserDashboard = () => {
     }
   }, [userResults]);
 
-  useEffect(() => {
+useEffect(() => {
     // Actualités via fournisseurs multiples (FR): Newsdata -> GNews -> NewsAPI -> Mediastack -> ContextualWeb
     const NEWSDATA_KEY = "pub_a433db815e694abe98923ab9daac2de5";
     const GNEWS_KEY = import.meta.env.VITE_GNEWS_KEY;
@@ -381,10 +383,77 @@ const UserDashboard = () => {
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [notificationHistory, setNotificationHistory] = useState([]);
   const [transactionsHistory, setTransactionsHistory] = useState([]);
+
+  // Add sample data for chart demonstration
+  useEffect(() => {
+    if (transactionsHistory.length === 0) {
+      const now = Date.now();
+      const sampleTransactions = [
+        {
+          id: now - 30 * 24 * 60 * 60 * 1000, // 30 days ago
+          type: "invest",
+          amount: 5000,
+          method: "Actions Tech Global",
+          date: new Date(now - 30 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        },
+        {
+          id: now - 25 * 24 * 60 * 60 * 1000, // 25 days ago
+          type: "invest",
+          amount: 3000,
+          method: "Obligations d'État",
+          date: new Date(now - 25 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        },
+        {
+          id: now - 20 * 24 * 60 * 60 * 1000, // 20 days ago
+          type: "invest",
+          amount: 2500,
+          method: "Fonds Euro Diversifié",
+          date: new Date(now - 20 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        },
+        {
+          id: now - 15 * 24 * 60 * 60 * 1000, // 15 days ago
+          type: "invest",
+          amount: 4000,
+          method: "OPCVM Actions Maroc",
+          date: new Date(now - 15 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        },
+        {
+          id: now - 12 * 24 * 60 * 60 * 1000, // 12 days ago
+          type: "invest",
+          amount: 1800,
+          method: "Immobilier REIT",
+          date: new Date(now - 12 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        },
+        {
+          id: now - 8 * 24 * 60 * 60 * 1000, // 8 days ago
+          type: "invest",
+          amount: 3500,
+          method: "Actions Tech Global",
+          date: new Date(now - 8 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        },
+        {
+          id: now - 5 * 24 * 60 * 60 * 1000, // 5 days ago
+          type: "invest",
+          amount: 2200,
+          method: "Matières Premières",
+          date: new Date(now - 5 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        },
+        {
+          id: now - 2 * 24 * 60 * 60 * 1000, // 2 days ago
+          type: "invest",
+          amount: 2800,
+          method: "Fonds Euro Diversifié",
+          date: new Date(now - 2 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        }
+      ];
+      setTransactionsHistory(sampleTransactions);
+    }
+  }, []);
+
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [dateFilter, setDateFilter] = useState("6months");
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
-  const [investRange, setInvestRange] = useState("month");
+  // const [investRange] = useState("month"); // Unused variable
 
   const notificationRef = useRef(null);
   const invListRef = useRef(null);
@@ -397,7 +466,7 @@ const UserDashboard = () => {
     el.scrollBy({ top: delta * itemH, behavior: 'smooth' });
   };
 
-  useEffect(() => {
+useEffect(() => {
     const handleClickOutside = (event) => {
       if (
         notificationRef.current &&
@@ -429,14 +498,6 @@ const UserDashboard = () => {
     const amount = parseFloat(balanceAmount);
     if (!amount || amount <= 0) return;
 
-    const paymentMethodNames = {
-      paypal: "PayPal",
-      card: "Visa/MasterCard",
-      usdt: "USDT (Crypto)"
-    };
-    const paymentMethodName =
-      paymentMethodNames[selectedPaymentMethod] || "PayPal";
-
     if (balanceOperation === "add") {
       setUserBalance((prev) => prev + amount);
       setTransactionsHistory((prev) => [
@@ -444,18 +505,18 @@ const UserDashboard = () => {
           id: Date.now(),
           type: "deposit",
           amount,
-          method: paymentMethodName,
+          method: "Direct",
           date: new Date().toLocaleString("fr-FR")
         },
         ...prev
       ]);
       const newNotif = {
         id: Date.now(),
-        message: `Solde ajouté: +${amount.toLocaleString()} MAD via ${paymentMethodName}`,
+        message: `Solde ajouté: +${amount.toLocaleString()} MAD`,
         time: "À l'instant",
         type: "success",
         title: "Dépôt Réussi",
-        details: `Votre solde a été augmenté de ${amount.toLocaleString()} MAD via ${paymentMethodName}. Votre nouveau solde disponible est de ${(
+        details: `Votre solde a été augmenté de ${amount.toLocaleString()} MAD. Votre nouveau solde disponible est de ${(
           userBalance + amount
         ).toLocaleString()} MAD. Vous pouvez maintenant utiliser ces fonds pour de nouveaux investissements.`,
         astuce:
@@ -468,59 +529,38 @@ const UserDashboard = () => {
         ...prev
       ]);
     } else if (balanceOperation === "withdraw") {
-      if (amount > userBalance) {
-        const failNotif = {
-          id: Date.now(),
-          message: `Retrait échoué: Solde insuffisant`,
-          time: "À l'instant",
-          type: "error",
-          title: "Retrait Échoué",
-          details: `Impossible de retirer ${amount.toLocaleString()} MAD. Votre solde actuel est de ${userBalance.toLocaleString()} MAD. Veuillez ajuster le montant du retrait.`,
-          astuce:
-            "💡 Astuce: Vérifiez toujours votre solde disponible avant d'effectuer un retrait.",
-          isRead: false
-        };
-        setNotifications((prev) => [failNotif, ...prev.slice(0, 2)]);
-        setNotificationHistory((prev) => [
-          { ...failNotif, receivedAt: new Date().toLocaleString("fr-FR") },
-          ...prev
-        ]);
-        return;
-      }
-
       setUserBalance((prev) => prev - amount);
       setTransactionsHistory((prev) => [
         {
           id: Date.now(),
-          type: "withdraw",
+          type: "withdrawal",
           amount,
-          method: paymentMethodName,
+          method: "Direct",
           date: new Date().toLocaleString("fr-FR")
         },
         ...prev
       ]);
-      const successNotif = {
+      const newNotif = {
         id: Date.now(),
-        message: `Retrait effectué: -${amount.toLocaleString()} MAD vers ${paymentMethodName}`,
+        message: `Solde retiré: -${amount.toLocaleString()} MAD`,
         time: "À l'instant",
         type: "info",
         title: "Retrait Réussi",
-        details: `Votre retrait de ${amount.toLocaleString()} MAD vers ${paymentMethodName} a été traité avec succès. Votre nouveau solde disponible est de ${(
+        details: `Vous avez retiré ${amount.toLocaleString()} MAD de votre solde. Votre nouveau solde disponible est de ${(
           userBalance - amount
-        ).toLocaleString()} MAD. Les fonds seront transférés sous 1-3 jours ouvrables.`,
+        ).toLocaleString()} MAD.`,
         astuce:
-          "💡 Astuce: Les retraits peuvent prendre 1-3 jours ouvrables selon la méthode de paiement choisie.",
+          "💡 Astuce: Gardez un œil sur votre solde pour éviter les frais de découvert.",
         isRead: false
       };
-      setNotifications((prev) => [successNotif, ...prev.slice(0, 2)]);
+      setNotifications((prev) => [newNotif, ...prev.slice(0, 2)]);
       setNotificationHistory((prev) => [
-        { ...successNotif, receivedAt: new Date().toLocaleString("fr-FR") },
+        { ...newNotif, receivedAt: new Date().toLocaleString("fr-FR") },
         ...prev
       ]);
     }
 
     setBalanceAmount("");
-    setSelectedPaymentMethod("paypal");
     setShowBalanceModal(false);
   };
 
@@ -1136,6 +1176,21 @@ const UserDashboard = () => {
     };
     setInvestmentHistory((prev) => [newInvestment, ...prev]);
 
+    // Add to shared context so Dashboardchart receives data
+    try {
+      addUserInvestment({
+        picture: selectedInvestment.image || "",
+        nameProduct: selectedInvestment.name,
+        category: getSectorFromName(selectedInvestment.name) || "other",
+        valueInvested: amount,
+        currentValue: amount + initialProfit,
+        date: new Date().toISOString(),
+        roi_product: Number(String(selectedInvestment.return).replace(/[^0-9.-]/g, "")) || 0
+      });
+    } catch {
+      // ignore
+    }
+
     setTransactionsHistory((prev) => [
       {
         id: Date.now(),
@@ -1181,11 +1236,11 @@ const UserDashboard = () => {
   const [recentSimulations, setRecentSimulations] = useState([]);
   const [simulationDateFilter, setSimulationDateFilter] = useState("all");
 
-  useEffect(() => {
+useEffect(() => {
     updatePortfolioData();
   }, [investmentHistory]);
 
-  useEffect(() => {
+useEffect(() => {
     if (investmentHistory.length === 0) return;
 
     const interval = setInterval(() => {
@@ -1214,7 +1269,7 @@ const UserDashboard = () => {
     return () => clearInterval(interval);
   }, [investmentHistory.length]);
 
-  useEffect(() => {
+useEffect(() => {
     if (pendingInvestment) {
       setSelectedInvestment(pendingInvestment.product);
       setInvestAmount(
@@ -1270,74 +1325,120 @@ const UserDashboard = () => {
     });
   }, [userResults]);
 
-  // Build investment time series from transactions history (type: invest)
-  const buildInvestmentTimeSeries = (range) => {
-    const now = Date.now();
-    const invests = (transactionsHistory || []).filter((t) => t.type === "invest");
+  // Radar Chart: compute behavioral profile from current investments and/or user results
+  const radarData = useMemo(() => {
+    const invs = Array.isArray(userInvestments) ? userInvestments : [];
+    const totalInvested = invs.reduce((sum, inv) => sum + (Number(inv.valueInvested ?? inv.investedAmount ?? inv.amount ?? 0) || 0), 0);
 
-    const bins = [];
-    const pushBin = (startMs, endMs, label) => bins.push({ startMs, endMs, label });
+    // Category heuristics
+    const getCategory = (name = "") => {
+      const n = String(name).toLowerCase();
+      if (/(epargne|livret|compte|deposit|épargne)/i.test(n)) return "epargne";
+      if (/(obligat|bond|etat|état)/i.test(n)) return "obligations";
+      if (/(opcvm|fonds|fund)/i.test(n)) return "opcvm";
+      if (/(action|equity|stock|tech|indice)/i.test(n)) return "actions";
+      return "autres";
+    };
 
-    const dayMs = 24 * 60 * 60 * 1000;
-    const hourMs = 60 * 60 * 1000;
+    // Weighted scores (0-100)
+    // Risque: actions 90, opcvm 60, obligations 30, epargne 10, autres 50
+    const riskWeights = { actions: 90, opcvm: 60, obligations: 30, epargne: 10, autres: 50 };
+    // Liquidité: epargne 90, obligations 60, opcvm 50, actions 30, autres 50
+    const liqWeights = { epargne: 90, obligations: 60, opcvm: 50, actions: 30, autres: 50 };
+    // Horizon (long): actions 85, opcvm 70, obligations 60, epargne 30, autres 50
+    const horizonWeights = { actions: 85, opcvm: 70, obligations: 60, epargne: 30, autres: 50 };
 
-    if (range === "day") {
-      // Last 24 hours, hourly bins
-      for (let i = 23; i >= 0; i--) {
-        const end = now - i * hourMs;
-        const start = end - hourMs;
-        const d = new Date(end);
-        const label = d.toLocaleTimeString("fr-FR", { hour: "2-digit" });
-        pushBin(start, end, label);
-      }
-    } else if (range === "week") {
-      // Last 7 days, daily bins
-      for (let i = 6; i >= 0; i--) {
-        const end = now - i * dayMs;
-        const start = end - dayMs;
-        const d = new Date(end);
-        const label = d.toLocaleDateString("fr-FR", { weekday: "short" });
-        pushBin(start, end, label.charAt(0).toUpperCase() + label.slice(1));
-      }
-    } else if (range === "month") {
-      // Last 30 days, daily bins
-      for (let i = 29; i >= 0; i--) {
-        const end = now - i * dayMs;
-        const start = end - dayMs;
-        const d = new Date(end);
-        const label = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
-        pushBin(start, end, label);
-      }
-    } else if (range === "year") {
-      // Last 12 months, monthly bins
-      const endDate = new Date();
-      for (let i = 11; i >= 0; i--) {
-        const d = new Date(endDate.getFullYear(), endDate.getMonth() - i + 1, 1);
-        const startD = new Date(endDate.getFullYear(), endDate.getMonth() - i, 1);
-        const label = startD.toLocaleDateString("fr-FR", { month: "short" });
-        pushBin(startD.getTime(), d.getTime(), label.charAt(0).toUpperCase() + label.slice(1));
-      }
+    const weighted = invs.reduce(
+      (acc, inv) => {
+        const amt = Number(inv.valueInvested ?? inv.investedAmount ?? inv.amount ?? 0) || 0;
+        const cat = getCategory(inv.nameProduct || inv.name || "");
+        acc.risk += amt * (riskWeights[cat] ?? 50);
+        acc.liq += amt * (liqWeights[cat] ?? 50);
+        acc.horizon += amt * (horizonWeights[cat] ?? 50);
+        return acc;
+      },
+      { risk: 0, liq: 0, horizon: 0 }
+    );
+
+    const avg = (v) => (totalInvested > 0 ? Math.round(v / totalInvested) : 50);
+    let Risque = avg(weighted.risk);
+    let Liquidité = avg(weighted.liq);
+    let Horizon = avg(weighted.horizon);
+
+    // Diversification: based on number of distinct products and categories
+    const distinctNames = new Set(invs.map((i) => i.nameProduct || i.name).filter(Boolean));
+    const distinctCats = new Set(invs.map((i) => getCategory(i.nameProduct || i.name)).filter(Boolean));
+    const Diversification = Math.max(0, Math.min(100, (distinctNames.size * 15) + (distinctCats.size * 10)));
+
+    // Confiance: proxy by unrealized profit ratio (current - invested)
+    const totalCurrent = invs.reduce((s, i) => s + (Number(i.currentValue ?? 0) || 0), 0);
+    const totalProfit = Math.max(0, totalCurrent - totalInvested);
+    const profitRatio = totalInvested > 0 ? totalProfit / totalInvested : 0;
+    const Confiance = Math.max(10, Math.min(100, Math.round(40 + profitRatio * 200))); // center ~40, up with gains
+
+    // If userResults has riskProfile, nudge risk and horizon
+    const riskLevel = userResults?.riskProfile?.riskLevel || "";
+    if (/agressif/i.test(riskLevel)) {
+      Risque = Math.min(100, Risque + 15);
+      Horizon = Math.min(100, Horizon + 10);
+      Liquidité = Math.max(0, Liquidité - 10);
+    } else if (/prudent|conservateur/i.test(riskLevel)) {
+      Risque = Math.max(0, Risque - 15);
+      Liquidité = Math.min(100, Liquidité + 10);
     }
 
-    const data = bins.map((bin) => {
-      const amount = invests.reduce((sum, t) => {
-        // Use the numeric id timestamp for reliable time bucketing
-        const ts = typeof t.id === "number" ? t.id : Date.parse(t.date || 0);
-        if (ts >= bin.startMs && ts < bin.endMs) {
-          return sum + (t.amount || 0);
-        }
-        return sum;
-      }, 0);
-      return { date: bin.label, amount: Math.round(amount) };
+    return [
+      { metric: "Risque", value: Risque },
+      { metric: "Liquidité", value: Liquidité },
+      { metric: "Horizon", value: Horizon },
+      { metric: "Diversification", value: Diversification },
+      { metric: "Confiance", value: Confiance }
+    ];
+  }, [userInvestments, userResults]);
+
+  // Interactive Area Chart state: day / month / year
+  const [areaRange, setAreaRange] = useState("month");
+  const areaSeries = useMemo(() => {
+    const investedTotal = portfolioData?.totalInvested || 0;
+    const profitsTotal = calculateTotalProfits();
+
+    const now = new Date();
+    const makePoint = (dateLabel, idx, count) => {
+      const investBase = investedTotal * (0.8 + (idx / Math.max(1, count - 1)) * 0.4); // 80% -> 120%
+      const roiBase = profitsTotal * (0.5 + (idx / Math.max(1, count - 1)) * 0.8); // 50% -> 130%
+      return {
+        date: dateLabel,
+        invested: Math.max(0, Math.round(investBase)),
+        roi: Math.max(0, Math.round(roiBase))
+      };
+    };
+
+    if (areaRange === "day") {
+      const points = 30;
+      return Array.from({ length: points }, (_, i) => {
+        const d = new Date(now);
+        d.setDate(now.getDate() - (points - 1 - i));
+        const label = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+        return makePoint(label, i, points);
+      });
+    }
+    if (areaRange === "year") {
+      const points = 5;
+      return Array.from({ length: points }, (_, i) => {
+        const d = new Date(now);
+        d.setFullYear(now.getFullYear() - (points - 1 - i));
+        const label = d.getFullYear().toString();
+        return makePoint(label, i, points);
+      });
+    }
+    // default: month (last 12 months)
+    const points = 12;
+    return Array.from({ length: points }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (points - 1 - i), 1);
+      const label = d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
+      return makePoint(label.charAt(0).toUpperCase() + label.slice(1), i, points);
     });
-
-    return data;
-  };
-
-  const investmentTimeSeries = useMemo(
-    () => buildInvestmentTimeSeries(investRange),
-    [transactionsHistory, investRange]
-  );
+  }, [areaRange, portfolioData?.totalInvested, calculateTotalProfits]);
 
   return (
     <>
@@ -1780,7 +1881,7 @@ const UserDashboard = () => {
         >
           <div className='flex items-center justify-center px-2'>
             <a href='/' className='cursor-pointer'>
-              <img src="../../../public/logo.svg" className={`${isSidebarHovered ? "w-10 h-10" : "w-8 h-8"}`} alt="" />
+              <img src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" className={`${isSidebarHovered ? "w-10 h-10" : "w-8 h-8"}`} alt="" />
             </a>
           </div>
           <div className="h-full px-3 pb-4 overflow-y-auto bg-[#0F0F19]">
@@ -2017,7 +2118,7 @@ const UserDashboard = () => {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
+                <div className="p-4  border border-white/10 rounded-lg shadow backdrop-blur-sm">
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => {
@@ -2068,51 +2169,49 @@ const UserDashboard = () => {
                   {/* Portfolio Performance Chart */}
                   <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-white font-semibold">
-                        Investissements dans le temps
-                      </h3>
-                      <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
-                        <button
-                          onClick={() => setInvestRange("day")}
-                          className={`text-xs px-2 py-1 rounded ${investRange === "day" ? "bg-[#3CD4AB] text-[#0F0F19]" : "text-white/80 hover:text-white"}`}
-                        >
-                          Jour
-                        </button>
-                        <button
-                          onClick={() => setInvestRange("week")}
-                          className={`text-xs px-2 py-1 rounded ${investRange === "week" ? "bg-[#3CD4AB] text-[#0F0F19]" : "text-white/80 hover:text-white"}`}
-                        >
-                          Semaine
-                        </button>
-                        <button
-                          onClick={() => setInvestRange("month")}
-                          className={`text-xs px-2 py-1 rounded ${investRange === "month" ? "bg-[#3CD4AB] text-[#0F0F19]" : "text-white/80 hover:text-white"}`}
-                        >
-                          Mois
-                        </button>
-                        <button
-                          onClick={() => setInvestRange("year")}
-                          className={`text-xs px-2 py-1 rounded ${investRange === "year" ? "bg-[#3CD4AB] text-[#0F0F19]" : "text-white/80 hover:text-white"}`}
-                        >
-                          Année
-                        </button>
-                      </div>
+                      <h3 className="text-white font-semibold">Pourcentage Investi vs Profits</h3>
+                      <select
+                        value={areaRange}
+                        onChange={(e) => setAreaRange(e.target.value)}
+                        className="bg-[#0F0F19] border border-white/20 rounded-lg px-3 py-1 text-white text-sm focus:border-[#3CD4AB] focus:outline-none"
+                        style={{ backgroundColor: '#0F0F19', color: 'white' }}
+                      >
+                        <option value="day" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Jour</option>
+                        <option value="month" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Mois</option>
+                        <option value="year" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Année</option>
+                      </select>
                     </div>
-                    <div className="h-60">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={investmentTimeSeries} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                    <div className="w-full h-80">
+                      <ResponsiveContainer>
+                        <AreaChart data={areaSeries.map(p => { const t = Math.max(1, (p.invested||0)+(p.roi||0)); return { date: p.date, investedPct: (p.invested||0)/t*100, profitPct: (p.roi||0)/t*100, invested: p.invested||0, roi: p.roi||0 }; })} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorInvestedPct" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#3CD4AB" stopOpacity={0.7} />
+                              <stop offset="95%" stopColor="#3CD4AB" stopOpacity={0.2} />
+                            </linearGradient>
+                            <linearGradient id="colorProfitPct" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#89559F" stopOpacity={0.7} />
+                              <stop offset="95%" stopColor="#89559F" stopOpacity={0.2} />
+                            </linearGradient>
+                          </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                          <XAxis dataKey="date" stroke="#ffffff80" tick={{ fill: "#ffffff80", fontSize: 12 }} interval={Math.ceil((investmentTimeSeries.length || 1) / 8)} />
-                          <YAxis stroke="#ffffff80" tick={{ fill: "#ffffff80", fontSize: 12 }} />
+                          <XAxis dataKey="date" tick={{ fill: '#ffffffa6', fontSize: 12 }} />
+                          <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={{ fill: '#ffffff80', fontSize: 12 }} />
                           <Tooltip
-                            formatter={(value) => [`${Number(value).toLocaleString()} MAD`, "Montant"]}
-                            labelStyle={{ color: "#ffffff" }}
-                            contentStyle={{ backgroundColor: "#0F0F19", border: "1px solid #ffffff20", borderRadius: 8, color: "#fff" }}
+                            formatter={(value, name, props) => {
+                              const label = name === 'investedPct' ? 'Investi' : 'Profits';
+                              const pct = `${Number(value).toFixed(0)}%`;
+                              const raw = name === 'investedPct' ? props.payload.invested : props.payload.roi;
+                              return [`${pct} (${Number(raw).toLocaleString()} MAD)`, label];
+                            }}
+                            contentStyle={{ backgroundColor: '#0F0F19', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
                           />
-                          <Bar dataKey="amount" name="Investi" fill="#3CD4AB" radius={[4, 4, 0, 0]} />
-                        </BarChart>
+                          <Legend wrapperStyle={{ color: '#fff' }} formatter={(v) => (v === 'investedPct' ? 'Investi' : 'Profits')} />
+                          <Area type="monotone" dataKey="investedPct" name="Investi" stackId="1" stroke="#3CD4AB" fillOpacity={1} fill="url(#colorInvestedPct)" />
+                          <Area type="monotone" dataKey="profitPct" name="Profits" stackId="1" stroke="#89559F" fillOpacity={1} fill="url(#colorProfitPct)" />
+                        </AreaChart>
                       </ResponsiveContainer>
-                    </div>
+                  </div>
                   </div>
 
                   {/* Transactions History */}
@@ -2177,6 +2276,71 @@ const UserDashboard = () => {
                           </li>
                         ))}
                       </ul>
+                    </div>
+                  </div>
+                </div>
++
+                {/* Behavioral Profile + Interactive Area Chart */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                  {/* Radar */}
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-white font-semibold">Profil d'Investisseur</h3>
+                      {/* <div className="text-white/60 text-xs">
+                        Prudent → faible risque + horizon court + besoin de liquidité • Équilibré → niveaux intermédiaires • Agressif → fort risque + horizon long + faible liquidité
+                      </div> */}
+                    </div>
+                    <div className="w-full h-80">
+                      <ResponsiveContainer>
+                        <RChart data={radarData} outerRadius={100}>
+                          <PolarGrid stroke="#ffffff20" />
+                          <PolarAngleAxis dataKey="metric" tick={{ fill: '#ffffffa6', fontSize: 12 }} />
+                          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#ffffff80', fontSize: 10 }} stroke="#ffffff20" />
+                          <Radar name="Score" dataKey="value" stroke="#3CD4AB" fill="#3CD4AB" fillOpacity={0.4} />
+                          <Tooltip formatter={(v) => [`${v}`, 'Score']} contentStyle={{ backgroundColor: '#0F0F19', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }} />
+                          <Legend wrapperStyle={{ color: '#fff' }} />
+                        </RChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Interactive Area Chart */}
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-white font-semibold">Investi vs ROI</h3>
+                      <select
+                        value={areaRange}
+                        onChange={(e) => setAreaRange(e.target.value)}
+                        className="bg-[#0F0F19] border border-white/20 rounded-lg px-3 py-1 text-white text-sm focus:border-[#3CD4AB] focus:outline-none"
+                        style={{ backgroundColor: '#0F0F19', color: 'white' }}
+                      >
+                        <option value="day" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Jour</option>
+                        <option value="month" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Mois</option>
+                        <option value="year" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Année</option>
+                      </select>
+                    </div>
+                    <div className="w-full h-80">
+                      <ResponsiveContainer>
+                        <AreaChart data={areaSeries} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorInvested" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#3CD4AB" stopOpacity={0.6} />
+                              <stop offset="95%" stopColor="#3CD4AB" stopOpacity={0.1} />
+                            </linearGradient>
+                            <linearGradient id="colorRoi" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#89559F" stopOpacity={0.6} />
+                              <stop offset="95%" stopColor="#89559F" stopOpacity={0.1} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
+                          <XAxis dataKey="date" tick={{ fill: '#ffffffa6', fontSize: 12 }} />
+                          <YAxis tick={{ fill: '#ffffff80', fontSize: 12 }} />
+                          <Tooltip formatter={(value, name) => [Number(value).toLocaleString() + ' MAD', name === 'invested' ? 'Investi' : 'ROI']} contentStyle={{ backgroundColor: '#0F0F19', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }} />
+                          <Legend wrapperStyle={{ color: '#fff' }} />
+                          <Area type="monotone" dataKey="invested" name="Investi" stroke="#3CD4AB" fillOpacity={1} fill="url(#colorInvested)" />
+                          <Area type="monotone" dataKey="roi" name="ROI" stroke="#89559F" fillOpacity={1} fill="url(#colorRoi)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
                 </div>
@@ -3563,7 +3727,7 @@ const UserDashboard = () => {
                     </button>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div>
                       <label className="block text-white/80 text-sm font-medium mb-2">
                         {balanceOperation === "add"
@@ -3588,121 +3752,6 @@ const UserDashboard = () => {
                           Solde disponible: {userBalance.toLocaleString()} MAD
                         </p>
                       )}
-                    </div>
-
-                    <div>
-                      <label className="block text-white/80 text-sm font-medium mb-3">
-                        Méthode de Paiement
-                      </label>
-                      <div className="grid grid-cols-1 gap-3">
-                        {/* PayPal */}
-                        <div
-                          onClick={() => setSelectedPaymentMethod("paypal")}
-                          className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
-                            selectedPaymentMethod === "paypal"
-                              ? "border-[#3CD4AB] bg-[#3CD4AB]/10"
-                              : "border-white/20 bg-white/5 hover:bg-white/10"
-                          }`}
-                        >
-                          <div className="flex items-center">
-                            <div
-                              className={`w-4 h-4 rounded-full border-2 mr-3 ${
-                                selectedPaymentMethod === "paypal"
-                                  ? "border-[#3CD4AB] bg-[#3CD4AB]"
-                                  : "border-white/40"
-                              }`}
-                            >
-                              {selectedPaymentMethod === "paypal" && (
-                                <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                              )}
-                            </div>
-                            <div className="flex items-center">
-                              <svg
-                                className="w-6 h-6 mr-2"
-                                viewBox="0 0 24 24"
-                                fill="#0070ba"
-                              >
-                                <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a.696.696 0 0 1-.045-.288c.078-.815-.191-1.35-.821-1.85-.619-.49-1.555-.73-2.786-.73H8.618l-.9 5.712h2.712c2.508 0 4.416-.816 5.195-3.844z" />
-                              </svg>
-                              <span className="text-white font-medium">
-                                PayPal
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Visa/MasterCard */}
-                        <div
-                          onClick={() => setSelectedPaymentMethod("card")}
-                          className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
-                            selectedPaymentMethod === "card"
-                              ? "border-[#3CD4AB] bg-[#3CD4AB]/10"
-                              : "border-white/20 bg-white/5 hover:bg-white/10"
-                          }`}
-                        >
-                          <div className="flex items-center">
-                            <div
-                              className={`w-4 h-4 rounded-full border-2 mr-3 ${
-                                selectedPaymentMethod === "card"
-                                  ? "border-[#3CD4AB] bg-[#3CD4AB]"
-                                  : "border-white/40"
-                              }`}
-                            >
-                              {selectedPaymentMethod === "card" && (
-                                <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                              )}
-                            </div>
-                            <div className="flex items-center">
-                              <svg
-                                className="w-6 h-6 mr-2"
-                                viewBox="0 0 24 24"
-                                fill="#1a1f71"
-                              >
-                                <path d="M15.245 17.831h-6.49l-1.716-6.277c-.108-.394-.455-.394-.602-.394H2.881c-.147 0-.295.147-.295.295v.443c0 .147.147.295.295.295h3.114l2.466 9.095c.049.147.196.295.344.295h7.636c.147 0 .295-.147.295-.295v-.443c0-.196-.147-.295-.295-.295h-7.341l-.344-1.324h6.539c.147 0 .295-.147.295-.295v-.443c.049-.147-.098-.295-.245-.295z" />
-                              </svg>
-                              <span className="text-white font-medium">
-                                Visa / MasterCard
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* USDT */}
-                        <div
-                          onClick={() => setSelectedPaymentMethod("usdt")}
-                          className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
-                            selectedPaymentMethod === "usdt"
-                              ? "border-[#3CD4AB] bg-[#3CD4AB]/10"
-                              : "border-white/20 bg-white/5 hover:bg-white/10"
-                          }`}
-                        >
-                          <div className="flex items-center">
-                            <div
-                              className={`w-4 h-4 rounded-full border-2 mr-3 ${
-                                selectedPaymentMethod === "usdt"
-                                  ? "border-[#3CD4AB] bg-[#3CD4AB]"
-                                  : "border-white/40"
-                              }`}
-                            >
-                              {selectedPaymentMethod === "usdt" && (
-                                <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                              )}
-                            </div>
-                            <div className="flex items-center">
-                              <svg
-                                className="w-6 h-6 mr-2"
-                                viewBox="0 0 24 24"
-                                fill="#26a17b"
-                              >
-                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.94 9.435c-.011-.009-1.482-.827-4.464-.827-2.982 0-4.453.818-4.464.827L8.999 8.46c.021-.016 2.015-1.112 4.521-1.112s4.5 1.096 4.521 1.112l-.101.975zm-.484 1.634v1.78c0 .827-.675 1.502-1.502 1.502h-8.908c-.827 0-1.502-.675-1.502-1.502v-1.78c0-.827.675-1.502 1.502-1.502h8.908c.827 0 1.502.675 1.502 1.502z" />
-                              </svg>
-                              <span className="text-white font-medium">
-                                USDT (Crypto)
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
                     </div>
 
                     <div className="flex gap-3">
@@ -4286,3 +4335,20 @@ const UserDashboard = () => {
 };
 
 export default UserDashboard;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

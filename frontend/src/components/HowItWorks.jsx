@@ -2,19 +2,19 @@ import React from 'react';
 
 const steps = [
   {
-    img: '../../public/1form.svg',
+    img: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706741/tawfir-ai/1form.svg',
     title: 'Complétez une simulation',
     desc: 'Renseignez vos informations pour simuler votre investissement.',
   },
   {
-    img: '../../public/msg.svg',
+    img: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706736/tawfir-ai/msg.svg',
 
     title: 'Recevez des recommandations personnalisées',
     desc: 'Obtenez des conseils adaptés à votre profil et à vos objectifs.',
   },
   {
 
-    img: '../../public/dashb.svg',
+    img: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706737/tawfir-ai/dashb.svg',
 
     title: 'Suivez la performance de votre portefeuille',
     desc: 'Analysez et optimisez vos investissements en temps réel.',
@@ -67,3 +67,4 @@ const HowItWorks = () => {
 };
 
 export default HowItWorks; 
+

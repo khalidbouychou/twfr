@@ -59,153 +59,13 @@ const Contactus = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          {/* Contact Form */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name and Phone */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom complet *
-                  </label>
-                  <input
-                    type="text"
-                    id="fullName"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
-                    placeholder="Votre nom complet"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                    Téléphone *
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
-                    placeholder="Votre numéro"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
-                  placeholder="votre@email.com"
-                  required
-                />
-              </div>
-
-              {/* Subject */}
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                  Objet *
-                </label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
-                  placeholder="Sujet de votre message"
-                  required
-                />
-              </div>
-
-              {/* User Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Vous êtes *
-                </label>
-                <div className="flex gap-6">
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      name="userType"
-                      value="Client"
-                      checked={formData.userType === 'Client'}
-                      onChange={handleChange}
-                      className="w-4 h-4 text-[#3CD4AB] border-gray-300 focus:ring-[#3CD4AB]"
-                    />
-                    <span className="ml-2 text-gray-700">Client</span>
-                  </label>
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      name="userType"
-                      value="Partner"
-                      checked={formData.userType === 'Partner'}
-                      onChange={handleChange}
-                      className="w-4 h-4 text-[#3CD4AB] border-gray-300 focus:ring-[#3CD4AB]"
-                    />
-                    <span className="ml-2 text-gray-700">Partenaire</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Message */}
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                  Message *
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  rows="4"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200 resize-none"
-                  placeholder="Votre message..."
-                  required
-                />
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-[#3CD4AB] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#3CD4AB]/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Envoi en cours...
-                  </span>
-                ) : (
-                  'Envoyer le message'
-                )}
-              </button>
-            </form>
-          </div>
-
-          {/* Contact Info */}
+          {/* Left Side - Contact Form with Info */}
           <div className="space-y-8">
+            {/* Contact Info */}
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+              {/* <h3 className="text-2xl font-bold text-gray-900 mb-6">
                 Informations de contact
-              </h3>
+              </h3> */}
               
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
@@ -253,14 +113,155 @@ const Contactus = () => {
               </div>
             </div>
 
-            {/* Support Image */}
-            <div className="hidden lg:block">
-              <img 
-                src="/call.jpg" 
-                alt="Support Tawfir" 
-                className="w-full h-64 object-cover rounded-2xl shadow-xl"
-              />
+            {/* Contact Form */}
+            <div className="bg-white rounded-2xl shadow-xl p-8">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Name and Phone */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
+                      Nom complet *
+                    </label>
+                    <input
+                      type="text"
+                      id="fullName"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
+                      placeholder="Votre nom complet"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                      Téléphone *
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
+                      placeholder="Votre numéro"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
+                    placeholder="votre@email.com"
+                    required
+                  />
+                </div>
+
+                {/* Subject */}
+                <div>
+                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                    Objet *
+                  </label>
+                  <input
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
+                    placeholder="Sujet de votre message"
+                    required
+                  />
+                </div>
+
+                {/* User Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Vous êtes *
+                  </label>
+                  <div className="flex gap-6">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="userType"
+                        value="Client"
+                        checked={formData.userType === 'Client'}
+                        onChange={handleChange}
+                        className="w-4 h-4 text-[#3CD4AB] border-gray-300 focus:ring-[#3CD4AB]"
+                      />
+                      <span className="ml-2 text-gray-700">Client</span>
+                    </label>
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="userType"
+                        value="Partner"
+                        checked={formData.userType === 'Partner'}
+                        onChange={handleChange}
+                        className="w-4 h-4 text-[#3CD4AB] border-gray-300 focus:ring-[#3CD4AB]"
+                      />
+                      <span className="ml-2 text-gray-700">Partenaire</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Message */}
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                    Message *
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    rows="4"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200 resize-none"
+                    placeholder="Votre message..."
+                    required
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#3CD4AB] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#3CD4AB]/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Envoi en cours...
+                    </span>
+                  ) : (
+                    'Envoyer le message'
+                  )}
+                </button>
+              </form>
             </div>
+          </div>
+
+          {/* Right Side - Support Image */}
+          <div className="w-full h-full bg-gray-100 rounded-2xl overflow-hidden">
+            <img 
+              src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706706/tawfir-ai/call.jpg" 
+              alt="Support Tawfir" 
+              className="w-full h-full object-cover rounded-xl shadow-xl"
+            />
           </div>
         </div>
       </div>

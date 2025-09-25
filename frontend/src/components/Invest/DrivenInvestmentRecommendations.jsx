@@ -28,8 +28,10 @@ import {
   IoArrowBack
 } from 'react-icons/io5';
 import { ROICalculator } from '../Algo';
+import { useUserContext } from '../Context/useUserContext';
 
 const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) => {
+  const { addUserInvestment } = useUserContext();
   const [selectedView, setSelectedView] = useState('summary'); // 'summary', 'scenarios', 'simulation'
   const [selectedScenario, setSelectedScenario] = useState(0);
   const [investmentAmounts, setInvestmentAmounts] = useState({});
@@ -165,9 +167,9 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
         totalInvested += amount;
         
         // Calculate expected returns using ROI calculator
-        // Use rendement_annuel_moyen from real products, fallback to roi_annuel, then to 5%
+        // Use rendement_annuel_moyen from real products, fallback to roi_annuel, then to 10%
         const annualReturn = product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
-                           (product.roi_annuel !== undefined ? product.roi_annuel : 5);
+                           (product.roi_annuel !== undefined ? product.roi_annuel : 10);
         
         const roi1Year = ROICalculator.calculateSimpleROI(amount, annualReturn, 1);
         const roi3Years = ROICalculator.calculateSimpleROI(amount, annualReturn, 3);
@@ -232,17 +234,40 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
   };
 
   // Handle investment decision
-  const handleInvestmentDecision = () => {
-    if (onInvestmentDecision && simulationResults) {
-      onInvestmentDecision({
-        scenario: alternativeScenarios[selectedScenario],
-        investments: simulationResults.results,
-        totalAmount: simulationResults.totalInvested,
-        expectedReturn: simulationResults.totalReturnPercentage
+  const handleInvestmentDecisionWithContext = (decision) => {
+    // Add each investment to the context
+    decision.investments.forEach(investment => {
+      addUserInvestment({
+        picture: investment.product.avatar || "",
+        nameProduct: investment.product.nom_produit,
+        category: getProductCategory(investment.product.nom_produit),
+        valueInvested: investment.amount,
+        currentValue: investment.amount,
+        date: new Date().toISOString(),
+        roi_product: investment.product.rendement_annuel_moyen || investment.product.roi_annuel || 0,
+        investedAmount: investment.amount,
+        dailyChange: 0,
+        dailyChangePercent: 0,
+        investmentDate: new Date().toISOString()
       });
+    });
+    
+    // Call the original handler
+    if (onInvestmentDecision) {
+      onInvestmentDecision(decision);
     }
-    setShowConfirmation(true);
   };
+  // const handleInvestmentDecision = () => {
+  //   if (onInvestmentDecision && simulationResults) {
+  //     onInvestmentDecision({
+  //       scenario: alternativeScenarios[selectedScenario],
+  //       investments: simulationResults.results,
+  //       totalAmount: simulationResults.totalInvested,
+  //       expectedReturn: simulationResults.totalReturnPercentage
+  //     });
+  //   }
+  //   setShowConfirmation(true);
+  // };
 
   if (!recommendations) {
     return (
@@ -396,7 +421,7 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                     />
                     <YAxis domain={[0, 100]} />
                     <Tooltip 
-                      formatter={(value, name) => [`${value}%`, 'Compatibilité']}
+                      formatter={(value) => [`${value}%`, 'Compatibilité']}
                       contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '8px' }}
                     />
                     <Bar dataKey="overallCompatibility" fill="#3CD4AB" />
@@ -793,7 +818,17 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                     <span>Modifier le Scénario</span>
                   </button>
                   <button
-                    onClick={handleInvestmentDecision}
+                    onClick={() => {
+                      if (!simulationResults) return;
+                      const decision = {
+                        scenario: alternativeScenarios[selectedScenario],
+                        investments: simulationResults.results,
+                        totalAmount: simulationResults.totalInvested,
+                        expectedReturn: simulationResults.totalReturnPercentage
+                      };
+                      handleInvestmentDecisionWithContext(decision);
+                      setShowConfirmation(true);
+                    }}
                     className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
                   >
                     <span>Confirmer l'Investissement</span>

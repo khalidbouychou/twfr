@@ -224,7 +224,7 @@ const SignupForm = ({ onSwitchToLogin }) => {
                   navigate('/dashboard');
                 }}
                 onError={() => {
-                  console.log('Google Signup Failed');
+                  // Google Signup Failed - error handled silently
                 }}
                 theme="filled_black"
                 text="signup_with"
@@ -232,6 +232,7 @@ const SignupForm = ({ onSwitchToLogin }) => {
                 size="large"
                 logo_alignment="left"
                 context="signup"
+                use_fedcm_for_prompt={true}
               />
             </div>
           </div>
