@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef, useMemo, useContext } from "react";
+import React, { useState, useEffect, useRef, useMemo, useContext, useCallback } from "react";
 import { UserContext } from "../Context/UserContext";
 import { useNavigate, Link } from "react-router-dom";
 import { LogOut, UserRoundCog } from "lucide-react";
+import { useNewsData } from "../../hooks/useNewsData";
+import { useMarketQuotes } from "../../hooks/useMarketQuotes";
 import Dashboardchart from "../Charts/Dashboardchart";
 import {
   PieChart,
@@ -25,9 +27,27 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLe
 import { useUserContext } from "../Context/useUserContext";
 import { RadarChart as RChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 
+// Import new components
+import {
+  Sidebar,
+  Header,
+  InvestmentStats,
+  PortfolioPerformanceChart,
+  TransactionsHistory,
+  RadarChart,
+  SimplePieChart,
+  NotificationHistory,
+  PortfolioSummary,
+  SimulationsPage,
+  SectorBreakdown,
+  NewsPage,
+  NotificationDetailsPopup,
+  SettingsModal
+} from './components';
+
 const UserDashboard = () => {
   const { setIsLoggedIn, userProfileData, userInvestments } = useContext(UserContext);
-  const { pendingInvestment, clearPendingInvestment, addUserInvestment, investmentProductsList } = useUserContext();
+  const { pendingInvestment, clearPendingInvestment, addUserInvestment } = useUserContext();
 
   // Prefer profile from context (Google or manual); fallback simple
   const fallbackAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
@@ -77,14 +97,15 @@ const UserDashboard = () => {
   const [, setRecommendations] = useState([]);
   const [, setUserRiskProfile] = useState(null);
 
-  // News + Marchés (NASDAQ/S&P/CAC 40)
-  const [newsArticles, setNewsArticles] = useState([]);
-  const [newsLoading, setNewsLoading] = useState(true);
-  const [newsError, setNewsError] = useState(null);
-  const [marketQuotes, setMarketQuotes] = useState([]);
+  // News + Marchés (NASDAQ/S&P/CAC 40) - Using React Query
+  const { data: newsArticles = [], isLoading: newsLoading, error: newsError } = useNewsData();
+  const { data: marketQuotes = [] } = useMarketQuotes();
 
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Simulation state variables
+  const [simulationDateFilter, setSimulationDateFilter] = useState("all");
 
   // Read userProfileData and userResults from localStorage
   const [, setUserProfileData] = useState(null);
@@ -185,192 +206,7 @@ useEffect(() => {
     }
   }, [userResults]);
 
-useEffect(() => {
-    // Actualités via fournisseurs multiples (FR): Newsdata -> GNews -> NewsAPI -> Mediastack -> ContextualWeb
-    const NEWSDATA_KEY = "pub_a433db815e694abe98923ab9daac2de5";
-    const GNEWS_KEY = import.meta.env.VITE_GNEWS_KEY;
-    const NEWSAPI_KEY = import.meta.env.VITE_NEWSAPI_KEY;
-    const MEDIASTACK_KEY = import.meta.env.VITE_MEDIASTACK_KEY;
-    const CTX_NEWS_KEY = import.meta.env.VITE_CTX_NEWS_KEY; // RapidAPI key
-    const CTX_NEWS_HOST =
-      import.meta.env.VITE_CTX_NEWS_HOST ||
-      "contextualwebsearch-websearch-v1.p.rapidapi.com";
-
-    const q = 'finance OR bourse OR "marché boursier" OR investissement';
-
-    const getFromNewsdata = async () => {
-      if (!NEWSDATA_KEY) throw new Error("no_newsdata_key");
-      const url = `https://newsdata.io/api/1/news?apikey=${NEWSDATA_KEY}&language=fr&category=business&q=${encodeURIComponent(
-        q
-      )}`;
-      const r = await fetch(url);
-      if (!r.ok) throw new Error("newsdata_err");
-      const data = await r.json();
-      const items = Array.isArray(data.results) ? data.results : [];
-      return items
-        .map((a) => ({
-          title: a.title,
-          description: a.description,
-          url: a.link,
-          image: a.image_url,
-          source: a.source_id,
-          publishedAt: a.pubDate ? new Date(a.pubDate).toISOString() : null
-        }))
-        .filter((n) => n.title && n.url);
-    };
-
-    const getFromGNews = async () => {
-      if (!GNEWS_KEY) throw new Error("no_gnews_key");
-      const url = `https://gnews.io/api/v4/top-headlines?lang=fr&topic=business&max=20&apikey=${GNEWS_KEY}&q=${encodeURIComponent(
-        q
-      )}`;
-      const r = await fetch(url);
-      if (!r.ok) throw new Error("gnews_err");
-      const data = await r.json();
-      const items = Array.isArray(data.articles) ? data.articles : [];
-      return items
-        .map((a) => ({
-          title: a.title,
-          description: a.description,
-          url: a.url,
-          image: a.image,
-          source: a.source?.name,
-          publishedAt: a.publishedAt
-        }))
-        .filter((n) => n.title && n.url);
-    };
-
-    const getFromNewsAPI = async () => {
-      if (!NEWSAPI_KEY) throw new Error("no_newsapi_key");
-      const url = `https://newsapi.org/v2/everything?language=fr&pageSize=20&sortBy=publishedAt&q=${encodeURIComponent(
-        q
-      )}&apiKey=${NEWSAPI_KEY}`;
-      const r = await fetch(url);
-      if (!r.ok) throw new Error("newsapi_err");
-      const data = await r.json();
-      const items = Array.isArray(data.articles) ? data.articles : [];
-      return items
-        .map((a) => ({
-          title: a.title,
-          description: a.description,
-          url: a.url,
-          image: a.urlToImage,
-          source: a.source?.name,
-          publishedAt: a.publishedAt
-        }))
-        .filter((n) => n.title && n.url);
-    };
-
-    const getFromMediastack = async () => {
-      if (!MEDIASTACK_KEY) throw new Error("no_mediastack_key");
-      const url = `https://api.mediastack.com/v1/news?access_key=${MEDIASTACK_KEY}&languages=fr&categories=business&limit=20&sort=published_desc&keywords=${encodeURIComponent(
-        q
-      )}`;
-      const r = await fetch(url);
-      if (!r.ok) throw new Error("mediastack_err");
-      const data = await r.json();
-      const items = Array.isArray(data.data) ? data.data : [];
-      return items
-        .map((a) => ({
-          title: a.title,
-          description: a.description,
-          url: a.url,
-          image: a.image,
-          source: a.source,
-          publishedAt: a.published_at
-        }))
-        .filter((n) => n.title && n.url);
-    };
-
-    const getFromContextualWeb = async () => {
-      if (!CTX_NEWS_KEY) throw new Error("no_ctx_key");
-      const url = `https://${CTX_NEWS_HOST}/api/Search/NewsSearchAPI?q=${encodeURIComponent(
-        q
-      )}&pageNumber=1&pageSize=20&autoCorrect=true&fromPublishedDate=null&toPublishedDate=null&safeSearch=false&withThumbnails=true&textDecorations=false&freshness=Week&setLang=fr`;
-      const r = await fetch(url, {
-        headers: {
-          "X-RapidAPI-Key": CTX_NEWS_KEY,
-          "X-RapidAPI-Host": CTX_NEWS_HOST
-        }
-      });
-      if (!r.ok) throw new Error("ctx_err");
-      const data = await r.json();
-      const items = Array.isArray(data.value) ? data.value : [];
-      return items
-        .map((a) => ({
-          title: a.title,
-          description: a.description,
-          url: a.url,
-          image: a.image?.url,
-          source: a.provider?.name,
-          publishedAt: a.datePublished
-        }))
-        .filter((n) => n.title && n.url);
-    };
-
-    const loadNews = async () => {
-      setNewsLoading(true);
-      setNewsError(null);
-      let articles = [];
-      const providers = [
-        getFromNewsdata,
-        getFromGNews,
-        getFromNewsAPI,
-        getFromMediastack,
-        getFromContextualWeb
-      ];
-      for (const fn of providers) {
-        try {
-          articles = await fn();
-          if (articles && articles.length) break;
-        } catch {
-          // try next provider
-        }
-      }
-      setNewsArticles(articles || []);
-      setNewsLoading(false);
-    };
-
-    loadNews();
-
-    // Indices via Finnhub (avec fallback ETF)
-    const FINNHUB_TOKEN = "d1ofk41r01qjadrjqv70d1ofk41r01qjadrjqv7g";
-    // Crypto marché (Binance pairs)
-    const symbols = [
-      { sym: "BINANCE:BTCUSDT", label: "Bitcoin (BTC/USDT)" },
-      { sym: "BINANCE:ETHUSDT", label: "Ethereum (ETH/USDT)" },
-      { sym: "BINANCE:SOLUSDT", label: "Solana (SOL/USDT)" }
-    ];
-    const fetchQuote = (symbol) =>
-      fetch(
-        `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(
-          symbol
-        )}&token=${FINNHUB_TOKEN}`
-      ).then((r) => (r.ok ? r.json() : Promise.reject("q_err")));
-
-    const loadQuotes = async () => {
-      const out = [];
-      for (const s of symbols) {
-        try {
-          const q = await fetchQuote(s.sym);
-          if (q && typeof q.c === "number") {
-            out.push({
-              symbol: s.sym,
-              label: s.label,
-              price: q.c,
-              change: q.d || 0,
-              changesPercentage: q.dp || 0
-            });
-          }
-        } catch {
-          console.warn("Quote fetch failed for", s.sym);
-        }
-      }
-      setMarketQuotes(out);
-    };
-
-    loadQuotes();
-  }, []);
+  // News and market data are now handled by React Query hooks above
 
   const [notifications, setNotifications] = useState([]);
 
@@ -451,7 +287,6 @@ useEffect(() => {
   }, []);
 
   const [showDateFilter, setShowDateFilter] = useState(false);
-  const [dateFilter, setDateFilter] = useState("6months");
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   // const [investRange] = useState("month"); // Unused variable
 
@@ -883,7 +718,7 @@ useEffect(() => {
     });
   };
 
-  const calculateTotalProfits = () => {
+  const calculateTotalProfits = useCallback(() => {
     if (!investmentHistory || investmentHistory.length === 0) return 0;
 
     const totalProfits = investmentHistory.reduce((sum, inv) => {
@@ -891,7 +726,7 @@ useEffect(() => {
     }, 0);
 
     return Math.max(0, totalProfits);
-  };
+  }, [investmentHistory]);
 
   const handleSimulationFormChange = (field, value) => {
     setSimulationForm((prev) => ({
@@ -1234,7 +1069,6 @@ useEffect(() => {
     riskProfile: "conservateur"
   });
   const [recentSimulations, setRecentSimulations] = useState([]);
-  const [simulationDateFilter, setSimulationDateFilter] = useState("all");
 
 useEffect(() => {
     updatePortfolioData();
@@ -1251,8 +1085,9 @@ useEffect(() => {
 
           if (profitRatio > 0.5) return investment; // Cap at 50% profit
 
-          // Increase profit by 5% every tick (20s)
-          const newProfit = Math.round(currentProfit * 1.05);
+          // Increase profit by 5-9% randomly every tick (30s)
+          const randomGrowth = 1 + (Math.random() * 0.04 + 0.05); // 5% to 9% growth
+          const newProfit = Math.round(currentProfit * randomGrowth);
           const newCurrentValue = investment.amount + newProfit;
           const returnPercentage = (newProfit / investment.amount) * 100;
 
@@ -1264,7 +1099,7 @@ useEffect(() => {
           };
         });
       });
-    }, 20000); // Update every 20 seconds
+    }, 10000); // Update every 10 seconds
 
     return () => clearInterval(interval);
   }, [investmentHistory.length]);
@@ -1280,6 +1115,81 @@ useEffect(() => {
       clearPendingInvestment();
     }
   }, [pendingInvestment, clearPendingInvestment]);
+
+  // Update pie chart data every 30 seconds
+  useEffect(() => {
+    const updatePieChartData = () => {
+      if (!investmentHistory || investmentHistory.length === 0) {
+        setPieChartData([]);
+        return;
+      }
+
+      const colors = ['#3CD4AB', '#89559F', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+      
+      // Update pie chart data with incremented ROI
+      setPieChartData(prevData => {
+        // Group investments by product name to avoid duplicates
+        const groupedInvestments = investmentHistory.reduce((acc, investment) => {
+          const productName = investment?.name || `Produit ${acc.size + 1}`;
+          
+          if (acc.has(productName)) {
+            // Product already exists - add to existing amounts
+            const existing = acc.get(productName);
+            existing.invested += investment?.amount || 0;
+            existing.roi += investment?.profit || 0;
+          } else {
+            // New product - create new entry
+            acc.set(productName, {
+              name: productName,
+              invested: investment?.amount || 0,
+              roi: investment?.profit || 0
+            });
+          }
+          
+          return acc;
+        }, new Map());
+
+        // Convert Map to Array
+        const uniqueProducts = Array.from(groupedInvestments.values());
+        
+        // Check if we need to rebuild or just increment
+        const hasStructureChanged = prevData.length === 0 || 
+                                   prevData.length !== uniqueProducts.length ||
+                                   prevData.some(prev => !uniqueProducts.find(curr => curr.name === prev.name));
+        
+        if (hasStructureChanged) {
+          // Structure changed - rebuild from grouped investments
+          return uniqueProducts.map((product, index) => ({
+            ...product,
+            total: product.invested + product.roi,
+            color: colors[index % colors.length]
+          }));
+        } else {
+          // Same structure - increment ROI by 2 MAD and sync invested amounts
+          return uniqueProducts.map((product, index) => {
+            const prevProduct = prevData.find(prev => prev.name === product.name);
+            const currentRoi = prevProduct ? prevProduct.roi + 2 : product.roi;
+            
+            return {
+              name: product.name,
+              invested: product.invested,
+              roi: currentRoi,
+              total: product.invested + currentRoi,
+              color: colors[index % colors.length]
+            };
+          });
+        }
+      });
+    };
+
+    // Initial update
+    updatePieChartData();
+
+    // Set up interval for real-time updates
+    const interval = setInterval(updatePieChartData, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [investmentHistory]);
 
   const matchedInvestments = useMemo(() => {
     if (!userResults || !userResults.matchedProducts) return [];
@@ -1398,6 +1308,10 @@ useEffect(() => {
 
   // Interactive Area Chart state: day / month / year
   const [areaRange, setAreaRange] = useState("month");
+  
+  // Pie Chart data for products investment and ROI
+  const [pieChartData, setPieChartData] = useState([]);
+  
   const areaSeries = useMemo(() => {
     const investedTotal = portfolioData?.totalInvested || 0;
     const profitsTotal = calculateTotalProfits();
@@ -1442,907 +1356,93 @@ useEffect(() => {
 
   return (
     <>
-      <div className="bg-[#0F0F19] min-h-screen">
+      <div className="bg-[#0F0F19] min-h-screen ">
         <style>{`
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         `}</style>
+        
         {/* Header */}
-        <header className="fixed top-0 left-0 right-0 z-40 bg-[#0F0F19] border-b border-[#89559F]/20">
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-between">
-              {/* Logo */}
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-[#89559F] rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-white font-bold text-lg">T</span>
-                </div>
-                <span className="text-white font-semibold text-lg hidden sm:block">
-                  <img src="../public/assets/logo.svg" alt="" />
-                </span>
-              </div>
-
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="lg:hidden p-2 text-white hover:bg-white/10 rounded-lg"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-
-              {/* Desktop Header Content */}
-              <div className="hidden lg:flex items-center space-x-3">
-                {/* Balance Display */}
-                <div className="flex items-center bg-white/10 rounded-lg px-3 py-2 border border-white/20">
-                  <svg
-                    className="w-4 h-4 text-[#3CD4AB] mr-2"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
-                      clipRule="evenodd"
-                    ></path>
-                  </svg>
-                  <span className="text-white font-semibold text-sm">
-                    {userBalance.toLocaleString()} MAD
-                  </span>
-                </div>
-
-                {/* Balance Action Buttons */}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setBalanceOperation("add");
-                      setShowBalanceModal(true);
-                    }}
-                    className="bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19] font-medium rounded-lg px-3 py-2 transition-colors duration-200 flex items-center text-sm"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                      />
-                    </svg>
-                    <span className="hidden sm:inline">Ajouter</span>
-                    <span className="sm:hidden">+</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setBalanceOperation("withdraw");
-                      setShowBalanceModal(true);
-                    }}
-                    className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium rounded-lg px-3 py-2 transition-colors duration-200 flex items-center text-sm"
-                    disabled={userBalance <= 0}
-                  >
-                    <svg
-                      className="w-4 h-4 mr-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M20 12H4m16 0l-4-4m4 4l-4 4"
-                      />
-                    </svg>
-                    <span className="hidden sm:inline">Retirer</span>
-                    <span className="sm:hidden">→</span>
-                  </button>
-                </div>
-
-                {/* User Menu */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center gap-2 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                  >
-                    <img
-                      src={
-                        userData?.avatar ||
-                        "https://api.dicebear.com/7.x/avataaars/svg?seed=User"
-                      }
-                      alt="Avatar"
-                      className="w-7 h-7 rounded-full object-cover"
-                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }}
-                    />
-                    <span className="text-white text-sm hidden xl:block">
-                      {userData?.name || "Utilisateur"}
-                    </span>
-                    <svg
-                      className="w-4 h-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </button>
-
-                  {showUserMenu && (
-                    <div className="absolute right-0 mt-2 w-48 bg-[#0F0F19] border border-[#89559F]/30 rounded-lg shadow-lg z-50">
-                      <div className="p-3 border-b border-white/10">
-                        <div className="text-white font-medium">
-                          {userData?.name}
-                        </div>
-                      </div>
-                      <div className="p-1">
-                        <button
-                          onClick={() => {
-                            setShowSettingsModal(true);
-                            setShowUserMenu(false);
-
-                          }}
-                          className="w-full text-left px-3 py-2 text-white hover:bg-white/10 rounded-md transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            <UserRoundCog className="w-4 h-4 mr-2" />
-                            <p>Paramètres</p>
-                          </div>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                           localStorage.removeItem('isLogin');
-                           localStorage.removeItem('userProfileData');
-                           localStorage.removeItem('userResults');
-                          //  localStorage.removeItem('isProfileComplete');
-                           localStorage.removeItem('googleProfile');
-                          //  localStorage.removeItem('userBalance');
-                          //  localStorage.removeItem('investmentHistory');
-                           setIsLoggedIn(false);
-                           navigate('/login');
-                            setShowUserMenu(false);
-                          }}
-                          className="cursor-pointer w-full text-left px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex items-center"
-                        >
-                          <div className="flex items-center gap-2">
-                            <LogOut className="w-4 h-4 mr-2" />
-                            <p>Déconnexion</p>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Notification Button */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setShowNotifications(!showNotifications)}
-                    className="text-white hover:bg-white/10 hover:text-[#3CD4AB] focus:ring-4 focus:ring-[#3CD4AB]/20 rounded-lg text-sm p-2.5 inline-flex items-center relative"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path>
-                    </svg>
-                    {notifications.length > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-[#3CD4AB] text-[#0F0F19] text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                        {notifications.length}
-                      </span>
-                    )}
-                  </button>
-
-                  {/* Notification Dropdown */}
-                  {showNotifications && (
-                    <div
-                      className="absolute right-0 mt-2 w-80 bg-[#0F0F19] border border-white/20 rounded-lg shadow-lg z-50"
-                      ref={notificationRef}
-                    >
-                      <div className="p-4 border-b border-white/10">
-                        <h3 className="text-white font-semibold">
-                          Notifications
-                        </h3>
-                      </div>
-                      <div className="max-h-64 overflow-y-auto">
-                        {notifications.length > 0 ? (
-                          notifications.map((notification) => (
-                            <div
-                              key={notification.id}
-                              className="p-4 border-b border-white/10 hover:bg-white/5 cursor-pointer transition-colors duration-200"
-                              onClick={() =>
-                                handleNotificationClick(notification)
-                              }
-                            >
-                              <div className="flex items-start space-x-3">
-                                <div className="flex-shrink-0">
-                                  <div className="w-8 h-8 bg-[#3CD4AB]/20 rounded-full flex items-center justify-center">
-                                    {getNotificationIcon(notification.type)}
-                                  </div>
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium text-white">
-                                    {notification.message}
-                                  </p>
-                                  <p className="text-sm text-white/60">
-                                    {notification.time}
-                                  </p>
-                                  <p className="text-xs text-[#3CD4AB] mt-1">
-                                    Cliquer pour plus de détails
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="p-4 text-center text-white/60">
-                            Aucune notification
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-4 border-t border-white/10">
-                        <button
-                          onClick={() => {
-                            if (notifications.length > 0) {
-                              const clearedAt = new Date().toLocaleString(
-                                "fr-FR"
-                              );
-                              setNotificationHistory((prev) => [
-                                ...notifications.map((n) => ({
-                                  ...n,
-                                  isRead: n.isRead || false,
-                                  clearedAt
-                                })),
-                                ...prev
-                              ]);
-                            }
-                            setNotifications([]);
-                            setShowNotifications(false);
-                          }}
-                          className="w-full text-sm text-[#3CD4AB] hover:text-[#3CD4AB]/80"
-                        >
-                          Effacer toutes les notifications
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Mobile Menu Dropdown */}
-        {showMobileMenu && (
-          <div className="mobile-menu-container fixed top-16 left-0 right-0 z-30 bg-[#0F0F19] border-b border-[#89559F]/20 lg:hidden">
-            <div className="p-4 space-y-4">
-              {/* Balance Display */}
-              <div className="flex items-center justify-between bg-white/10 rounded-lg px-4 py-3 border border-white/20">
-                <div className="flex items-center">
-                  <svg
-                    className="w-5 h-5 text-[#3CD4AB] mr-3"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
-                      clipRule="evenodd"
-                    ></path>
-                  </svg>
-                  <span className="text-white font-semibold">
-                    {userBalance.toLocaleString()} MAD
-                  </span>
-                </div>
-              </div>
-
-              {/* Balance Action Buttons */}
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => {
-                    setBalanceOperation("add");
-                    setShowBalanceModal(true);
-                    setShowMobileMenu(false);
-                  }}
-                  className="bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19] font-medium rounded-lg py-3 px-4 transition-colors duration-200 flex items-center justify-center"
-                >
-                  <svg
-                    className="w-5 h-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                  Ajouter
-                </button>
-
-                <button
-                  onClick={() => {
-                    setBalanceOperation("withdraw");
-                    setShowBalanceModal(true);
-                    setShowMobileMenu(false);
-                  }}
-                  className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium rounded-lg py-3 px-4 transition-colors duration-200 flex items-center justify-center"
-                  disabled={userBalance <= 0}
-                >
-                  <svg
-                    className="w-5 h-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M20 12H4m16 0l-4-4m4 4l-4 4"
-                    />
-                  </svg>
-                  Retirer
-                </button>
-              </div>
-
-              {/* User Info */}
-              <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                <img
-                  src={
-                    userData?.avatar ||
-                    fallbackAvatar
-                  }
-                  alt="Avatar"
-                  className="w-12 h-12 rounded-full object-cover"
-                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }}
-                />
-                <div className="flex-1">
-                  <div className="text-white font-semibold">
-                    {userData?.name || "Utilisateur"}
-                  </div>
-                  <div className="text-white/60 text-sm">{userData?.email}</div>
-                </div>
-              </div>
-
-              {/* Mobile Actions */}
-              <div className="space-y-2">
-                <button
-                  onClick={() => {
-                    setShowSettingsModal(true);
-                    setShowMobileMenu(false);
-                  }}
-                  className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center"
-                >
-                  <div className="flex items-center gap-2">
-                    <UserRoundCog className="w-4 h-4 mr-2" />
-                    <p>Paramètres</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => {
-                    setShowNotifications(true);
-                    setShowMobileMenu(false);
-                  }}
-                  className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors flex items-center"
-                >
-                  🔔 Notifications ({notifications.length})
-                </button>
-                <button
-                  onClick={() => {
-                    alert("mobile");
-                    console.log("mobile");
-                    setShowUserMenu(false);
-                  }}
-                  className="cursor-pointer w-full text-left px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex items-center"
-                >
-                  <div className="flex items-center gap-2">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    <p>Déconnexion</p>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <Header 
+          showMobileMenu={showMobileMenu}
+          setShowMobileMenu={setShowMobileMenu}
+          userBalance={userBalance}
+          setBalanceOperation={setBalanceOperation}
+          setShowBalanceModal={setShowBalanceModal}
+          userData={userData}
+          fallbackAvatar={fallbackAvatar}
+          showUserMenu={showUserMenu}
+          setShowUserMenu={setShowUserMenu}
+          setShowSettingsModal={setShowSettingsModal}
+          setIsLoggedIn={setIsLoggedIn}
+          navigate={navigate}
+          showNotifications={showNotifications}
+          setShowNotifications={setShowNotifications}
+          notifications={notifications}
+          getNotificationIcon={getNotificationIcon}
+          handleNotificationClick={handleNotificationClick}
+          setNotificationHistory={setNotificationHistory}
+          setNotifications={setNotifications}
+          notificationRef={notificationRef}
+          setSidebarOpen={setSidebarOpen}
+          portfolioData={portfolioData}
+          calculateTotalProfits={calculateTotalProfits}
+          setShowProfitModal={setShowProfitModal}
+          setProfitOperation={setProfitOperation}
+        />
 
         {/* Sidebar */}
-          
-          
-        <aside
-          onMouseEnter={() => setIsSidebarHovered(true)}
-          onMouseLeave={() => setIsSidebarHovered(false)}
-          className={`fixed top-0 left-0 z-40 h-screen pt-5 transition-all duration-200 ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } ${isSidebarHovered ? "w-64" : "w-16"} bg-[#0F0F19] border-r border-white/10 md:translate-x-0`}
-        >
-          <div className='flex items-center justify-center px-2'>
-            <a href='/' className='cursor-pointer'>
-              <img src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" className={`${isSidebarHovered ? "w-10 h-10" : "w-8 h-8"}`} alt="" />
-            </a>
-          </div>
-          <div className="h-full px-3 pb-4 overflow-y-auto bg-[#0F0F19]">
-            <ul className="space-y-2 pt-4">
-              <li>
-                <button
-                  onClick={() => handleNavigation("dashboard")}
-                  className={`flex items-center w-full p-2 text-base font-normal rounded-lg transition-colors duration-200 ${
-                    currentPage === "dashboard"
-                      ? "bg-[#3CD4AB] text-[#0F0F19]"
-                      : "text-white hover:bg-white/10 hover:text-[#3CD4AB]"
-                  }`}
-                >
-                  <svg
-                    className="w-6 h-6 transition duration-75"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>
-                    <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>
-                  </svg>
-                  <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Dashboard</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => handleNavigation("portfolio")}
-                  className={`flex items-center w-full p-2 text-base font-normal rounded-lg transition-colors duration-200 ${
-                    currentPage === "portfolio"
-                      ? "bg-[#3CD4AB] text-[#0F0F19]"
-                      : "text-white hover:bg-white/10 hover:text-[#3CD4AB]"
-                  }`}
-                >
-                  <svg
-                    className="flex-shrink-0 w-6 h-6 transition duration-75"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"></path>
-                  </svg>
-                  <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Portefeuille</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => handleNavigation("investments")}
-                  className={`flex items-center w-full p-2 text-base font-normal rounded-lg transition-colors duration-200 ${
-                    currentPage === "investments"
-                      ? "bg-[#3CD4AB] text-[#0F0F19]"
-                      : "text-white hover:bg-white/10 hover:text-[#3CD4AB]"
-                  }`}
-                >
-                  <svg
-                    className="flex-shrink-0 w-6 h-6 transition duration-75"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-.89l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"
-                      clipRule="evenodd"
-                    ></path>
-                  </svg>
-                  <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Investissements</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => handleNavigation("simulations")}
-                  className={`flex items-center w-full p-2 text-base font-normal rounded-lg transition-colors duration-200 ${
-                    currentPage === "simulations"
-                      ? "bg-[#3CD4AB] text-[#0F0F19]"
-                      : "text-white hover:bg-white/10 hover:text-[#3CD4AB]"
-                  }`}
-                >
-                  <svg
-                    className="flex-shrink-0 w-6 h-6 transition duration-75"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M8.707 7.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l2-2a1 1 0 00-1.414-1.414L11 7.586V3a1 1 0 10-2 0v4.586l-.293-.293z"></path>
-                    <path d="M3 5a2 2 0 012-2h1V1a1 1 0 112 0v1h1a2 2 0 012 2v1a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM3 11a2 2 0 012-2h10a2 2 0 012 2v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4z"></path>
-                  </svg>
-                  <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Simulations</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => handleNavigation("news")}
-                  className={`flex items-center w-full p-2 text-base font-normal rounded-lg transition-colors duration-200 ${
-                    currentPage === "news"
-                      ? "bg-[#3CD4AB] text-[#0F0F19]"
-                      : "text-white hover:bg-white/10 hover:text-[#3CD4AB]"
-                  }`}
-                >
-                  <svg
-                    className="flex-shrink-0 w-6 h-6 transition duration-75"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                      clipRule="evenodd"
-                    ></path>
-                  </svg>
-                  <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Actualités</span>
-                </button>
-              </li>
-            </ul>
-          </div>
-        </aside>
+        <Sidebar 
+          sidebarOpen={sidebarOpen}
+          isSidebarHovered={isSidebarHovered}
+          setIsSidebarHovered={setIsSidebarHovered}
+          currentPage={currentPage}
+          handleNavigation={handleNavigation}
+        />
 
         {/* Main Content */}
-        <div className="p-2 md:p-4 md:ml-64 pt-20 md:pt-20">
+        <div className={`p-2 md:p-4 pt-20 md:pt-20 transition-all duration-200 ${isSidebarHovered ? 'md:ml-64' : 'md:ml-16'}`}>
           <div className="p-3 md:p-6 bg-[#0F0F19] border border-[#89559F]/20 rounded-lg shadow-sm">
             {/* Render different pages based on currentPage */}
             {currentPage === "dashboard" && (
               <div>
-                <div className="mb-8">
-                  <div>
-                    <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-                    <p className="text-white/60">Vue d'ensemble simple</p>
-                  </div>
-                </div>
 
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                  {/* Solde */}
-                  <div className="p-4 bg-white/5 border border-[#89559F]/30 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center">
-                      <div className="inline-flex items-center justify-center flex-shrink-0 w-10 h-10 text-[#3CD4AB] bg-[#3CD4AB]/20 rounded-lg">
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">
-                          Solde
-                        </p>
-                        <p className="text-2xl font-bold text-white">
-                          {userBalance.toLocaleString()} MAD
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Total Investi */}
-                  <div className="p-4 bg-white/5 border border-[#89559F]/30 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center">
-                      <div className="inline-flex items-center justify-center flex-shrink-0 w-10 h-10 text-[#3CD4AB] bg-[#3CD4AB]/20 rounded-lg">
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">
-                          Total Investi
-                        </p>
-                        <p className="text-2xl font-bold text-white">
-                          {portfolioData.totalInvested.toLocaleString()} MAD
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Profits Totaux */}
-                  <div className="p-4 bg-white/5 border border-[#89559F]/30 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center">
-                      <div className="inline-flex items-center justify-center flex-shrink-0 w-10 h-10 text-green-400 bg-green-500/10 rounded-lg">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                          />
-                        </svg>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">
-                          Profits Totaux
-                        </p>
-                        <p className="text-2xl font-bold text-green-400">
-                          {calculateTotalProfits().toLocaleString()} MAD
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Nombre d'Investissements */}
-                  <div className="p-4 bg-white/5 border border-[#89559F]/30 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center">
-                      <div className="inline-flex items-center justify-center flex-shrink-0 w-10 h-10 text-[#3CD4AB] bg-[#3CD4AB]/20 rounded-lg">
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">
-                          Investissements
-                        </p>
-                        <p className="text-2xl font-bold text-white">
-                          {investmentHistory.length}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="p-4  border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={() => {
-                        setBalanceOperation("add");
-                        setShowBalanceModal(true);
-                      }}
-                      className="bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19] font-medium px-4 py-2 rounded-lg"
-                    >
-                      Ajouter du Solde
-                    </button>
-                    <button
-                      onClick={() => {
-                        setBalanceOperation("withdraw");
-                        setShowBalanceModal(true);
-                      }}
-                      className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium px-4 py-2 rounded-lg disabled:opacity-50"
-                      disabled={userBalance <= 0}
-                    >
-                      Retirer du Solde
-                    </button>
-                    {calculateTotalProfits() > 0 && (
-                      <>
-                        <button
-                          onClick={() => {
-                            setProfitOperation("withdraw");
-                            setShowProfitModal(true);
-                          }}
-                          className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-4 py-2 rounded-lg"
-                        >
-                          Retirer les Profits
-                        </button>
-                        <button
-                          onClick={() => {
-                            setProfitOperation("add");
-                            setShowProfitModal(true);
-                          }}
-                          className="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg"
-                        >
-                          Ajouter les Profits au Solde
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                {/* Investment Stats */}
+                <InvestmentStats 
+                  userBalance={userBalance}
+                  portfolioData={portfolioData}
+                  calculateTotalProfits={calculateTotalProfits}
+                />
 
                 {/* Charts and Withdraw History */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
                   {/* Portfolio Performance Chart */}
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-white font-semibold">Pourcentage Investi vs Profits</h3>
-                      <select
-                        value={areaRange}
-                        onChange={(e) => setAreaRange(e.target.value)}
-                        className="bg-[#0F0F19] border border-white/20 rounded-lg px-3 py-1 text-white text-sm focus:border-[#3CD4AB] focus:outline-none"
-                        style={{ backgroundColor: '#0F0F19', color: 'white' }}
-                      >
-                        <option value="day" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Jour</option>
-                        <option value="month" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Mois</option>
-                        <option value="year" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Année</option>
-                      </select>
-                    </div>
-                    <div className="w-full h-80">
-                      <ResponsiveContainer>
-                        <AreaChart data={areaSeries.map(p => { const t = Math.max(1, (p.invested||0)+(p.roi||0)); return { date: p.date, investedPct: (p.invested||0)/t*100, profitPct: (p.roi||0)/t*100, invested: p.invested||0, roi: p.roi||0 }; })} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="colorInvestedPct" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#3CD4AB" stopOpacity={0.7} />
-                              <stop offset="95%" stopColor="#3CD4AB" stopOpacity={0.2} />
-                            </linearGradient>
-                            <linearGradient id="colorProfitPct" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#89559F" stopOpacity={0.7} />
-                              <stop offset="95%" stopColor="#89559F" stopOpacity={0.2} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                          <XAxis dataKey="date" tick={{ fill: '#ffffffa6', fontSize: 12 }} />
-                          <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={{ fill: '#ffffff80', fontSize: 12 }} />
-                          <Tooltip
-                            formatter={(value, name, props) => {
-                              const label = name === 'investedPct' ? 'Investi' : 'Profits';
-                              const pct = `${Number(value).toFixed(0)}%`;
-                              const raw = name === 'investedPct' ? props.payload.invested : props.payload.roi;
-                              return [`${pct} (${Number(raw).toLocaleString()} MAD)`, label];
-                            }}
-                            contentStyle={{ backgroundColor: '#0F0F19', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
-                          />
-                          <Legend wrapperStyle={{ color: '#fff' }} formatter={(v) => (v === 'investedPct' ? 'Investi' : 'Profits')} />
-                          <Area type="monotone" dataKey="investedPct" name="Investi" stackId="1" stroke="#3CD4AB" fillOpacity={1} fill="url(#colorInvestedPct)" />
-                          <Area type="monotone" dataKey="profitPct" name="Profits" stackId="1" stroke="#89559F" fillOpacity={1} fill="url(#colorProfitPct)" />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                  </div>
-                  </div>
+                  <PortfolioPerformanceChart 
+                    portfolioData={portfolioData}
+                    calculateTotalProfits={calculateTotalProfits}
+                    areaRange={areaRange}
+                    setAreaRange={setAreaRange}
+                    areaSeries={areaSeries}
+                  />
 
                   {/* Transactions History */}
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-white font-semibold">
-                        Historique des Transactions
-                      </h3>
-                    </div>
-                    <div className={`relative ${transactionsHistory.length > 8 ? "pt-8" : ""}`}>
-                      {transactionsHistory.length > 8 && (
-                        <div className="absolute -top-1 right-0 flex gap-2">
-                          <button onClick={() => document.getElementById('txHistory')?.scrollBy({ top: -72, behavior: 'smooth' })} className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10">↑</button>
-                          <button onClick={() => document.getElementById('txHistory')?.scrollBy({ top: 72, behavior: 'smooth' })} className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10">↓</button>
-                        </div>
-                      )}
-                      <ul
-                        id="txHistory"
-                        className={`${transactionsHistory.length > 8 ? "max-h-80 overflow-y-scroll no-scrollbar" : ""} divide-y divide-white/10`}
-                        style={{ scrollBehavior: 'smooth' }}
-                      >
-                        {transactionsHistory.map((t) => (
-                          <li
-                            key={t.id}
-                            className="py-3 flex items-center justify-between"
-                          >
-                            <div>
-                              <p className="text-white font-medium">
-                                {t.type === "deposit" && (
-                                  <span className="text-[#3CD4AB]">
-                                    +{t.amount.toLocaleString()} MAD
-                                  </span>
-                                )}
-                                {t.type === "withdraw" && (
-                                  <span className="text-red-400">
-                                    -{t.amount.toLocaleString()} MAD
-                                  </span>
-                                )}
-                                {t.type === "profit_withdraw" && (
-                                  <span className="text-orange-400">
-                                    -{t.amount.toLocaleString()} MAD
-                                  </span>
-                                )}
-                                {t.type === "profit_to_balance" && (
-                                  <span className="text-green-400">
-                                    +{t.amount.toLocaleString()} MAD
-                                  </span>
-                                )}
-                              </p>
-                              <p className="text-white/60 text-sm">
-                                {t.method} • {t.date}
-                              </p>
-                            </div>
-                            <span className="text-white/60 text-xs bg-white/10 px-2 py-1 rounded">
-                              {t.type === "deposit" && "Dépôt"}
-                              {t.type === "withdraw" && "Retrait"}
-                              {t.type === "profit_withdraw" &&
-                                "Retrait Profits"}
-                              {t.type === "profit_to_balance" &&
-                                "Profits → Solde"}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+                  <TransactionsHistory 
+                    transactionsHistory={transactionsHistory}
+                  />
                 </div>
 +
                 {/* Behavioral Profile + Interactive Area Chart */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                  {/* Radar */}
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-white font-semibold">Profil d'Investisseur</h3>
-                      {/* <div className="text-white/60 text-xs">
-                        Prudent → faible risque + horizon court + besoin de liquidité • Équilibré → niveaux intermédiaires • Agressif → fort risque + horizon long + faible liquidité
-                      </div> */}
-                    </div>
-                    <div className="w-full h-80">
-                      <ResponsiveContainer>
-                        <RChart data={radarData} outerRadius={100}>
-                          <PolarGrid stroke="#ffffff20" />
-                          <PolarAngleAxis dataKey="metric" tick={{ fill: '#ffffffa6', fontSize: 12 }} />
-                          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#ffffff80', fontSize: 10 }} stroke="#ffffff20" />
-                          <Radar name="Score" dataKey="value" stroke="#3CD4AB" fill="#3CD4AB" fillOpacity={0.4} />
-                          <Tooltip formatter={(v) => [`${v}`, 'Score']} contentStyle={{ backgroundColor: '#0F0F19', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }} />
-                          <Legend wrapperStyle={{ color: '#fff' }} />
-                        </RChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                  {/* Radar Chart */}
+                  <RadarChart 
+                    radarData={radarData}
+                  />
 
-                  {/* Interactive Area Chart */}
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-white font-semibold">Investi vs ROI</h3>
-                      <select
-                        value={areaRange}
-                        onChange={(e) => setAreaRange(e.target.value)}
-                        className="bg-[#0F0F19] border border-white/20 rounded-lg px-3 py-1 text-white text-sm focus:border-[#3CD4AB] focus:outline-none"
-                        style={{ backgroundColor: '#0F0F19', color: 'white' }}
-                      >
-                        <option value="day" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Jour</option>
-                        <option value="month" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Mois</option>
-                        <option value="year" style={{ backgroundColor: '#0F0F19', color: 'white' }}>Année</option>
-                      </select>
-                    </div>
-                    <div className="w-full h-80">
-                      <ResponsiveContainer>
-                        <AreaChart data={areaSeries} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="colorInvested" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#3CD4AB" stopOpacity={0.6} />
-                              <stop offset="95%" stopColor="#3CD4AB" stopOpacity={0.1} />
-                            </linearGradient>
-                            <linearGradient id="colorRoi" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#89559F" stopOpacity={0.6} />
-                              <stop offset="95%" stopColor="#89559F" stopOpacity={0.1} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                          <XAxis dataKey="date" tick={{ fill: '#ffffffa6', fontSize: 12 }} />
-                          <YAxis tick={{ fill: '#ffffff80', fontSize: 12 }} />
-                          <Tooltip formatter={(value, name) => [Number(value).toLocaleString() + ' MAD', name === 'invested' ? 'Investi' : 'ROI']} contentStyle={{ backgroundColor: '#0F0F19', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }} />
-                          <Legend wrapperStyle={{ color: '#fff' }} />
-                          <Area type="monotone" dataKey="invested" name="Investi" stroke="#3CD4AB" fillOpacity={1} fill="url(#colorInvested)" />
-                          <Area type="monotone" dataKey="roi" name="ROI" stroke="#89559F" fillOpacity={1} fill="url(#colorRoi)" />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
+                  {/* Simple Pie Chart */}
+                  <SimplePieChart 
+                    pieChartData={pieChartData}
+                    setCurrentPage={setCurrentPage}
+                  />
                 </div>
               </div>
             )}
@@ -2350,187 +1450,24 @@ useEffect(() => {
             {/* Portfolio Page */}
             {currentPage === "portfolio" && (
               <div>
-                <div className="mb-8">
+                <div className="mb-4">
                   <h1 className="text-3xl font-bold text-white">
                     Portefeuille
                   </h1>
-                  <p className="text-white/60">
-                    Gestion détaillée de votre portefeuille d'investissement
-                  </p>
                 </div>
 
                 {/* Portfolio Summary */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center">
-                      <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-[#3CD4AB] bg-[#3CD4AB]/20 rounded-lg">
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">
-                          Valeur Totale
-                        </p>
-                        <p className="text-2xl font-bold text-white">
-                          {calculateInvestmentHistoryWithReturns()
-                            .reduce((sum, inv) => sum + inv.currentValue, 0)
-                            .toLocaleString()}{" "}
-                          MAD
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center">
-                      <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-[#3CD4AB] bg-[#3CD4AB]/20 rounded-lg">
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">
-                          Gain/Perte Total
-                        </p>
-                        <p
-                          className={`text-2xl font-bold ${
-                            portfolioData.globalPerformance >= 0
-                              ? "text-[#3CD4AB]"
-                              : "text-red-400"
-                          }`}
-                        >
-                          {portfolioData.globalPerformance >= 0 ? "+" : ""}
-                          {(
-                            calculateInvestmentHistoryWithReturns().reduce(
-                              (sum, inv) => sum + inv.currentValue,
-                              0
-                            ) - portfolioData.totalInvested
-                          ).toLocaleString()}{" "}
-                          MAD
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center">
-                      <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-[#3CD4AB] bg-[#3CD4AB]/20 rounded-lg">
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">
-                          Nombre d'Investissements
-                        </p>
-                        <p className="text-2xl font-bold text-white">
-                          {investmentHistory.length}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <div className="flex items-center">
-                      <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-[#3CD4AB] bg-[#3CD4AB]/20 rounded-lg">
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
-                        </svg>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-white/60">
-                          Secteurs Diversifiés
-                        </p>
-                        <p className="text-2xl font-bold text-white">
-                          {calculateSectorBreakdown().length}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <PortfolioSummary 
+                  calculateInvestmentHistoryWithReturns={calculateInvestmentHistoryWithReturns}
+                  portfolioData={portfolioData}
+                  investmentHistory={investmentHistory}
+                  calculateSectorBreakdown={calculateSectorBreakdown}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <h3 className="text-xl font-bold text-white mb-4">
-                      Répartition par Secteur
-                    </h3>
-                    <div className="space-y-4 max-h-80 overflow-y-scroll no-scrollbar">
-                      {calculateSectorBreakdown().length > 0 ? (
-                        calculateSectorBreakdown().map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex justify-between items-center p-3 bg-white/5 rounded-lg"
-                          >
-                            <div>
-                              <span className="text-white font-medium">
-                                {item.sector}
-                              </span>
-                              <div className="w-32 bg-white/20 rounded-full h-2 mt-1">
-                                <div
-                                  className="bg-[#3CD4AB] h-2 rounded-full"
-                                  style={{ width: `${item.percentage}%` }}
-                                />
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-[#3CD4AB] font-semibold">
-                                {item.percentage}%
-                              </div>
-                              <div className="text-white/60 text-sm">
-                                {item.amount.toLocaleString()} MAD
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center text-white/60 py-8">
-                          <svg
-                            className="w-12 h-12 mx-auto mb-4 text-white/40"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1}
-                              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                            ></path>
-                          </svg>
-                          <p>Aucune répartition sectorielle</p>
-                          <p className="text-sm mt-1">
-                            Investissez dans différents secteurs pour voir la
-                            répartition
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <SectorBreakdown 
+                    calculateSectorBreakdown={calculateSectorBreakdown}
+                  />
 
                   <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
                     <h3 className="text-xl font-bold text-white mb-4">
@@ -2612,402 +1549,12 @@ useEffect(() => {
                 </div>
 
                 {/* Notification History Section */}
+                <NotificationHistory 
+                  notificationHistory={notificationHistory}
+                  getNotificationIcon={getNotificationIcon}
+                />
 
-                <div className="flex  gap-4 flex-col-reverse">
-                  <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <h3 className="text-xl font-bold text-white mb-4">
-                      Historique des Notifications
-                    </h3>
-                    <div className={`space-y-4 relative ${notificationHistory.length >= 5 ? "pt-10" : ""}`}>
-                      {notificationHistory.length >= 5 && (
-                        <div className="absolute -top-2 right-0 flex gap-2">
-                          <button
-                            onClick={() => {
-                              const el = document.getElementById('notifHistory');
-                              if (!el) return;
-                              el.scrollBy({ top: -80, behavior: 'smooth' });
-                            }}
-                            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10"
-                          >
-                            ↑
-                          </button>
-                          <button
-                            onClick={() => {
-                              const el = document.getElementById('notifHistory');
-                              if (!el) return;
-                              el.scrollBy({ top: 80, behavior: 'smooth' });
-                            }}
-                            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10"
-                          >
-                            ↓
-                          </button>
-                        </div>
-                      )}
-                      <div id="notifHistory" className={`${notificationHistory.length >= 5 ? "max-h-80 overflow-y-scroll no-scrollbar" : ""}`} style={{ scrollBehavior: 'smooth' }}>
-                    <div className="space-y-4">
-                      {notificationHistory.length > 0 ? (
-                        notificationHistory.map((notification) => (
-                          <div
-                            key={notification.id}
-                            className="flex items-start space-x-3 p-4 bg-white/5 rounded-lg"
-                          >
-                            <div className="flex-shrink-0">
-                              <div className="w-8 h-8 bg-[#3CD4AB]/20 rounded-full flex items-center justify-center">
-                                {getNotificationIcon(notification.type)}
-                              </div>
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="text-white font-medium text-sm">
-                                {notification.title}
-                              </h4>
-                              <p className="text-white/60 text-sm mt-1">
-                                {notification.message}
-                              </p>
-                              <div className="flex justify-between items-center mt-2">
-                                <span className="text-white/40 text-xs">
-                                  Lu le {notification.readAt}
-                                </span>
-                                <span className="text-[#3CD4AB] text-xs">
-                                  ✓ Lu
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center text-white/60 py-8">
-                          <svg
-                            className="w-12 h-12 mx-auto mb-4 text-white/40"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1}
-                              d="M15 17h5l-5 5v-5zM12 19l-7-7 3-3 7 7-3 3z"
-                            ></path>
-                          </svg>
-                          <p>Aucune notification lue pour le moment</p>
-                          <p className="text-sm mt-1">
-                            Les notifications que vous marquez comme lues
-                            apparaîtront ici
-                          </p>
-                        </div>
-                      )}
-                      </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Investment Revenue Chart */}
-                  <div className="mt-8 p-6   border border-white/10 rounded-lg shadow backdrop-blur-sm flex justify-center overflow-hidden bg-white/5">
-                    <div className="w-full  bg-white/5 rounded-lg shadow-sm border border-white/10 p-4 md:p-6 h-[450px]">
-                      <div className="flex justify-between border-white/20 border-b pb-3">
-                        <dl>
-                          <dt className="text-base font-normal text-white/60 pb-1">
-                            Profit
-                          </dt>
-                          <dd className="leading-none text-3xl font-bold text-white">
-                            {calculateTotalProfits().toLocaleString()} MAD
-                          </dd>
-                        </dl>
-                        <div>
-                          <span className="bg-green-500/20 text-green-400 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md">
-                            <svg
-                              className="w-2.5 h-2.5 me-1.5"
-                              aria-hidden="true"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 10 14"
-                            >
-                              <path
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M5 13V1m0 0L1 5m4-4 4 4"
-                              />
-                            </svg>
-                            Profit rate{" "}
-                            {portfolioData.globalPerformance.toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 py-3">
-                        <dl>
-                          <dt className="text-base font-normal text-white/60 pb-1">
-                            Investi
-                          </dt>
-                          <dd className="leading-none text-xl font-bold text-[#3CD4AB]">
-                            {portfolioData.totalInvested.toLocaleString()} MAD
-                          </dd>
-                        </dl>
-                        <dl>
-                          <dt className="text-base font-normal text-white/60 pb-1">
-                            Revenus
-                          </dt>
-                          <dd className="leading-none text-xl font-bold text-green-400">
-                            +{calculateTotalProfits().toLocaleString()} MAD
-                          </dd>
-                        </dl>
-                      </div>
-
-                      {/* Simple Bar Chart using CSS */}
-                      <div className="h-32 flex items-end justify-between space-x-2 mb-4">
-                        {portfolioData.performanceHistory
-                          .slice(
-                            dateFilter === "today"
-                              ? -1
-                              : dateFilter === "week"
-                              ? -7
-                              : dateFilter === "month"
-                              ? -30
-                              : dateFilter === "quarter"
-                              ? -90
-                              : dateFilter === "6months"
-                              ? -6
-                              : -12
-                          )
-                          .map((entry, index) => (
-                            <div
-                              key={index}
-                              className="flex-1 flex flex-col items-center"
-                            >
-                              <div
-                                className="w-full bg-[#3CD4AB]/60 rounded-t transition-all duration-300 hover:bg-[#3CD4AB]"
-                                style={{
-                                  height: `${Math.max(
-                                    10,
-                                    (entry.value /
-                                      Math.max(
-                                        ...portfolioData.performanceHistory.map(
-                                          (e) => e.value
-                                        )
-                                      )) *
-                                      100
-                                  )}%`
-                                }}
-                              ></div>
-                              <span className="text-white/60 text-xs mt-2">
-                                {entry.date}
-                              </span>
-                            </div>
-                          ))}
-                      </div>
-
-                      <div className="grid grid-cols-1 items-center border-white/20 border-t justify-between">
-                        <div className="flex justify-between items-center pt-5">
-                          {/* Date Filter Button */}
-                          <div className="relative date-filter-container">
-                            <button
-                              onClick={() => setShowDateFilter(!showDateFilter)}
-                              className="text-sm font-medium text-white/70 hover:text-white text-center inline-flex items-center transition-all duration-200 px-4 py-2 rounded-lg hover:bg-white/10 border border-white/20 hover:border-white/30"
-                              type="button"
-                            >
-                              {dateFilter === "today"
-                                ? "Aujourd'hui"
-                                : dateFilter === "week"
-                                ? "Cette semaine"
-                                : dateFilter === "month"
-                                ? "Ce mois"
-                                : dateFilter === "quarter"
-                                ? "Ce trimestre"
-                                : dateFilter === "6months"
-                                ? "Derniers 6 mois"
-                                : dateFilter === "year"
-                                ? "Cette année"
-                                : "Derniers 6 mois"}
-                              <svg
-                                className={`w-4 h-4 ml-2 transition-transform duration-200 ${
-                                  showDateFilter ? "rotate-180" : ""
-                                }`}
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M19 9l-7 7-7-7"
-                                />
-                              </svg>
-                            </button>
-
-                            {/* Date Filter Dropdown */}
-                            {showDateFilter && (
-                              <div className="absolute bottom-full left-0 mb-2 w-48 bg-[#0F0F19] border border-white/30 rounded-lg shadow-xl z-50 backdrop-blur-sm">
-                                <div className="p-2">
-                                  <div className="text-xs text-white/40 px-3 py-1 mb-1 border-b border-white/10">
-                                    Période
-                                  </div>
-                                  <ul className="space-y-1">
-                                    <li>
-                                      <button
-                                        onClick={() => {
-                                          setDateFilter("today");
-                                          setShowDateFilter(false);
-                                        }}
-                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                          dateFilter === "today"
-                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
-                                            : "text-white/80 hover:text-white hover:bg-white/10"
-                                        }`}
-                                      >
-                                        <div className="flex items-center justify-between">
-                                          <span>Aujourd'hui</span>
-                                          {dateFilter === "today" && (
-                                            <span className="text-[#3CD4AB]">
-                                              ✓
-                                            </span>
-                                          )}
-                                        </div>
-                                      </button>
-                                    </li>
-                                    <li>
-                                      <button
-                                        onClick={() => {
-                                          setDateFilter("week");
-                                          setShowDateFilter(false);
-                                        }}
-                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                          dateFilter === "week"
-                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
-                                            : "text-white/80 hover:text-white hover:bg-white/10"
-                                        }`}
-                                      >
-                                        <div className="flex items-center justify-between">
-                                          <span>Cette semaine</span>
-                                          {dateFilter === "week" && (
-                                            <span className="text-[#3CD4AB]">
-                                              ✓
-                                            </span>
-                                          )}
-                                        </div>
-                                      </button>
-                                    </li>
-                                    <li>
-                                      <button
-                                        onClick={() => {
-                                          setDateFilter("month");
-                                          setShowDateFilter(false);
-                                        }}
-                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                          dateFilter === "month"
-                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
-                                            : "text-white/80 hover:text-white hover:bg-white/10"
-                                        }`}
-                                      >
-                                        <div className="flex items-center justify-between">
-                                          <span>Ce mois</span>
-                                          {dateFilter === "month" && (
-                                            <span className="text-[#3CD4AB]">
-                                              ✓
-                                            </span>
-                                          )}
-                                        </div>
-                                      </button>
-                                    </li>
-                                    <li>
-                                      <button
-                                        onClick={() => {
-                                          setDateFilter("quarter");
-                                          setShowDateFilter(false);
-                                        }}
-                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                          dateFilter === "quarter"
-                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
-                                            : "text-white/80 hover:text-white hover:bg-white/10"
-                                        }`}
-                                      >
-                                        <div className="flex items-center justify-between">
-                                          <span>Ce trimestre</span>
-                                          {dateFilter === "quarter" && (
-                                            <span className="text-[#3CD4AB]">
-                                              ✓
-                                            </span>
-                                          )}
-                                        </div>
-                                      </button>
-                                    </li>
-                                    <li>
-                                      <button
-                                        onClick={() => {
-                                          setDateFilter("6months");
-                                          setShowDateFilter(false);
-                                        }}
-                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                          dateFilter === "6months"
-                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
-                                            : "text-white/80 hover:text-white hover:bg-white/10"
-                                        }`}
-                                      >
-                                        <div className="flex items-center justify-between">
-                                          <span>Derniers 6 mois</span>
-                                          {dateFilter === "6months" && (
-                                            <span className="text-[#3CD4AB]">
-                                              ✓
-                                            </span>
-                                          )}
-                                        </div>
-                                      </button>
-                                    </li>
-                                    <li>
-                                      <button
-                                        onClick={() => {
-                                          setDateFilter("year");
-                                          setShowDateFilter(false);
-                                        }}
-                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 text-sm ${
-                                          dateFilter === "year"
-                                            ? "bg-[#3CD4AB]/20 text-[#3CD4AB] border border-[#3CD4AB]/30"
-                                            : "text-white/80 hover:text-white hover:bg-white/10"
-                                        }`}
-                                      >
-                                        <div className="flex items-center justify-between">
-                                          <span>Cette année</span>
-                                          {dateFilter === "year" && (
-                                            <span className="text-[#3CD4AB]">
-                                              ✓
-                                            </span>
-                                          )}
-                                        </div>
-                                      </button>
-                                    </li>
-                                  </ul>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Revenue Report Link */}
-                          <button
-                            onClick={() => setCurrentPage("portfolio")}
-                            className="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-[#3CD4AB] hover:text-[#3CD4AB] hover:bg-[#3CD4AB]/10 px-4 py-2 transition-all duration-200 border border-[#3CD4AB]/30 hover:border-[#3CD4AB]/50 group"
-                          >
-                            <span>Rapport Complet</span>
-                            <svg
-                              className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-1"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M17 8l4 4m0 0l-4 4m4-4H3"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* Investment Revenue Chart */}
               </div>
             )}
 
@@ -3169,532 +1716,26 @@ useEffect(() => {
 
             {/* Simulations Page */}
             {currentPage === "simulations" && (
-              <div>
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold text-white">Simulations</h1>
-                  <p className="text-white/60">
-                    Testez vos stratégies d'investissement sans risque
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                  <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <h3 className="text-xl font-bold text-white mb-6">
-                      Créer une Simulation
-                    </h3>
-                    <div className="space-y-4">
-                      {/* Balance Info */}
-                      <div className="p-3 bg-[#3CD4AB]/10 border border-[#3CD4AB]/20 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <span className="text-white/80 text-sm">
-                            Solde disponible:
-                          </span>
-                          <span className="text-[#3CD4AB] font-semibold">
-                            {userBalance.toLocaleString()} MAD
-                          </span>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-white/80 text-sm font-medium mb-2">
-                          Capital Initial (MAD)
-                        </label>
-                        <input
-                          type="number"
-                          value={simulationForm.initialCapital}
-                          onChange={(e) =>
-                            handleSimulationFormChange(
-                              "initialCapital",
-                              e.target.value
-                            )
-                          }
-                          className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none"
-                          placeholder="10000"
-                          max={userBalance}
-                        />
-                        {simulationForm.initialCapital &&
-                          parseFloat(simulationForm.initialCapital) >
-                            userBalance && (
-                            <p className="text-red-400 text-sm mt-1">
-                              Capital supérieur au solde disponible
-                            </p>
-                          )}
-                      </div>
-                      <div>
-                        <label className="block text-white/80 text-sm font-medium mb-2">
-                          Durée
-                        </label>
-                        <select
-                          value={simulationForm.duration}
-                          onChange={(e) =>
-                            handleSimulationFormChange(
-                              "duration",
-                              e.target.value
-                            )
-                          }
-                          className="w-full bg-[#0F0F19] border border-white/20 rounded-lg px-4 py-2 text-white focus:border-[#3CD4AB] focus:outline-none"
-                          style={{
-                            backgroundColor: "#0F0F19",
-                            color: "white"
-                          }}
-                        >
-                          <option
-                            value="6"
-                            style={{
-                              backgroundColor: "#0F0F19",
-                              color: "white"
-                            }}
-                          >
-                            6 mois
-                          </option>
-                          <option
-                            value="12"
-                            style={{
-                              backgroundColor: "#0F0F19",
-                              color: "white"
-                            }}
-                          >
-                            1 an
-                          </option>
-                          <option
-                            value="24"
-                            style={{
-                              backgroundColor: "#0F0F19",
-                              color: "white"
-                            }}
-                          >
-                            2 ans
-                          </option>
-                          <option
-                            value="60"
-                            style={{
-                              backgroundColor: "#0F0F19",
-                              color: "white"
-                            }}
-                          >
-                            5 ans
-                          </option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-white/80 text-sm font-medium mb-2">
-                          Profil de Risque
-                        </label>
-                        <select
-                          value={simulationForm.riskProfile}
-                          onChange={(e) =>
-                            handleSimulationFormChange(
-                              "riskProfile",
-                              e.target.value
-                            )
-                          }
-                          className="w-full bg-[#0F0F19] border border-white/20 rounded-lg px-4 py-2 text-white focus:border-[#3CD4AB] focus:outline-none"
-                          style={{
-                            backgroundColor: "#0F0F19",
-                            color: "white"
-                          }}
-                        >
-                          <option
-                            value="conservateur"
-                            style={{
-                              backgroundColor: "#0F0F19",
-                              color: "white"
-                            }}
-                          >
-                            Conservateur (4% annuel)
-                          </option>
-                          <option
-                            value="modere"
-                            style={{
-                              backgroundColor: "#0F0F19",
-                              color: "white"
-                            }}
-                          >
-                            Modéré (7% annuel)
-                          </option>
-                          <option
-                            value="dynamique"
-                            style={{
-                              backgroundColor: "#0F0F19",
-                              color: "white"
-                            }}
-                          >
-                            Dynamique (10% annuel)
-                          </option>
-                          <option
-                            value="agressif"
-                            style={{
-                              backgroundColor: "#0F0F19",
-                              color: "white"
-                            }}
-                          >
-                            Agressif (15% annuel)
-                          </option>
-                        </select>
-                      </div>
-                      <button
-                        onClick={handleCreateSimulation}
-                        disabled={
-                          !simulationForm.initialCapital ||
-                          parseFloat(simulationForm.initialCapital) <= 0 ||
-                          parseFloat(simulationForm.initialCapital) >
-                            userBalance
-                        }
-                        className="w-full bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19] font-medium py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Lancer la Simulation
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <h3 className="text-xl font-bold text-white mb-6">
-                      Simulations Actives
-                    </h3>
-                    <div className="space-y-4">
-                      {recentSimulations
-                        .filter((sim) => sim.status === "active")
-                        .slice(0, 3)
-                        .map((sim) => (
-                          <div
-                            key={sim.id}
-                            className="p-4 bg-white/5 border border-white/10 rounded-lg"
-                          >
-                            <div className="flex justify-between items-start mb-2">
-                              <h4 className="text-white font-medium">
-                                {sim.name}
-                              </h4>
-                              <span
-                                className={`font-semibold ${
-                                  sim.performance >= 0
-                                    ? "text-[#3CD4AB]"
-                                    : "text-red-400"
-                                }`}
-                              >
-                                {sim.performance >= 0 ? "+" : ""}
-                                {sim.performance}%
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <span className="text-white/60">
-                                  Capital initial
-                                </span>
-                                <div className="text-white">
-                                  {sim.initialCapital.toLocaleString()} MAD
-                                </div>
-                              </div>
-                              <div>
-                                <span className="text-white/60">
-                                  Valeur actuelle
-                                </span>
-                                <div className="text-[#3CD4AB]">
-                                  {sim.currentValue.toLocaleString()} MAD
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex justify-between items-center mt-2">
-                              <div className="text-xs text-white/60">
-                                Durée: {sim.duration}
-                              </div>
-                              <div className="text-xs text-white/60">
-                                Créé le {sim.createdAt}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      {recentSimulations.filter(
-                        (sim) => sim.status === "active"
-                      ).length === 0 && (
-                        <div className="text-center text-white/60 py-4">
-                          Aucune simulation active
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recent Simulations Section */}
-                <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white">
-                      Simulations Récentes
-                    </h3>
-                    <div className="flex items-center space-x-2">
-                      <label className="text-white/60 text-sm">
-                        Filtrer par:
-                      </label>
-                      <select
-                        value={simulationDateFilter}
-                        onChange={(e) =>
-                          setSimulationDateFilter(e.target.value)
-                        }
-                        className="bg-[#0F0F19] border border-white/20 rounded-lg px-3 py-1 text-white text-sm focus:border-[#3CD4AB] focus:outline-none"
-                        style={{
-                          backgroundColor: "#0F0F19",
-                          color: "white"
-                        }}
-                      >
-                        <option
-                          value="all"
-                          style={{ backgroundColor: "#0F0F19", color: "white" }}
-                        >
-                          Toutes
-                        </option>
-                        <option
-                          value="today"
-                          style={{ backgroundColor: "#0F0F19", color: "white" }}
-                        >
-                          Aujourd'hui
-                        </option>
-                        <option
-                          value="week"
-                          style={{ backgroundColor: "#0F0F19", color: "white" }}
-                        >
-                          Cette semaine
-                        </option>
-                        <option
-                          value="month"
-                          style={{ backgroundColor: "#0F0F19", color: "white" }}
-                        >
-                          Ce mois
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {getFilteredSimulations().map((simulation) => (
-                      <div
-                        key={simulation.id}
-                        className="p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors duration-200"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h4 className="text-white font-medium">
-                              {simulation.name}
-                            </h4>
-                            <p className="text-white/60 text-sm">
-                              {simulation.riskProfile}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <span
-                              className={`font-semibold text-lg ${
-                                simulation.performance >= 0
-                                  ? "text-[#3CD4AB]"
-                                  : "text-red-400"
-                              }`}
-                            >
-                              {simulation.performance >= 0 ? "+" : ""}
-                              {simulation.performance}%
-                            </span>
-                            <div
-                              className={`px-2 py-1 rounded text-xs font-medium ${
-                                simulation.status === "active"
-                                  ? "bg-[#3CD4AB]/20 text-[#3CD4AB]"
-                                  : "bg-gray-500/20 text-gray-400"
-                              }`}
-                            >
-                              {simulation.status === "active"
-                                ? "Actif"
-                                : "Terminé"}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-white/60">
-                              Capital initial:
-                            </span>
-                            <span className="text-white">
-                              {simulation.initialCapital.toLocaleString()} MAD
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-white/60">
-                              Valeur actuelle:
-                            </span>
-                            <span className="text-[#3CD4AB]">
-                              {simulation.currentValue.toLocaleString()} MAD
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-white/60">Durée:</span>
-                            <span className="text-white">
-                              {simulation.duration}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-white/60">Créé le:</span>
-                            <span className="text-white">
-                              {simulation.createdAt}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-
-                    {getFilteredSimulations().length === 0 && (
-                      <div className="col-span-full text-center text-white/60 py-8">
-                        <svg
-                          className="w-12 h-12 mx-auto mb-4 text-white/40"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1}
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                          ></path>
-                        </svg>
-                        <p>Aucune simulation trouvée pour cette période</p>
-                        <p className="text-sm mt-1">
-                          Créez une nouvelle simulation pour commencer
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <SimulationsPage 
+                userBalance={userBalance}
+                simulationForm={simulationForm}
+                handleSimulationFormChange={handleSimulationFormChange}
+                handleCreateSimulation={handleCreateSimulation}
+                recentSimulations={recentSimulations}
+                simulationDateFilter={simulationDateFilter}
+                setSimulationDateFilter={setSimulationDateFilter}
+                getFilteredSimulations={getFilteredSimulations}
+              />
             )}
 
             {/* News Page */}
             {currentPage === "news" && (
-              <div>
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold text-white">Actualités</h1>
-                  {/* <p className="text-white/60">
-                    Restez informé des dernières nouvelles financières et des marchés (NASDAQ, S&P 500, CAC 40)
-                  </p> */}
-                </div>
-
-                {newsLoading ? (
-                  <div className="p-6 bg-white/5 border border-white/10 rounded-lg text-center text-white/70">
-                    Chargement des actualités...
-                  </div>
-                ) : newsError ? (
-                  <div className="p-6 bg-white/5 border border-white/10 rounded-lg text-center text-red-400">
-                    {newsError}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-6">
-                      {newsArticles.map((article, index) => (
-                        <Link
-                          key={index}
-                          to={article.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm hover:bg-white/10 transition-colors duration-200"
-                        >
-                          <div className="flex gap-4">
-                            <img
-                              src={
-                                article.image ||
-                                "/public/assets/marketstock.png"
-                              }
-                              alt={article.title}
-                              className="w-24 h-24 object-cover rounded-lg"
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="inline-block bg-[#3CD4AB]/20 text-[#3CD4AB] px-2 py-1 rounded text-xs font-medium">
-                                  {article.source || "Source inconnue"}
-                                </span>
-                                <span className="text-white/60 text-sm">
-                                  {article.publishedAt
-                                    ? new Date(
-                                        article.publishedAt
-                                      ).toLocaleDateString("fr-FR", {
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "numeric"
-                                      })
-                                    : ""}
-                                </span>
-                              </div>
-                              <h3 className="text-white font-semibold text-lg mb-2">
-                                {article.title}
-                              </h3>
-                              {article.description && (
-                                <p className="text-white/60 text-sm">
-                                  {article.description}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                      {newsArticles.length === 0 && (
-                        <div className="p-6 bg-white/5 border border-white/10 rounded-lg text-center text-white/60">
-                          Aucune actualité trouvée.
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-6">
-                      <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                        <h3 className="text-xl font-bold text-white mb-4">
-                          Marché Crypto
-                        </h3>
-                        <div className="space-y-4">
-                          {marketQuotes.map((q, idx) => {
-                            const change = q.change || 0;
-                            const changePct = q.changesPercentage || 0;
-                            const positive = change >= 0;
-                            return (
-                              <div
-                                key={idx}
-                                className="flex justify-between items-center p-3 bg-white/5 rounded-lg"
-                              >
-                                <span className="text-white font-medium">
-                                  {q.label || q.symbol}
-                                </span>
-                                <div className="text-right">
-                                  <div className="text-white">
-                                    {q.price
-                                      ? q.price.toLocaleString("fr-FR", {
-                                          minimumFractionDigits: 2,
-                                          maximumFractionDigits: 2
-                                        })
-                                      : "--"}
-                                  </div>
-                                  <div
-                                    className={`text-sm font-semibold ${
-                                      positive
-                                        ? "text-[#3CD4AB]"
-                                        : "text-red-400"
-                                    }`}
-                                  >
-                                    {positive ? "+" : ""}
-                                    {change.toFixed
-                                      ? change.toFixed(2)
-                                      : change}{" "}
-                                    (
-                                    {changePct.toFixed
-                                      ? changePct.toFixed(2)
-                                      : changePct}
-                                    %)
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                          {marketQuotes.length === 0 && (
-                            <div className="text-center text-white/60">
-                              Données indisponibles
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <NewsPage 
+                newsLoading={newsLoading}
+                newsError={newsError}
+                newsArticles={newsArticles}
+                marketQuotes={marketQuotes}
+              />
             )}
 
             {/* Balance Modal */}
@@ -3862,78 +1903,6 @@ useEffect(() => {
                                 </svg>
                                 <span className="text-white font-medium">
                                   PayPal
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Visa/MasterCard */}
-                          <div
-                            onClick={() => setSelectedPaymentMethod("card")}
-                            className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
-                              selectedPaymentMethod === "card"
-                                ? "border-[#3CD4AB] bg-[#3CD4AB]/10"
-                                : "border-white/20 bg-white/5 hover:bg-white/10"
-                            }`}
-                          >
-                            <div className="flex items-center">
-                              <div
-                                className={`w-4 h-4 rounded-full border-2 mr-3 ${
-                                  selectedPaymentMethod === "card"
-                                    ? "border-[#3CD4AB] bg-[#3CD4AB]"
-                                    : "border-white/40"
-                                }`}
-                              >
-                                {selectedPaymentMethod === "card" && (
-                                  <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                                )}
-                              </div>
-                              <div className="flex items-center">
-                                <svg
-                                  className="w-6 h-6 mr-2"
-                                  viewBox="0 0 24 24"
-                                  fill="#1a1f71"
-                                >
-                                  <path d="M15.245 17.831h-6.49l-1.716-6.277c-.108-.394-.455-.394-.602-.394H2.881c-.147 0-.295.147-.295.295v.443c0 .147.147.295.295.295h3.114l2.466 9.095c.049.147.196.295.344.295h7.636c.147 0 .295-.147.295-.295v-.443c0-.196-.147-.295-.295-.295h-7.341l-.344-1.324h6.539c.147 0 .295-.147.295-.295v-.443c.049-.147-.098-.295-.245-.295z" />
-                                </svg>
-                                <span className="text-white font-medium">
-                                  Visa / MasterCard
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* USDT */}
-                          <div
-                            onClick={() => setSelectedPaymentMethod("usdt")}
-                            className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
-                              selectedPaymentMethod === "usdt"
-                                ? "border-[#3CD4AB] bg-[#3CD4AB]/10"
-                                : "border-white/20 bg-white/5 hover:bg-white/10"
-                            }`}
-                          >
-                            <div className="flex items-center">
-                              <div
-                                className={`w-4 h-4 rounded-full border-2 mr-3 ${
-                                  selectedPaymentMethod === "usdt"
-                                    ? "border-[#3CD4AB] bg-[#3CD4AB]"
-                                    : "border-white/40"
-                                }`}
-                              >
-                                {selectedPaymentMethod === "usdt" && (
-                                  <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                                )}
-                              </div>
-                              <div className="flex items-center">
-                                <svg
-                                  className="w-6 h-6 mr-2"
-                                  viewBox="0 0 24 24"
-                                  fill="#26a17b"
-                                >
-                                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.94 9.435c-.011-.009-1.482-.827-4.464-.827-2.982 0-4.453.818-4.464.827L8.999 8.46c.021-.016 2.015-1.112 4.521-1.112s4.5 1.096 4.521 1.112l-.101.975zm-.484 1.634v1.78c0 .827-.675 1.502-1.502 1.502h-8.908c-.827 0-1.502-.675-1.502-1.502v-1.78c0-.827.675-1.502 1.502-1.502h8.908c.827 0 1.502.675 1.502 1.502z" />
-                                </svg>
-                                <span className="text-white font-medium">
-                                  USDT (Crypto)
                                 </span>
                               </div>
                             </div>
@@ -4129,204 +2098,23 @@ useEffect(() => {
             )}
 
             {/* Notification Details Popup */}
-            {showNotificationDetails && selectedNotification && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-[#0F0F19] border border-white/20 rounded-lg p-6 w-full max-w-lg mx-4">
-                  <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-[#3CD4AB]/20 rounded-full flex items-center justify-center">
-                        {getNotificationIcon(selectedNotification.type)}
-                      </div>
-                      <h3 className="text-xl font-bold text-white">
-                        {selectedNotification.title}
-                      </h3>
-                    </div>
-                    <button
-                      onClick={() => setShowNotificationDetails(false)}
-                      className="text-white/60 hover:text-white"
-                    >
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-
-                  {/* Notification Details */}
-                  <div className="mb-6">
-                    <div className="mb-4 p-4 bg-white/5 rounded-lg">
-                      <p className="text-white text-sm leading-relaxed">
-                        {selectedNotification.details}
-                      </p>
-                    </div>
-
-                    {/* Astuce Section */}
-                    <div className="mb-4 p-4 bg-[#3CD4AB]/10 border border-[#3CD4AB]/20 rounded-lg">
-                      <h4 className="text-[#3CD4AB] font-semibold text-sm mb-2">
-                        Astuce
-                      </h4>
-                      <p className="text-white/80 text-sm">
-                        {selectedNotification.astuce}
-                      </p>
-                    </div>
-
-                    {/* Timestamp */}
-                    <div className="text-white/60 text-xs">
-                      Reçu {selectedNotification.time}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setShowNotificationDetails(false)}
-                      className="flex-1 bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
-                    >
-                      Fermer
-                    </button>
-                    <button
-                      onClick={() => handleMarkAsRead(selectedNotification.id)}
-                      className="flex-1 bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19] font-medium py-3 px-4 rounded-lg transition-colors duration-200"
-                    >
-                      Marquer comme lu
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <NotificationDetailsPopup 
+              showNotificationDetails={showNotificationDetails}
+              selectedNotification={selectedNotification}
+              setShowNotificationDetails={setShowNotificationDetails}
+              getNotificationIcon={getNotificationIcon}
+              handleMarkAsRead={handleMarkAsRead}
+            />
 
             {/* Settings Modal */}
-            {showSettingsModal && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-[#0F0F19] border border-white/20 rounded-lg p-6 w-full max-w-md mx-4">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white">Paramètres</h3>
-                    <button
-                      onClick={() => setShowSettingsModal(false)}
-                      className="text-white/60 hover:text-white"
-                    >
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    {/* User Info Display */}
-                    <div className="p-4 bg-white/5 rounded-lg">
-                      <div className="flex items-center space-x-4 mb-4">
-                        <img
-                          src={
-                            userData?.avatar ||
-                            fallbackAvatar
-                          }
-                          alt="Avatar"
-                          className="w-16 h-16 rounded-full object-cover"
-                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }}
-                        />
-                        <div>
-                          <h4 className="text-white font-semibold">
-                            {userData?.name || "Utilisateur"}
-                          </h4>
-                          <p className="text-white/60 text-sm">
-                            {userData?.email}
-                          </p>
-                          <p className="text-white/40 text-xs">
-                            Membre depuis{" "}
-                            {userData?.createdAt
-                              ? new Date(userData.createdAt).toLocaleDateString(
-                                  "fr-FR"
-                                )
-                              : "récemment"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Account Actions */}
-                    <div className="space-y-3">
-                      <button
-                        onClick={() => {
-                          setShowSettingsModal(false);
-                          // Add reset data functionality here
-                          if (
-                            window.confirm(
-                              "Êtes-vous sûr de vouloir réinitialiser toutes vos données ? Cette action est irréversible."
-                            )
-                          ) {
-                            setUserBalance(0);
-                            setInvestmentHistory([]);
-                            setTransactionsHistory([]);
-                            setNotifications([]);
-                            setNotificationHistory([]);
-                            setRecentSimulations([]);
-                            setPortfolioData({
-                              totalInvested: 0,
-                              globalPerformance: 0,
-                              dailyVariation: 0,
-                              monthlyGrowth: 0,
-                              portfolioBreakdown: [],
-                              performanceHistory: [
-                                { date: "Jan", value: 0, benchmark: 0 },
-                                { date: "Fév", value: 0, benchmark: 0 },
-                                { date: "Mar", value: 0, benchmark: 0 },
-                                { date: "Avr", value: 0, benchmark: 0 },
-                                { date: "Mai", value: 0, benchmark: 0 },
-                                { date: "Juin", value: 0, benchmark: 0 }
-                              ],
-                              products: []
-                            });
-                          }
-                        }}
-                        className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
-                      >
-                        🔄 Réinitialiser toutes les données
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setShowSettingsModal(false);
-                          localStorage.removeItem("isLogin");
-                          setIsLoggedIn(false);
-                          console.log(
-                            "Logout function called from settings, navigating to login"
-                          );
-                          // Use window.location as fallback if navigate doesn't work
-                          try {
-                            navigate("/login");
-                          } catch (error) {
-                            console.error("Navigation error:", error);
-                            window.location.href = "/login";
-                          }
-                        }}
-                        className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
-                      >
-                        🚪 Se déconnecter
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            <SettingsModal 
+              showSettingsModal={showSettingsModal}
+              setShowSettingsModal={setShowSettingsModal}
+              userData={userData}
+              fallbackAvatar={fallbackAvatar}
+              setIsLoggedIn={setIsLoggedIn}
+              navigate={navigate}
+            />
           </div>
         </div>
       </div>
