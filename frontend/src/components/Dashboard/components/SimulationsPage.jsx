@@ -1,271 +1,132 @@
-import React from 'react';
+import React, { useContext, useState } from 'react';
+import { UserContext } from '../../Context/UserContext.jsx';
 
-const SimulationsPage = ({
-  userBalance,
-  simulationForm,
-  handleSimulationFormChange,
-  handleCreateSimulation,
-  recentSimulations,
-  simulationDateFilter,
-  setSimulationDateFilter,
-  getFilteredSimulations
-}) => {
+
+const riskProfiles = [
+  { value: 'conservateur', label: 'Conservateur (4% annuel)', rate: 0.04 },
+  { value: 'modere', label: 'Modéré (7% annuel)', rate: 0.07 },
+  { value: 'dynamique', label: 'Dynamique (10% annuel)', rate: 0.10 },
+  { value: 'agressif', label: 'Agressif (15% annuel)', rate: 0.15 },
+];
+
+const productRecommendations = {
+  conservateur: ['Compte sur Carnet', 'OPCVM Monétaires', 'Dépôt à Terme'],
+  modere: ['OPCVM Monétaires', 'Gestion sous Mandat', 'OPCVM Actions'],
+  dynamique: ['OPCVM Actions', 'Gestion sous Mandat', 'Produits Structurés'],
+  agressif: ['Produits Structurés', 'OPCVM Actions', 'Gestion sous Mandat'],
+};
+
+const SimulationsPage = () => {
+  const { userContext } = useContext(UserContext);
+  const userProfile = userContext;
+  const [form, setForm] = useState({
+    initialCapital: '',
+    duration: '12',
+    riskProfile: userProfile?.behaviorProfile?.profileType || 'modere',
+  });
+  const [result, setResult] = useState(null);
+
+  const handleChange = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSimulate = () => {
+    // Calculate 3 scenarios: pessimistic, expected, optimistic
+    const capital = parseFloat(form.initialCapital) || 0;
+    const years = parseInt(form.duration, 10) / 12;
+    const profile = riskProfiles.find((r) => r.value === form.riskProfile) || riskProfiles[1];
+    const rate = profile.rate;
+    // Pessimistic: 60% of rate, Expected: rate, Optimistic: 140% of rate
+    const pessimistic = Math.round(capital * Math.pow(1 + rate * 0.6, years));
+    const expected = Math.round(capital * Math.pow(1 + rate, years));
+    const optimistic = Math.round(capital * Math.pow(1 + rate * 1.4, years));
+    setResult({
+      pessimistic,
+      expected,
+      optimistic,
+      products: productRecommendations[form.riskProfile] || [],
+      profileLabel: profile.label,
+    });
+  };
+
   return (
-    <div className="space-y-8">
-      {/* Simple Header */}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Créer une Simulation */}
-        <div className="bg-white/5 border border-white/20 rounded-xl p-6">
-          <h3 className="text-xl font-semibold text-white mb-6">
-            Créer une Simulation
-          </h3>
-          <div className="space-y-4">
-            {/* Balance Info */}
-            <div className="bg-white/10 border border-white/20 rounded-lg p-4">
-              <div className="flex justify-between items-center">
-                <span className="text-white text-sm">
-                  Solde disponible:
-                </span>
-                <span className="text-white font-semibold">
-                  {userBalance.toLocaleString()} MAD
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-white text-sm font-medium mb-2">
-                Capital Initial (MAD)
-              </label>
-              <input
-                type="number"
-                value={simulationForm.initialCapital}
-                onChange={(e) =>
-                  handleSimulationFormChange(
-                    "initialCapital",
-                    e.target.value
-                  )
-                }
-                className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:border-white/60 focus:outline-none transition-colors"
-                placeholder="10000"
-                max={userBalance}
-              />
-              {simulationForm.initialCapital &&
-                parseFloat(simulationForm.initialCapital) > userBalance && (
-                  <p className="text-red-400 text-sm mt-1">
-                    Capital supérieur au solde disponible
-                  </p>
-                )}
-            </div>
-
-            <div>
-              <label className="block text-white text-sm font-medium mb-2">
-                Durée
-              </label>
-              <select
-                value={simulationForm.duration}
-                onChange={(e) =>
-                  handleSimulationFormChange("duration", e.target.value)
-                }
-                className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors"
-              >
-                <option value="6">6 mois</option>
-                <option value="12">1 an</option>
-                <option value="24">2 ans</option>
-                <option value="60">5 ans</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-white text-sm font-medium mb-2">
-                Profil de Risque
-              </label>
-              <select
-                value={simulationForm.riskProfile}
-                onChange={(e) =>
-                  handleSimulationFormChange("riskProfile", e.target.value)
-                }
-                className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors"
-              >
-                <option value="conservateur">Conservateur (4% annuel)</option>
-                <option value="modere">Modéré (7% annuel)</option>
-                <option value="dynamique">Dynamique (10% annuel)</option>
-                <option value="agressif">Agressif (15% annuel)</option>
-              </select>
-            </div>
-
-            <button
-              onClick={handleCreateSimulation}
-              disabled={
-                !simulationForm.initialCapital ||
-                parseFloat(simulationForm.initialCapital) <= 0 ||
-                parseFloat(simulationForm.initialCapital) > userBalance
-              }
-              className="w-full bg-white text-gray-900 font-medium py-3 px-4 rounded-lg hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Lancer la Simulation
-            </button>
-          </div>
-        </div>
-
-        {/* Simulations Actives */}
-        <div className="bg-white/5 border border-white/20 rounded-xl p-6">
-          <h3 className="text-xl font-semibold text-white mb-6">
-            Simulations Actives
-          </h3>
-          <div className="space-y-4">
-            {recentSimulations
-              .filter((sim) => sim.status === "active")
-              .slice(0, 3)
-              .map((sim) => (
-                <div
-                  key={sim.id}
-                  className="bg-white/10 border border-white/20 rounded-lg p-4"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <h4 className="text-white font-medium">
-                      {sim.name}
-                    </h4>
-                    <span
-                      className={`font-semibold ${
-                        sim.performance >= 0
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }`}
-                    >
-                      {sim.performance >= 0 ? "+" : ""}
-                      {sim.performance}%
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-white/60">Capital initial</span>
-                      <div className="text-white">
-                        {sim.initialCapital.toLocaleString()} MAD
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-white/60">Valeur actuelle</span>
-                      <div className="text-white font-semibold">
-                        {sim.currentValue.toLocaleString()} MAD
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/10">
-                    <div className="text-xs text-white/60">
-                      Durée: {sim.duration}
-                    </div>
-                    <div className="text-xs text-white/60">
-                      {sim.createdAt}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            {recentSimulations.filter((sim) => sim.status === "active").length === 0 && (
-              <div className="text-center text-white/60 py-8">
-                <div className="text-4xl mb-2">📊</div>
-                <p>Aucune simulation active</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Simulations Section */}
+    <div className="max-w-2xl mx-auto space-y-8">
       <div className="bg-white/5 border border-white/20 rounded-xl p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-semibold text-white">
-            Simulations Récentes
-          </h3>
-          <div className="flex items-center space-x-3">
-            <label className="text-white text-sm">Filtrer par:</label>
+        <h3 className="text-xl font-semibold text-white mb-6">Simulation simple</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-white text-sm font-medium mb-2">Capital initial (MAD)</label>
+            <input
+              type="number"
+              value={form.initialCapital}
+              onChange={(e) => handleChange('initialCapital', e.target.value)}
+              className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:border-white/60 focus:outline-none transition-colors"
+              placeholder="10000"
+              min={0}
+            />
+          </div>
+          <div>
+            <label className="block text-white text-sm font-medium mb-2">Durée</label>
             <select
-              value={simulationDateFilter}
-              onChange={(e) => setSimulationDateFilter(e.target.value)}
-              className="bg-white/10 border border-white/30 rounded-lg px-3 py-2 text-white text-sm focus:border-white/60 focus:outline-none"
+              value={form.duration}
+              onChange={(e) => handleChange('duration', e.target.value)}
+              className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors"
             >
-              <option value="all">Toutes</option>
-              <option value="today">Aujourd'hui</option>
-              <option value="week">Cette semaine</option>
-              <option value="month">Ce mois</option>
+              <option value="6">6 mois</option>
+              <option value="12">1 an</option>
+              <option value="24">2 ans</option>
+              <option value="60">5 ans</option>
             </select>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {getFilteredSimulations().map((simulation) => (
-            <div
-              key={simulation.id}
-              className="bg-white/10 border border-white/20 rounded-lg p-4 hover:bg-white/15 transition-colors"
+          <div>
+            <label className="block text-white text-sm font-medium mb-2">Profil de risque</label>
+            <select
+              value={form.riskProfile}
+              onChange={(e) => handleChange('riskProfile', e.target.value)}
+              className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h4 className="text-white font-medium">
-                    {simulation.name}
-                  </h4>
-                  <p className="text-white/60 text-sm">
-                    {simulation.riskProfile}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span
-                    className={`font-semibold text-lg ${
-                      simulation.performance >= 0
-                        ? "text-green-400"
-                        : "text-red-400"
-                    }`}
-                  >
-                    {simulation.performance >= 0 ? "+" : ""}
-                    {simulation.performance}%
-                  </span>
-                  <div
-                    className={`px-2 py-1 rounded text-xs font-medium mt-1 ${
-                      simulation.status === "active"
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-gray-500/20 text-gray-400"
-                    }`}
-                  >
-                    {simulation.status === "active" ? "Actif" : "Terminé"}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-white/60">Capital initial:</span>
-                  <span className="text-white">
-                    {simulation.initialCapital.toLocaleString()} MAD
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-white/60">Valeur actuelle:</span>
-                  <span className="text-white font-semibold">
-                    {simulation.currentValue.toLocaleString()} MAD
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-white/60">Durée:</span>
-                  <span className="text-white">{simulation.duration}</span>
-                </div>
-                <div className="flex justify-between border-t border-white/10 pt-2 mt-3">
-                  <span className="text-white/60">Créé le:</span>
-                  <span className="text-white">{simulation.createdAt}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {getFilteredSimulations().length === 0 && (
-            <div className="col-span-full text-center text-white/60 py-12">
-              <div className="text-6xl mb-4">📈</div>
-              <p className="text-lg mb-2">Aucune simulation trouvée</p>
-              <p className="text-sm">
-                Créez une nouvelle simulation pour commencer
-              </p>
-            </div>
-          )}
+              {riskProfiles.map((r) => (
+                <option key={r.value} value={r.value}>{r.label}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={handleSimulate}
+            disabled={!form.initialCapital || parseFloat(form.initialCapital) <= 0}
+            className="w-full bg-[#3CD4AB] text-white font-medium py-3 px-4 rounded-lg hover:bg-[#89559F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+          >
+            Lancer la simulation
+          </button>
         </div>
       </div>
+
+      {result && (
+        <div className="bg-white/10 border border-white/20 rounded-xl p-6">
+          <h4 className="text-lg font-semibold text-white mb-4">Résultats & recommandations</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="bg-[#191930] rounded-lg p-4 text-center">
+              <div className="text-white/70 text-xs mb-1">Scénario pessimiste</div>
+              <div className="text-2xl font-bold text-red-400">{result.pessimistic.toLocaleString()} MAD</div>
+            </div>
+            <div className="bg-[#191930] rounded-lg p-4 text-center">
+              <div className="text-white/70 text-xs mb-1">Scénario attendu</div>
+              <div className="text-2xl font-bold text-[#3CD4AB]">{result.expected.toLocaleString()} MAD</div>
+            </div>
+            <div className="bg-[#191930] rounded-lg p-4 text-center">
+              <div className="text-white/70 text-xs mb-1">Scénario optimiste</div>
+              <div className="text-2xl font-bold text-green-400">{result.optimistic.toLocaleString()} MAD</div>
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="text-white/80 font-medium mb-2">Produits recommandés pour votre profil ({result.profileLabel}) :</div>
+            <ul className="list-disc list-inside text-white/70">
+              {result.products.map((prod) => (
+                <li key={prod}>{prod}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
