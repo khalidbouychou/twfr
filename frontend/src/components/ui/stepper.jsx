@@ -355,4 +355,4 @@ function StepperContent({
   );
 }
 
-export { useStepper, useStepItem, Stepper, StepperItem, StepperTrigger, StepperIndicator, StepperSeparator, StepperTitle, StepperDescription, StepperPanel, StepperContent, StepperNav };
+export {Stepper, StepperItem, StepperTrigger, StepperIndicator, StepperSeparator, StepperTitle, StepperDescription, StepperPanel, StepperContent, StepperNav };
