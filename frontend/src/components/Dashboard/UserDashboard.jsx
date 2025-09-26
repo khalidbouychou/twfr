@@ -42,7 +42,8 @@ import {
   SectorBreakdown,
   NewsPage,
   NotificationDetailsPopup,
-  SettingsModal
+  SettingsModal,
+  InvestmentsPage
 } from './components';
 
 const UserDashboard = () => {
@@ -83,14 +84,6 @@ const UserDashboard = () => {
     dailyVariation: 0, // Start at 0
     monthlyGrowth: 0, // Start at 0
     portfolioBreakdown: [], // Start empty
-    // performanceHistory: [
-    //   { date: "Jan", value: 0, benchmark: 0 },
-    //   { date: "Fév", value: 0, benchmark: 0 },
-    //   { date: "Mar", value: 0, benchmark: 0 },
-    //   { date: "Avr", value: 0, benchmark: 0 },
-    //   { date: "Mai", value: 0, benchmark: 0 },
-    //   { date: "Juin", value: 0, benchmark: 0 }
-    // ],
     products: [] // Start empty, will be populated with real investments
   });
 
@@ -1449,269 +1442,164 @@ useEffect(() => {
 
             {/* Portfolio Page */}
             {currentPage === "portfolio" && (
-              <div>
-                <div className="mb-4">
-                  <h1 className="text-3xl font-bold text-white">
-                    Portefeuille
-                  </h1>
-                </div>
+              <div className="flex-col">
 
                 {/* Portfolio Summary */}
-                <PortfolioSummary 
-                  calculateInvestmentHistoryWithReturns={calculateInvestmentHistoryWithReturns}
-                  portfolioData={portfolioData}
-                  investmentHistory={investmentHistory}
-                  calculateSectorBreakdown={calculateSectorBreakdown}
-                />
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <SectorBreakdown 
+                <div className="transform transition-all duration-300 hover:scale-[1.01]">
+                  <PortfolioSummary 
+                    calculateInvestmentHistoryWithReturns={calculateInvestmentHistoryWithReturns}
+                    portfolioData={portfolioData}
+                    investmentHistory={investmentHistory}
                     calculateSectorBreakdown={calculateSectorBreakdown}
                   />
+                </div>
 
-                  <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-                    <h3 className="text-xl font-bold text-white mb-4">
-                      Historique d'Investissements
-                    </h3>
-                    <div className={`space-y-4 relative ${calculateInvestmentHistoryWithReturns().length >= 5 ? "pt-10" : ""}`}>
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Sector Breakdown - Enhanced Container */}
+                  <div className="transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
+                    <SectorBreakdown 
+                      calculateSectorBreakdown={calculateSectorBreakdown}
+                    />
+                  </div>
+
+                  {/* Investment History - Enhanced Design */}
+                  <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500/10 via-violet-500/5 to-indigo-600/10 border border-purple-500/20 p-6 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-400/5 to-indigo-600/5 opacity-50"></div>
+                    
+                    {/* Header with Icon */}
+                    <div className="relative flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-lg">
+                          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M3 3h18v18H3V3zm16 16V5H5v14h14zM11 7h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
+                          </svg>
+                        </div>
+                        <h3 className="text-xl font-bold bg-gradient-to-r from-purple-300 to-indigo-300 bg-clip-text text-transparent">
+                          Historique d'Investissements
+                        </h3>
+                      </div>
+                      
+                      {/* Scroll Controls - Enhanced */}
                       {calculateInvestmentHistoryWithReturns().length >= 5 && (
-                        <div className="absolute -top-2 right-0 flex gap-2">
+                        <div className="flex gap-2">
                           <button
                             onClick={() => scrollInvestments(-1)}
-                            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10"
+                            className="group/btn p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 text-white border border-purple-500/30 hover:border-purple-400/50 transition-all duration-200 hover:scale-110"
                           >
-                            ↑
+                            <svg className="w-4 h-4 transform group-hover/btn:-translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                            </svg>
                           </button>
                           <button
                             onClick={() => scrollInvestments(1)}
-                            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-xs border border-white/10"
+                            className="group/btn p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 text-white border border-purple-500/30 hover:border-purple-400/50 transition-all duration-200 hover:scale-110"
                           >
-                            ↓
+                            <svg className="w-4 h-4 transform group-hover/btn:translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+                            </svg>
                           </button>
                         </div>
                       )}
+                    </div>
+
+                    {/* Investment List */}
+                    <div className="relative">
                       <div
                         ref={invListRef}
                         className={`${calculateInvestmentHistoryWithReturns().length >= 5 ? "max-h-80 overflow-y-scroll no-scrollbar" : ""}`}
                         style={{ scrollBehavior: "smooth" }}
                       >
-                    <div className="space-y-4">
-                      {calculateInvestmentHistoryWithReturns().map(
-                        (investment) => (
-                          <div
-                            key={investment.id}
-                            data-inv-item
-                            className="flex justify-between items-center p-3 bg-white/5 rounded-lg"
-                          >
-                            <div>
-                              <div className="flex items-center">
-                                <span className="inline-block w-2 h-2 rounded-full mr-2 bg-[#3CD4AB]"></span>
-                                <span className="text-white font-medium">
-                                  {investment.name}
-                                </span>
-                              </div>
-                              <div className="text-white/60 text-sm">
-                                {investment.date}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-white font-semibold">
-                                {investment.amount.toLocaleString()} MAD
-                              </div>
-                              <div className="flex items-center justify-end space-x-2">
-                                <div
-                                  className={`text-sm font-medium ${
-                                    investment.return.startsWith("+")
-                                      ? "text-[#3CD4AB]"
-                                      : "text-red-400"
-                                  }`}
-                                >
-                                  {investment.return}
+                        <div className="space-y-3">
+                          {calculateInvestmentHistoryWithReturns().map(
+                            (investment) => (
+                              <div
+                                key={investment.id}
+                                data-inv-item
+                                className="group/item relative overflow-hidden rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 p-4 hover:from-white/10 hover:to-white/15 hover:border-purple-400/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 to-indigo-600/5 opacity-0 group-hover/item:opacity-100 transition-opacity duration-300"></div>
+                                
+                                <div className="relative flex justify-between items-center">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="flex-shrink-0">
+                                      <span className="inline-block w-3 h-3 rounded-full bg-gradient-to-r from-[#3CD4AB] to-emerald-400 shadow-lg"></span>
+                                    </div>
+                                    <div>
+                                      <span className="text-white font-semibold group-hover/item:text-purple-200 transition-colors">
+                                        {investment.name}
+                                      </span>
+                                      <div className="text-white/60 text-sm mt-1">
+                                        {investment.date}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="text-right">
+                                    <div className="text-white font-bold text-lg group-hover/item:text-purple-200 transition-colors">
+                                      {investment.amount.toLocaleString()} MAD
+                                    </div>
+                                    <div className="flex items-center justify-end space-x-2 mt-1">
+                                      <div
+                                        className={`text-sm font-semibold px-2 py-1 rounded-full ${
+                                          investment.return.startsWith("+")
+                                            ? "text-[#3CD4AB] bg-[#3CD4AB]/10"
+                                            : "text-red-400 bg-red-400/10"
+                                        }`}
+                                      >
+                                        {investment.return}
+                                      </div>
+                                      <div className="text-white/60 text-xs">
+                                        ({investment.currentValue.toLocaleString()} MAD)
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div className="text-white/60 text-xs">
-                                  ({investment.currentValue.toLocaleString()}{" "}
-                                  MAD)
-                                </div>
                               </div>
-                            </div>
-                          </div>
-                        )
-                      )}
+                            )
+                          )}
+                        </div>
                       </div>
-                      </div>
+                      
+                      {/* Empty State */}
                       {investmentHistory.length === 0 && (
-                        <div className="text-center text-white/60 py-4">
-                          Aucun investissement pour le moment
+                        <div className="relative text-center py-12">
+                          <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                            <svg className="w-24 h-24 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            </svg>
+                          </div>
+                          <div className="relative">
+                            <p className="text-white/60 mb-2">Aucun investissement pour le moment</p>
+                            <p className="text-white/40 text-sm">Vos futurs investissements apparaîtront ici</p>
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* Notification History Section */}
-                <NotificationHistory 
-                  notificationHistory={notificationHistory}
-                  getNotificationIcon={getNotificationIcon}
-                />
+                {/* Notification History Section - Enhanced */}
+                <div className="transform transition-all duration-300 hover:scale-[1.01]">
+                  <NotificationHistory 
+                    notificationHistory={notificationHistory}
+                    getNotificationIcon={getNotificationIcon}
+                  />
+                </div>
 
-                {/* Investment Revenue Chart */}
+                {/* Investment Revenue Chart Section Placeholder */}
+                <div className="h-4">
+                </div>
               </div>
             )}
 
             {/* Investments Page */}
             {currentPage === "investments" && (
-              <div>
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold text-white">
-                    Investissements
-                  </h1>
-                  <p className="text-white/60">
-                    Découvrez les opportunités d'investissement disponibles
-                  </p>
-                </div>
-
-                {!userResults || !userResults.matchedProducts?.length ? (
-                  <div className="p-6 bg-white/5 border border-white/10 rounded-lg text-center">
-                    <p className="text-white/70 mb-3">
-                      Aucun produit recommandé pour le moment.
-                    </p>
-                    <Link
-                      to="/simulation"
-                      className="inline-block px-4 py-2 rounded-lg bg-[#3CD4AB] text-[#0F0F19] hover:bg-[#2bb894] font-semibold"
-                    >
-                      Compléter votre profil
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {matchedInvestments.map((investment, index) => (
-                      <div
-                        key={index}
-                        className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm hover:bg-white/10 transition-colors duration-200"
-                      >
-                        <div className="mb-4">
-                          <img
-                            src={investment.image}
-                            alt={investment.name}
-                            className="w-full h-32 object-cover rounded-lg mb-3"
-                          />
-                          <div className="flex justify-between items-start">
-                            <h3 className="text-lg font-bold text-white">
-                              {investment.name}
-                            </h3>
-                            <div className="text-[#3CD4AB] font-semibold text-xl">
-                              {investment.return}
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-white/60 text-sm mb-4">
-                          {investment.description}
-                        </p>
-                        <div className="space-y-3">
-                          {/* ROI Information */}
-                          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                            <div className="text-xs text-blue-400 mb-2 font-medium">
-                              ROI sur 10,000 MAD
-                            </div>
-                            <div className="grid grid-cols-3 gap-2 text-xs">
-                              <div className="text-center">
-                                <div
-                                  className={`font-semibold ${ROICalculator.getROIColor(
-                                    investment.roi.roi1Year
-                                  )}`}
-                                >
-                                  {ROICalculator.formatROI(
-                                    investment.roi.roi1Year
-                                  )}
-                                </div>
-                                <div className="text-white/60">1 an</div>
-                              </div>
-                              <div className="text-center">
-                                <div
-                                  className={`font-semibold ${ROICalculator.getROIColor(
-                                    investment.roi.roi3Years
-                                  )}`}
-                                >
-                                  {ROICalculator.formatROI(
-                                    investment.roi.roi3Years
-                                  )}
-                                </div>
-                                <div className="text-white/60">3 ans</div>
-                              </div>
-                              <div className="text-center">
-                                <div
-                                  className={`font-semibold ${ROICalculator.getROIColor(
-                                    investment.roi.roi5Years
-                                  )}`}
-                                >
-                                  {ROICalculator.formatROI(
-                                    investment.roi.roi5Years
-                                  )}
-                                </div>
-                                <div className="text-white/60">5 ans</div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex justify-between">
-                            <span className="text-white/60">Risque</span>
-                            <div className="flex items-center">
-                              <div className="w-16 bg-white/20 rounded-full h-2 mr-2">
-                                <div
-                                  className="bg-[#3CD4AB] h-2 rounded-full"
-                                  style={{
-                                    width: `${(investment.risk / 10) * 100}%`
-                                  }}
-                                />
-                              </div>
-                              <span className="text-white text-sm">
-                                {investment.risk}/10
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="flex justify-between">
-                            <span className="text-white/60">
-                              Investissement min.
-                            </span>
-                            <span className="text-white">
-                              {investment.min.toLocaleString()} MAD
-                            </span>
-                          </div>
-
-                          {/* Additional ROI Details */}
-                          <div className="text-xs text-white/60 space-y-1 pt-2 border-t border-white/10">
-                            <div className="flex justify-between">
-                              <span>ROI annuel:</span>
-                              <span
-                                className={`font-medium ${ROICalculator.getROIColor(
-                                  investment.roi.annual
-                                )}`}
-                              >
-                                {investment.roi.annual}%
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Volatilité:</span>
-                              <span>{investment.roi.volatility}%</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Frais:</span>
-                              <span>{investment.roi.fees}%</span>
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => handleInvestClick(investment)}
-                          className="w-full mt-4 bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19] font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-                        >
-                          Investir
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <InvestmentsPage 
+                userResults={userResults}
+                matchedInvestments={matchedInvestments}
+                handleInvestClick={handleInvestClick}
+              />
             )}
 
             {/* Simulations Page */}

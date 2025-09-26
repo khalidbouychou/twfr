@@ -13,3 +13,4 @@ export { default as NewsPage } from './NewsPage';
 export { default as NotificationDetailsPopup } from './NotificationDetailsPopup';
 export { default as SettingsModal } from './SettingsModal';
 export { default as ExchangeRates } from './ExchangeRates';
+export { default as InvestmentsPage } from './InvestmentsPage';

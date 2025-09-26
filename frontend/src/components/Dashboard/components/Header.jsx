@@ -14,7 +14,6 @@ const Header = ({
   setSidebarOpen,
   setIsLoggedIn,
   navigate,
-  portfolioData,
   calculateTotalProfits,
   setShowBalanceModal,
   setBalanceOperation,

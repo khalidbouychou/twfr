@@ -11,35 +11,30 @@ const SimulationsPage = ({
   getFilteredSimulations
 }) => {
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Simulations</h1>
-        <p className="text-white/60">
-          Testez vos stratégies d'investissement sans risque
-        </p>
-      </div>
+    <div className="space-y-8">
+      {/* Simple Header */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Créer une Simulation */}
-        <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-          <h3 className="text-xl font-bold text-white mb-6">
+        <div className="bg-white/5 border border-white/20 rounded-xl p-6">
+          <h3 className="text-xl font-semibold text-white mb-6">
             Créer une Simulation
           </h3>
           <div className="space-y-4">
             {/* Balance Info */}
-            <div className="p-3 bg-[#3CD4AB]/10 border border-[#3CD4AB]/20 rounded-lg">
+            <div className="bg-white/10 border border-white/20 rounded-lg p-4">
               <div className="flex justify-between items-center">
-                <span className="text-white/80 text-sm">
+                <span className="text-white text-sm">
                   Solde disponible:
                 </span>
-                <span className="text-[#3CD4AB] font-semibold">
+                <span className="text-white font-semibold">
                   {userBalance.toLocaleString()} MAD
                 </span>
               </div>
             </div>
 
             <div>
-              <label className="block text-white/80 text-sm font-medium mb-2">
+              <label className="block text-white text-sm font-medium mb-2">
                 Capital Initial (MAD)
               </label>
               <input
@@ -51,7 +46,7 @@ const SimulationsPage = ({
                     e.target.value
                   )
                 }
-                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none"
+                className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:border-white/60 focus:outline-none transition-colors"
                 placeholder="10000"
                 max={userBalance}
               />
@@ -64,7 +59,7 @@ const SimulationsPage = ({
             </div>
 
             <div>
-              <label className="block text-white/80 text-sm font-medium mb-2">
+              <label className="block text-white text-sm font-medium mb-2">
                 Durée
               </label>
               <select
@@ -72,53 +67,17 @@ const SimulationsPage = ({
                 onChange={(e) =>
                   handleSimulationFormChange("duration", e.target.value)
                 }
-                className="w-full bg-[#0F0F19] border border-white/20 rounded-lg px-4 py-2 text-white focus:border-[#3CD4AB] focus:outline-none"
-                style={{
-                  backgroundColor: "#0F0F19",
-                  color: "white"
-                }}
+                className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors"
               >
-                <option
-                  value="6"
-                  style={{
-                    backgroundColor: "#0F0F19",
-                    color: "white"
-                  }}
-                >
-                  6 mois
-                </option>
-                <option
-                  value="12"
-                  style={{
-                    backgroundColor: "#0F0F19",
-                    color: "white"
-                  }}
-                >
-                  1 an
-                </option>
-                <option
-                  value="24"
-                  style={{
-                    backgroundColor: "#0F0F19",
-                    color: "white"
-                  }}
-                >
-                  2 ans
-                </option>
-                <option
-                  value="60"
-                  style={{
-                    backgroundColor: "#0F0F19",
-                    color: "white"
-                  }}
-                >
-                  5 ans
-                </option>
+                <option value="6">6 mois</option>
+                <option value="12">1 an</option>
+                <option value="24">2 ans</option>
+                <option value="60">5 ans</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-white/80 text-sm font-medium mb-2">
+              <label className="block text-white text-sm font-medium mb-2">
                 Profil de Risque
               </label>
               <select
@@ -126,48 +85,12 @@ const SimulationsPage = ({
                 onChange={(e) =>
                   handleSimulationFormChange("riskProfile", e.target.value)
                 }
-                className="w-full bg-[#0F0F19] border border-white/20 rounded-lg px-4 py-2 text-white focus:border-[#3CD4AB] focus:outline-none"
-                style={{
-                  backgroundColor: "#0F0F19",
-                  color: "white"
-                }}
+                className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors"
               >
-                <option
-                  value="conservateur"
-                  style={{
-                    backgroundColor: "#0F0F19",
-                    color: "white"
-                  }}
-                >
-                  Conservateur (4% annuel)
-                </option>
-                <option
-                  value="modere"
-                  style={{
-                    backgroundColor: "#0F0F19",
-                    color: "white"
-                  }}
-                >
-                  Modéré (7% annuel)
-                </option>
-                <option
-                  value="dynamique"
-                  style={{
-                    backgroundColor: "#0F0F19",
-                    color: "white"
-                  }}
-                >
-                  Dynamique (10% annuel)
-                </option>
-                <option
-                  value="agressif"
-                  style={{
-                    backgroundColor: "#0F0F19",
-                    color: "white"
-                  }}
-                >
-                  Agressif (15% annuel)
-                </option>
+                <option value="conservateur">Conservateur (4% annuel)</option>
+                <option value="modere">Modéré (7% annuel)</option>
+                <option value="dynamique">Dynamique (10% annuel)</option>
+                <option value="agressif">Agressif (15% annuel)</option>
               </select>
             </div>
 
@@ -178,7 +101,7 @@ const SimulationsPage = ({
                 parseFloat(simulationForm.initialCapital) <= 0 ||
                 parseFloat(simulationForm.initialCapital) > userBalance
               }
-              className="w-full bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19] font-medium py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-white text-gray-900 font-medium py-3 px-4 rounded-lg hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Lancer la Simulation
             </button>
@@ -186,8 +109,8 @@ const SimulationsPage = ({
         </div>
 
         {/* Simulations Actives */}
-        <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
-          <h3 className="text-xl font-bold text-white mb-6">
+        <div className="bg-white/5 border border-white/20 rounded-xl p-6">
+          <h3 className="text-xl font-semibold text-white mb-6">
             Simulations Actives
           </h3>
           <div className="space-y-4">
@@ -197,16 +120,16 @@ const SimulationsPage = ({
               .map((sim) => (
                 <div
                   key={sim.id}
-                  className="p-4 bg-white/5 border border-white/10 rounded-lg"
+                  className="bg-white/10 border border-white/20 rounded-lg p-4"
                 >
-                  <div className="flex justify-between items-start mb-2">
+                  <div className="flex justify-between items-start mb-3">
                     <h4 className="text-white font-medium">
                       {sim.name}
                     </h4>
                     <span
                       className={`font-semibold ${
                         sim.performance >= 0
-                          ? "text-[#3CD4AB]"
+                          ? "text-green-400"
                           : "text-red-400"
                       }`}
                     >
@@ -223,24 +146,25 @@ const SimulationsPage = ({
                     </div>
                     <div>
                       <span className="text-white/60">Valeur actuelle</span>
-                      <div className="text-[#3CD4AB]">
+                      <div className="text-white font-semibold">
                         {sim.currentValue.toLocaleString()} MAD
                       </div>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center mt-2">
+                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/10">
                     <div className="text-xs text-white/60">
                       Durée: {sim.duration}
                     </div>
                     <div className="text-xs text-white/60">
-                      Créé le {sim.createdAt}
+                      {sim.createdAt}
                     </div>
                   </div>
                 </div>
               ))}
             {recentSimulations.filter((sim) => sim.status === "active").length === 0 && (
-              <div className="text-center text-white/60 py-4">
-                Aucune simulation active
+              <div className="text-center text-white/60 py-8">
+                <div className="text-4xl mb-2">📊</div>
+                <p>Aucune simulation active</p>
               </div>
             )}
           </div>
@@ -248,46 +172,22 @@ const SimulationsPage = ({
       </div>
 
       {/* Recent Simulations Section */}
-      <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
+      <div className="bg-white/5 border border-white/20 rounded-xl p-6">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-white">
+          <h3 className="text-xl font-semibold text-white">
             Simulations Récentes
           </h3>
-          <div className="flex items-center space-x-2">
-            <label className="text-white/60 text-sm">Filtrer par:</label>
+          <div className="flex items-center space-x-3">
+            <label className="text-white text-sm">Filtrer par:</label>
             <select
               value={simulationDateFilter}
               onChange={(e) => setSimulationDateFilter(e.target.value)}
-              className="bg-[#0F0F19] border border-white/20 rounded-lg px-3 py-1 text-white text-sm focus:border-[#3CD4AB] focus:outline-none"
-              style={{
-                backgroundColor: "#0F0F19",
-                color: "white"
-              }}
+              className="bg-white/10 border border-white/30 rounded-lg px-3 py-2 text-white text-sm focus:border-white/60 focus:outline-none"
             >
-              <option
-                value="all"
-                style={{ backgroundColor: "#0F0F19", color: "white" }}
-              >
-                Toutes
-              </option>
-              <option
-                value="today"
-                style={{ backgroundColor: "#0F0F19", color: "white" }}
-              >
-                Aujourd'hui
-              </option>
-              <option
-                value="week"
-                style={{ backgroundColor: "#0F0F19", color: "white" }}
-              >
-                Cette semaine
-              </option>
-              <option
-                value="month"
-                style={{ backgroundColor: "#0F0F19", color: "white" }}
-              >
-                Ce mois
-              </option>
+              <option value="all">Toutes</option>
+              <option value="today">Aujourd'hui</option>
+              <option value="week">Cette semaine</option>
+              <option value="month">Ce mois</option>
             </select>
           </div>
         </div>
@@ -296,9 +196,9 @@ const SimulationsPage = ({
           {getFilteredSimulations().map((simulation) => (
             <div
               key={simulation.id}
-              className="p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors duration-200"
+              className="bg-white/10 border border-white/20 rounded-lg p-4 hover:bg-white/15 transition-colors"
             >
-              <div className="flex justify-between items-start mb-3">
+              <div className="flex justify-between items-start mb-4">
                 <div>
                   <h4 className="text-white font-medium">
                     {simulation.name}
@@ -311,7 +211,7 @@ const SimulationsPage = ({
                   <span
                     className={`font-semibold text-lg ${
                       simulation.performance >= 0
-                        ? "text-[#3CD4AB]"
+                        ? "text-green-400"
                         : "text-red-400"
                     }`}
                   >
@@ -319,9 +219,9 @@ const SimulationsPage = ({
                     {simulation.performance}%
                   </span>
                   <div
-                    className={`px-2 py-1 rounded text-xs font-medium ${
+                    className={`px-2 py-1 rounded text-xs font-medium mt-1 ${
                       simulation.status === "active"
-                        ? "bg-[#3CD4AB]/20 text-[#3CD4AB]"
+                        ? "bg-green-500/20 text-green-400"
                         : "bg-gray-500/20 text-gray-400"
                     }`}
                   >
@@ -339,7 +239,7 @@ const SimulationsPage = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/60">Valeur actuelle:</span>
-                  <span className="text-[#3CD4AB]">
+                  <span className="text-white font-semibold">
                     {simulation.currentValue.toLocaleString()} MAD
                   </span>
                 </div>
@@ -347,7 +247,7 @@ const SimulationsPage = ({
                   <span className="text-white/60">Durée:</span>
                   <span className="text-white">{simulation.duration}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between border-t border-white/10 pt-2 mt-3">
                   <span className="text-white/60">Créé le:</span>
                   <span className="text-white">{simulation.createdAt}</span>
                 </div>
@@ -356,22 +256,10 @@ const SimulationsPage = ({
           ))}
 
           {getFilteredSimulations().length === 0 && (
-            <div className="col-span-full text-center text-white/60 py-8">
-              <svg
-                className="w-12 h-12 mx-auto mb-4 text-white/40"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                ></path>
-              </svg>
-              <p>Aucune simulation trouvée pour cette période</p>
-              <p className="text-sm mt-1">
+            <div className="col-span-full text-center text-white/60 py-12">
+              <div className="text-6xl mb-4">📈</div>
+              <p className="text-lg mb-2">Aucune simulation trouvée</p>
+              <p className="text-sm">
                 Créez une nouvelle simulation pour commencer
               </p>
             </div>
