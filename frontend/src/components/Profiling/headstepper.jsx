@@ -15,11 +15,11 @@ const headstepper = ({currentStep}) => {
 
     const getStepStyle = (stepIndex) => {
         if (stepIndex < currentStep) {
-            return " bg-[#3CD4AB] border-none";
+            return " bg-[#3CD4AB] border-none text-white";
         } else if (stepIndex === currentStep) {
-            return "  border-none bg-white ";
+            return "  border-none bg-white text-gray-800";
         } else {
-            return "text-gray-500 border-none";
+            return "text-gray-600 border-none bg-gray-50";
         }
     };
 
@@ -31,10 +31,12 @@ const headstepper = ({currentStep}) => {
         <ol className="grid grid-cols-1 divide-x  overflow-hidden rounded-2xl  text-sm  sm:grid-cols-5">
 
          {steps.map((step, index) => (
-             <li key={index} className={`flex flex-col items-center justify-center gap-2 p-2 transition-all duration-500 ${getStepStyle(index)}`}>
-                {step.icon}
-                <p className="leading-none">
-                    <strong className="block font-light">{step.name}</strong>
+             <li key={index} className={`flex flex-col items-center justify-center gap-3 p-4 transition-all duration-500 ${getStepStyle(index)}`}>
+                <div className="flex items-center justify-center">
+                    {step.icon}
+                </div>
+                <p className="leading-tight text-center">
+                    <strong className="block font-medium text-sm">{step.name}</strong>
                 </p>
              
             </li>
