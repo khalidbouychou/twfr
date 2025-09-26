@@ -61,13 +61,6 @@ const InvestmentsPage = ({
                   />
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                  
-                  {/* Return Badge */}
-                  <div className="absolute top-3 right-3">
-                    <div className="px-3 py-1 rounded-full bg-gradient-to-r from-[#3CD4AB] to-emerald-500 text-white font-bold text-sm shadow-lg">
-                      {investment.return}
-                    </div>
-                  </div>
                 </div>
 
                 {/* Basic Info */}

@@ -104,7 +104,7 @@ const InvestmentPortfolio = () => {
   // Handle balance addition
   const handleAddBalance = () => {
     const amount = parseFloat(balanceAmount);
-    if (!amount || amount <= 0) {
+    if (!amount || amount <= 0 || isNaN(amount)) {
       showToast('Veuillez entrer un montant valide', 'error');
       return;
     }
@@ -202,7 +202,7 @@ const InvestmentPortfolio = () => {
   const handleInvestment = () => {
     const amount = parseFloat(investmentAmount);
     
-    if (!amount || amount <= 0) {
+    if (!amount || amount <= 0 || isNaN(amount)) {
       showToast('Veuillez entrer un montant valide', 'error');
       return;
     }
@@ -565,8 +565,8 @@ const InvestmentPortfolio = () => {
     setSellAmount('');
 
     const message = profitLoss >= 0 
-      ? `Successfully sold ${formatCurrency(amount)} with a profit of ${formatCurrency(profitLoss)} (${profitLossPercent.toFixed(2)}%)!`
-      : `Successfully sold ${formatCurrency(amount)} with a loss of ${formatCurrency(Math.abs(profitLoss))} (${profitLossPercent.toFixed(2)}%)!`;
+      ? `Successfully sold ${formatCurrency(amount)} with a profit of ${formatCurrency(profitLoss)} (${!isNaN(profitLossPercent) ? profitLossPercent.toFixed(2) : '0.00'}%)!`
+      : `Successfully sold ${formatCurrency(amount)} with a loss of ${formatCurrency(Math.abs(profitLoss))} (${!isNaN(profitLossPercent) ? profitLossPercent.toFixed(2) : '0.00'}%)!`;
     
     showToast(message, profitLoss >= 0 ? 'success' : 'warning');
   };

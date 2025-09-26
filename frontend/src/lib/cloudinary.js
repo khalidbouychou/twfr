@@ -37,6 +37,40 @@ export const buildCloudinaryUrl = (publicId, options = {}) => {
   
   return `${url}/${publicId}`;
 };
+
+// Video URL builder
+export const buildCloudinaryVideoUrl = (publicId, options = {}) => {
+  const {
+    width,
+    height,
+    crop = "fill",
+    quality = "auto",
+    format = "auto",
+    ...otherOptions
+  } = options;
+
+  let url = `https://res.cloudinary.com/${cloudinaryConfig.cloudName}/video/upload`;
+  
+  // Add transformations
+  const transformations = [];
+  if (width) transformations.push(`w_${width}`);
+  if (height) transformations.push(`h_${height}`);
+  if (crop) transformations.push(`c_${crop}`);
+  if (quality) transformations.push(`q_${quality}`);
+  if (format) transformations.push(`f_${format}`);
+  
+  // Add other options
+  Object.entries(otherOptions).forEach(([key, value]) => {
+    transformations.push(`${key}_${value}`);
+  });
+  
+  if (transformations.length > 0) {
+    url += `/${transformations.join(",")}`;
+  }
+  
+  return `${url}/${publicId}`;
+};
+
 // Actual image mappings from Cloudinary upload
 export const imageMappings = {
   "public/bg2.jpg": "https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706702/tawfir-ai/bg2.jpg",
@@ -64,6 +98,12 @@ export const imageMappings = {
   "public/assets/avatars/3.jpg": "https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706722/tawfir-ai/3.jpg",
   "public/assets/avatars/mediumavatar.jpg": "https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706723/tawfir-ai/mediumavatar.jpg"
 };
+
+// Video mappings from Cloudinary upload
+export const videoMappings = {
+  "public/assets/00.mp4": "https://res.cloudinary.com/dkfrrfxa1/video/upload/v1758916924/tawfir-ai/tawfir-ai/hero-video.mp4"
+};
+
 // Helper function to get image URL
 export const getImageUrl = (localPath, options = {}) => {
   // If we have a mapping for this local path, use it
@@ -76,22 +116,26 @@ export const getImageUrl = (localPath, options = {}) => {
   return buildCloudinaryUrl(`tawfir-ai/${publicId}`, options);
 };
 
-// React component for Cloudinary images
-export const CloudinaryImage = ({ src, alt, className, options = {}, ...props }) => {
-  const imageUrl = getImageUrl(src, options);
-  return <img src={imageUrl} alt={alt} className={className} {...props} />;
-};
-// Helper function to get image URL
-export const getImageUrl = (localPath, options = {}) => {
-  if (imageMappings[localPath]) {
-    return imageMappings[localPath];
+// Helper function to get video URL
+export const getVideoUrl = (localPath, options = {}) => {
+  // If we have a mapping for this local path, use it
+  if (videoMappings[localPath]) {
+    return videoMappings[localPath];
   }
+  
+  // Otherwise, try to construct from local path
   const publicId = localPath.replace(/^\/?public\//, "").replace(/\.[^/.]+$/, "");
-  return buildCloudinaryUrl(`tawfir-ai/${publicId}`, options);
+  return buildCloudinaryVideoUrl(`tawfir-ai/${publicId}`, options);
 };
 
-// React component for Cloudinary images
-export const CloudinaryImage = ({ src, alt, className, options = {}, ...props }) => {
+// Helper function to get optimized image props
+export const getOptimizedImageProps = (src, options = {}) => {
   const imageUrl = getImageUrl(src, options);
-  return <img src={imageUrl} alt={alt} className={className} {...props} />;
+  return { src: imageUrl };
+};
+
+// Helper function to get optimized video props
+export const getOptimizedVideoProps = (src, options = {}) => {
+  const videoUrl = getVideoUrl(src, options);
+  return { src: videoUrl };
 };

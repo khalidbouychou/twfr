@@ -2,13 +2,24 @@ import React from 'react';
 
 const SectorBreakdown = ({ calculateSectorBreakdown }) => {
   return (
-    <div className="p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
+    <div className="h-full p-6 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm">
+      <style jsx>{`
+        .sector-scroll::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       <h3 className="text-xl font-bold text-white mb-4">
         Répartition par Secteur
       </h3>
-      <div className="space-y-4 max-h-80 overflow-y-scroll no-scrollbar">
+      <div 
+        className="space-y-4 max-h-60 overflow-y-auto sector-scroll"
+        style={{ 
+          scrollbarWidth: "none",
+          msOverflowStyle: "none"
+        }}
+      >
         {calculateSectorBreakdown().length > 0 ? (
-          calculateSectorBreakdown().map((item, index) => (
+          calculateSectorBreakdown().slice(0, 3).map((item, index) => (
             <div
               key={index}
               className="flex justify-between items-center p-3 bg-white/5 rounded-lg"

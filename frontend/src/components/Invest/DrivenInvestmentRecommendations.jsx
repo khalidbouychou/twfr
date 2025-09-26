@@ -487,7 +487,7 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                             {(() => {
                               const annualReturn = product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
                                                 (product.roi_annuel !== undefined ? product.roi_annuel : 0);
-                              return annualReturn > 0 ? `+${(annualReturn * 3).toFixed(1)}%` : 'N/A';
+                              return (annualReturn > 0 && !isNaN(annualReturn)) ? `+${(annualReturn * 3).toFixed(1)}%` : 'N/A';
                             })()}
                           </div>
                           <div className="text-gray-500">3 ans</div>
@@ -497,7 +497,7 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                             {(() => {
                               const annualReturn = product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
                                                 (product.roi_annuel !== undefined ? product.roi_annuel : 0);
-                              return annualReturn > 0 ? `+${(annualReturn * 5).toFixed(1)}%` : 'N/A';
+                              return (annualReturn > 0 && !isNaN(annualReturn)) ? `+${(annualReturn * 5).toFixed(1)}%` : 'N/A';
                             })()}
                           </div>
                           <div className="text-gray-500">5 ans</div>
@@ -507,7 +507,7 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                             {(() => {
                               const annualReturn = product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
                                                 (product.roi_annuel !== undefined ? product.roi_annuel : 0);
-                              return annualReturn > 0 ? `+${(annualReturn * 10).toFixed(1)}%` : 'N/A';
+                              return (annualReturn > 0 && !isNaN(annualReturn)) ? `+${(annualReturn * 10).toFixed(1)}%` : 'N/A';
                             })()}
                           </div>
                           <div className="text-gray-500">10 ans</div>
@@ -670,7 +670,7 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
                 </label>
                 <select
                   value={simulationPeriod}
-                  onChange={(e) => setSimulationPeriod(parseInt(e.target.value))}
+                  onChange={(e) => setSimulationPeriod(parseInt(e.target.value) || 1)}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value={1}>1 an</option>

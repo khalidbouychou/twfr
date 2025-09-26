@@ -1,4 +1,5 @@
 import React from "react";
+import { CloudinaryVideo } from "../lib/cloudinary-components";
 
 const Hero = () => {
   return (
@@ -59,16 +60,19 @@ const Hero = () => {
 
         {/* Right: Illustration */}
         <div className="flex-1 justify-center">
-          <video
-            src="../../public/assets/00.mp4"
+          <CloudinaryVideo
+            src="public/assets/00.mp4"
             autoPlay
             loop
             muted
             playsInline
             className=" md:w-[500px] w-300  rounded-2xl shadow-lg"
-          >
-            Sorry, your browser does not support embedded videos.
-          </video>
+            options={{
+              quality: "auto",
+              format: "auto",
+              width: 500
+            }}
+          />
         </div>
       </div>
     </section>

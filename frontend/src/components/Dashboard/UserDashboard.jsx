@@ -43,7 +43,8 @@ import {
   NewsPage,
   NotificationDetailsPopup,
   SettingsModal,
-  InvestmentsPage
+  InvestmentsPage,
+  AIAssistant
 } from './components';
 
 const UserDashboard = () => {
@@ -76,6 +77,7 @@ const UserDashboard = () => {
   const [profitOperation, setProfitOperation] = useState("withdraw");
 
   const [userBalance, setUserBalance] = useState(0);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
 
   const [recommendationEngine] = useState(new RecommendationEngine());
   const [portfolioData, setPortfolioData] = useState({
@@ -188,7 +190,7 @@ useEffect(() => {
             (product.overallCompatibility / 100) * (portfolioData.totalInvested / 4)
           ),
           performance: Math.round((product.overallCompatibility || 0) * 0.1),
-          risk: parseInt(product.risque),
+          risk: parseInt(product.risque) || 0,
           category: product.nom_produit.split(" ")[0]
         }))
       };
@@ -324,7 +326,7 @@ useEffect(() => {
 
   const handleBalanceOperation = () => {
     const amount = parseFloat(balanceAmount);
-    if (!amount || amount <= 0) return;
+    if (!amount || amount <= 0 || isNaN(amount)) return;
 
     if (balanceOperation === "add") {
       setUserBalance((prev) => prev + amount);
@@ -340,13 +342,13 @@ useEffect(() => {
       ]);
       const newNotif = {
         id: Date.now(),
-        message: `Solde ajouté: +${amount.toLocaleString()} MAD`,
+        message: `Solde ajouté: +${(!isNaN(amount) ? amount.toLocaleString() : '0')} MAD`,
         time: "À l'instant",
         type: "success",
         title: "Dépôt Réussi",
-        details: `Votre solde a été augmenté de ${amount.toLocaleString()} MAD. Votre nouveau solde disponible est de ${(
-          userBalance + amount
-        ).toLocaleString()} MAD. Vous pouvez maintenant utiliser ces fonds pour de nouveaux investissements.`,
+        details: `Votre solde a été augmenté de ${(!isNaN(amount) ? amount.toLocaleString() : '0')} MAD. Votre nouveau solde disponible est de ${(
+          !isNaN(userBalance + amount) ? (userBalance + amount).toLocaleString() : '0'
+        )} MAD. Vous pouvez maintenant utiliser ces fonds pour de nouveaux investissements.`,
         astuce:
           "💡 Astuce: Gardez toujours une réserve d'urgence équivalente à 3-6 mois de dépenses avant d'investir.",
         isRead: false
@@ -370,13 +372,13 @@ useEffect(() => {
       ]);
       const newNotif = {
         id: Date.now(),
-        message: `Solde retiré: -${amount.toLocaleString()} MAD`,
+        message: `Solde retiré: -${(!isNaN(amount) ? amount.toLocaleString() : '0')} MAD`,
         time: "À l'instant",
         type: "info",
         title: "Retrait Réussi",
-        details: `Vous avez retiré ${amount.toLocaleString()} MAD de votre solde. Votre nouveau solde disponible est de ${(
-          userBalance - amount
-        ).toLocaleString()} MAD.`,
+        details: `Vous avez retiré ${(!isNaN(amount) ? amount.toLocaleString() : '0')} MAD de votre solde. Votre nouveau solde disponible est de ${(
+          !isNaN(userBalance - amount) ? (userBalance - amount).toLocaleString() : '0'
+        )} MAD.`,
         astuce:
           "💡 Astuce: Gardez un œil sur votre solde pour éviter les frais de découvert.",
         isRead: false
@@ -1408,14 +1410,10 @@ useEffect(() => {
                 />
 
                 {/* Charts and Withdraw History */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <div className="flex flex-col">
                   {/* Portfolio Performance Chart */}
                   <PortfolioPerformanceChart 
-                    portfolioData={portfolioData}
-                    calculateTotalProfits={calculateTotalProfits}
-                    areaRange={areaRange}
-                    setAreaRange={setAreaRange}
-                    areaSeries={areaSeries}
+                    userInvestments={userInvestments}
                   />
 
                   {/* Transactions History */}
@@ -1464,24 +1462,20 @@ useEffect(() => {
                   </div>
 
                   {/* Investment History - Enhanced Design */}
-                  <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500/10 via-violet-500/5 to-indigo-600/10 border border-purple-500/20 p-6 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-400/5 to-indigo-600/5 opacity-50"></div>
+                  <div className="group relative overflow-hidden rounded-2xl   p-6 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+                    <div className="absolute inset-0  bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm"></div>
                     
                     {/* Header with Icon */}
-                    <div className="relative flex items-center justify-between mb-6">
+                    <div className="relative flex items-center justify-between mb-2 ">
                       <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-lg">
-                          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M3 3h18v18H3V3zm16 16V5H5v14h14zM11 7h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
-                          </svg>
-                        </div>
-                        <h3 className="text-xl font-bold bg-gradient-to-r from-purple-300 to-indigo-300 bg-clip-text text-transparent">
+      
+                        <h3 className="text-xl font-bold text-gray-50">
                           Historique d'Investissements
                         </h3>
                       </div>
                       
                       {/* Scroll Controls - Enhanced */}
-                      {calculateInvestmentHistoryWithReturns().length >= 5 && (
+                      {calculateInvestmentHistoryWithReturns().length > 3 && (
                         <div className="flex gap-2">
                           <button
                             onClick={() => scrollInvestments(-1)}
@@ -1507,8 +1501,12 @@ useEffect(() => {
                     <div className="relative">
                       <div
                         ref={invListRef}
-                        className={`${calculateInvestmentHistoryWithReturns().length >= 5 ? "max-h-80 overflow-y-scroll no-scrollbar" : ""}`}
-                        style={{ scrollBehavior: "smooth" }}
+                        className={`${calculateInvestmentHistoryWithReturns().length > 3 ? "max-h-60 overflow-y-auto" : ""}`}
+                        style={{ 
+                          scrollBehavior: "smooth",
+                          scrollbarWidth: "none",
+                          msOverflowStyle: "none"
+                        }}
                       >
                         <div className="space-y-3">
                           {calculateInvestmentHistoryWithReturns().map(
@@ -2003,7 +2001,52 @@ useEffect(() => {
               setIsLoggedIn={setIsLoggedIn}
               navigate={navigate}
             />
+
+            {/* AI Assistant */}
+            <AIAssistant 
+              isOpen={showAIAssistant}
+              onClose={() => setShowAIAssistant(false)}
+              userBalance={userBalance}
+              userInvestments={userInvestments}
+              portfolioData={portfolioData}
+            />
           </div>
+        </div>
+
+        {/* Floating AI Assistant Button */}
+        <div className="fixed bottom-6 right-6 z-40">
+          <button
+            onClick={() => setShowAIAssistant(true)}
+            className="group relative w-14 h-14 bg-gradient-to-r from-[#3CD4AB] to-emerald-400 hover:from-[#3CD4AB]/90 hover:to-emerald-400/90 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center transform hover:scale-110"
+          >
+            {/* Robot AI Icon */}
+            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+              {/* Robot head */}
+              <rect x="6" y="6" width="12" height="10" rx="2" fill="currentColor"/>
+              {/* Robot antenna */}
+              <line x1="12" y1="2" x2="12" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <circle cx="12" cy="2" r="1.5" fill="currentColor"/>
+              {/* Robot eyes */}
+              <circle cx="9" cy="10" r="1.5" fill="white"/>
+              <circle cx="15" cy="10" r="1.5" fill="white"/>
+              {/* Robot mouth */}
+              <rect x="10" y="13" width="4" height="1" fill="white"/>
+              {/* Robot body */}
+              <rect x="8" y="16" width="8" height="6" rx="1" fill="currentColor"/>
+              {/* Robot arms */}
+              <rect x="4" y="18" width="3" height="2" rx="1" fill="currentColor"/>
+              <rect x="17" y="18" width="3" height="2" rx="1" fill="currentColor"/>
+            </svg>
+            
+            {/* Pulse animation */}
+            <div className="absolute inset-0 rounded-full bg-[#2a78633e] animate-ping opacity-20"></div>
+            
+            {/* Tooltip */}
+            <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+              Assistant IA
+              <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </button>
         </div>
       </div>
     </>

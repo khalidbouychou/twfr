@@ -49,8 +49,11 @@ function AnimatedCounter({
     mass: 1,
   });
 
-  const rounded = useTransform(springValue, (latest) =>
-    Number(latest.toFixed(value % 1 === 0 ? 0 : 1)));
+  const rounded = useTransform(springValue, (latest) => {
+    const safeLatest = latest || 0;
+    const digits = (value && value % 1 !== 0) ? 1 : 0;
+    return Number(safeLatest.toFixed(digits));
+  });
 
   const [displayValue, setDisplayValue] = useState(0);
 

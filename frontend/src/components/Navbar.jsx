@@ -63,7 +63,7 @@ const Navbar = () => {
       bodyEl.style.right = prevBodyRight;
       bodyEl.style.width = prevBodyWidth;
       // Restore scroll position
-      const y = Math.abs(parseInt(prevBodyTop || '0', 10)) || scrollY;
+      const y = Math.abs(parseInt(prevBodyTop || '0', 10) || 0) || scrollY;
       window.scrollTo(0, y);
     };
   }, [isCalendlyOpen]);
@@ -130,10 +130,10 @@ const Navbar = () => {
   return (
     <nav className=" top-0 w-full   text-white">
   
-      <div className="max-w-7xl mx-auto py-4 flex items-center justify-between px-4 md:px-0">
+      <div className="max-w-7xl mx-auto py-8 flex px-4 md:px-0">
         {/* Logo */}
         <Link to="/">
-          <img src="/logo.svg" alt="tawfirai" className="h-15 w-auto" />
+          <img src="/logo.svg" alt="tawfirai" className="h-15 w-15" />
         </Link>
 
         {/* Desktop Menu */}
@@ -174,7 +174,7 @@ const Navbar = () => {
               </svg>
             </button>
             {isProductsMenuOpen && (
-              <div id="desktop-products-dropdown" className="absolute left-0 mt-2 w-80 bg-[#23234a] rounded-md shadow-lg z-30 flex flex-col">
+              <div id="desktop-products-dropdown" className="absolute left-0 mt-2 w-80 bg-[#89559F] opacity-90 rounded-md shadow-lg z-30 flex flex-col">
                 <a href="#Compte-sur-Carnet" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors rounded-t-md">Compte sur Carnet</a>
                 <a href="#Dépôt-à-Terme" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors">Dépôt à Terme</a>
                 <a href="#Gestion-sous-Mandat" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors rounded-b-md">Gestion sous Mandat</a>
@@ -302,7 +302,7 @@ const Navbar = () => {
               </svg>
             </button>
             {isMobileProductsOpen && (
-              <div id="mobile-products-dropdown" className="flex flex-col w-10/12 mx-auto bg-[#23234a] rounded-md shadow-lg mt-1 mb-2">
+              <div id="mobile-products-dropdown" className="flex flex-col w-10/12 mx-auto bg-[#000000] rounded-md shadow-lg mt-1 mb-2">
                 <a href="#Compte-sur-Carnet" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-t-md">Compte sur Carnet</a>
                 <a href="#Dépôt-à-Terme" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors">Dépôt à Terme</a>
                 <a href="#Gestion-sous-Mandat" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">Gestion sous Mandat</a>
