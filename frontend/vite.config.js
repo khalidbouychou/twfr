@@ -24,4 +24,7 @@ export default defineConfig({
       'Cross-Origin-Embedder-Policy': 'unsafe-none',
     },
   },
+  build: {
+    chunkSizeWarningLimit: 2000, // size in kB (default = 500)
+  },
 })
