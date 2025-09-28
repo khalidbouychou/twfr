@@ -18,7 +18,8 @@ const Header = ({
   setShowBalanceModal,
   setBalanceOperation,
   setShowProfitModal,
-  setProfitOperation
+  setProfitOperation,
+  setShowSettingsModal
 }) => {
   const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
   return (
@@ -199,7 +200,13 @@ const Header = ({
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-[#0F0F19] border border-white/20 rounded-lg shadow-lg z-50">
                   <div className="p-2">
-                    <button className="flex items-center gap-2 w-full p-2 text-white hover:bg-white/10 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => {
+                        setShowSettingsModal(true);
+                        setShowUserMenu(false);
+                      }}
+                      className="flex items-center gap-2 w-full p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+                    >
                       <UserRoundCog size={16} />
                       <span className="text-sm">Paramètres</span>
                     </button>

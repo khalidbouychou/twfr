@@ -76,17 +76,30 @@ const UserDashboard = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("paypal");
   const [profitOperation, setProfitOperation] = useState("withdraw");
 
-  const [userBalance, setUserBalance] = useState(0);
+  const [userBalance, setUserBalance] = useState(() => {
+    const storedBalance = localStorage.getItem('userBalance');
+    return storedBalance ? parseFloat(storedBalance) : 0;
+  });
   const [showAIAssistant, setShowAIAssistant] = useState(false);
 
   const [recommendationEngine] = useState(new RecommendationEngine());
-  const [portfolioData, setPortfolioData] = useState({
-    totalInvested: 0, // Start at 0
-    globalPerformance: 0, // Start at 0
-    dailyVariation: 0, // Start at 0
-    monthlyGrowth: 0, // Start at 0
-    portfolioBreakdown: [], // Start empty
-    products: [] // Start empty, will be populated with real investments
+  const [portfolioData, setPortfolioData] = useState(() => {
+    const storedPortfolio = localStorage.getItem('portfolioData');
+    if (storedPortfolio) {
+      try {
+        return JSON.parse(storedPortfolio);
+      } catch (error) {
+        console.error('Error parsing stored portfolio data:', error);
+      }
+    }
+    return {
+      totalInvested: 0, // Start at 0
+      globalPerformance: 0, // Start at 0
+      dailyVariation: 0, // Start at 0
+      monthlyGrowth: 0, // Start at 0
+      portfolioBreakdown: [], // Start empty
+      products: [] // Start empty, will be populated with real investments
+    };
   });
 
   const [, setRecommendations] = useState([]);
@@ -201,19 +214,69 @@ useEffect(() => {
     }
   }, [userResults]);
 
+  // Persist userBalance to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('userBalance', userBalance.toString());
+  }, [userBalance]);
+
+  // Persist portfolioData to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('portfolioData', JSON.stringify(portfolioData));
+  }, [portfolioData]);
+
   // News and market data are now handled by React Query hooks above
 
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState(() => {
+    const storedNotifications = localStorage.getItem('notifications');
+    if (storedNotifications) {
+      try {
+        return JSON.parse(storedNotifications);
+      } catch (error) {
+        console.error('Error parsing stored notifications:', error);
+      }
+    }
+    return [];
+  });
 
   const [showInvestPopup, setShowInvestPopup] = useState(false);
   const [selectedInvestment, setSelectedInvestment] = useState(null);
   const [investAmount, setInvestAmount] = useState("");
-  const [investmentHistory, setInvestmentHistory] = useState([]);
+  const [investmentHistory, setInvestmentHistory] = useState(() => {
+    const storedHistory = localStorage.getItem('investmentHistory');
+    if (storedHistory) {
+      try {
+        return JSON.parse(storedHistory);
+      } catch (error) {
+        console.error('Error parsing stored investment history:', error);
+      }
+    }
+    return [];
+  });
 
   const [showNotificationDetails, setShowNotificationDetails] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
-  const [notificationHistory, setNotificationHistory] = useState([]);
-  const [transactionsHistory, setTransactionsHistory] = useState([]);
+  const [notificationHistory, setNotificationHistory] = useState(() => {
+    const storedNotifications = localStorage.getItem('notificationHistory');
+    if (storedNotifications) {
+      try {
+        return JSON.parse(storedNotifications);
+      } catch (error) {
+        console.error('Error parsing stored notification history:', error);
+      }
+    }
+    return [];
+  });
+  const [transactionsHistory, setTransactionsHistory] = useState(() => {
+    const storedTransactions = localStorage.getItem('transactionsHistory');
+    if (storedTransactions) {
+      try {
+        return JSON.parse(storedTransactions);
+      } catch (error) {
+        console.error('Error parsing stored transactions history:', error);
+      }
+    }
+    return [];
+  });
 
   // Add sample data for chart demonstration
   useEffect(() => {
@@ -280,6 +343,48 @@ useEffect(() => {
       setTransactionsHistory(sampleTransactions);
     }
   }, []);
+
+  // Initialize new users with starting balance and welcome notification
+  useEffect(() => {
+    const hasInitialized = localStorage.getItem('userInitialized');
+    if (!hasInitialized) {
+      // This is a new user, give them a starting balance
+      const startingBalance = 10000; // Starting balance of 10,000 MAD
+      setUserBalance(startingBalance);
+      
+      // Add a welcome notification
+      const welcomeNotification = {
+        id: Date.now(),
+        type: 'welcome',
+        title: 'Bienvenue sur Tawfir AI! 🎉',
+        message: `Vous avez reçu ${startingBalance.toLocaleString()} MAD pour commencer votre parcours d'investissement.`,
+        time: new Date().toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' }),
+        isRead: false
+      };
+      
+      setNotifications(prev => [welcomeNotification, ...prev]);
+      
+      // Mark user as initialized
+      localStorage.setItem('userInitialized', 'true');
+    }
+  }, []);
+
+  // Persistence hooks - save data to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('investmentHistory', JSON.stringify(investmentHistory));
+  }, [investmentHistory]);
+
+  useEffect(() => {
+    localStorage.setItem('transactionsHistory', JSON.stringify(transactionsHistory));
+  }, [transactionsHistory]);
+
+  useEffect(() => {
+    localStorage.setItem('notificationHistory', JSON.stringify(notificationHistory));
+  }, [notificationHistory]);
+
+  useEffect(() => {
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+  }, [notifications]);
 
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
@@ -1063,7 +1168,22 @@ useEffect(() => {
     duration: "6",
     riskProfile: "conservateur"
   });
-  const [recentSimulations, setRecentSimulations] = useState([]);
+  const [recentSimulations, setRecentSimulations] = useState(() => {
+    const storedSimulations = localStorage.getItem('recentSimulations');
+    if (storedSimulations) {
+      try {
+        return JSON.parse(storedSimulations);
+      } catch (error) {
+        console.error('Error parsing stored recent simulations:', error);
+      }
+    }
+    return [];
+  });
+
+  // Persist recentSimulations to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('recentSimulations', JSON.stringify(recentSimulations));
+  }, [recentSimulations]);
 
 useEffect(() => {
     updatePortfolioData();

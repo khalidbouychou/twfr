@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const SettingsModal = ({ 
   showSettingsModal,
@@ -8,50 +8,103 @@ const SettingsModal = ({
   setIsLoggedIn,
   navigate
 }) => {
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape' && showSettingsModal) {
+        setShowSettingsModal(false);
+      }
+    };
+
+    if (showSettingsModal) {
+      document.addEventListener('keydown', handleEscapeKey);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showSettingsModal, setShowSettingsModal]);
+
   if (!showSettingsModal) {
     return null;
   }
 
   const handleResetAllData = () => {
     if (window.confirm("⚠️ Êtes-vous sûr de vouloir réinitialiser toutes vos données ? Cette action est irréversible.")) {
-      // Clear all localStorage data
-      const keysToKeep = ['userProfileData', 'isLoggedIn'];
-      const allKeys = Object.keys(localStorage);
-      
-      allKeys.forEach(key => {
-        if (!keysToKeep.includes(key)) {
-          localStorage.removeItem(key);
-        }
-      });
-      
-      // Reset specific data
-      localStorage.removeItem('userBalance');
-      localStorage.removeItem('investmentHistory');
-      localStorage.removeItem('transactionsHistory');
-      localStorage.removeItem('portfolioData');
-      localStorage.removeItem('notificationHistory');
-      localStorage.removeItem('recentSimulations');
-      
-      // Reload the page to reset state
-      window.location.reload();
+      try {
+        // Get all localStorage keys
+        const allKeys = Object.keys(localStorage);
+        
+        // Keys to preserve (user login and profile data)
+        const keysToKeep = ['userProfileData', 'isLoggedIn'];
+        
+        // Remove all data except essential login info
+        allKeys.forEach(key => {
+          if (!keysToKeep.includes(key)) {
+            localStorage.removeItem(key);
+          }
+        });
+        
+        // Reset the initialization flag so user gets welcome bonus again
+        localStorage.removeItem('userInitialized');
+        
+        // Show success message
+        alert("✅ Toutes les données ont été réinitialisées avec succès!");
+        
+        // Close the modal
+        setShowSettingsModal(false);
+        
+        // Reload the page to reset state
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+        
+      } catch (error) {
+        console.error("Error resetting data:", error);
+        alert("❌ Erreur lors de la réinitialisation des données. Veuillez essayer de nouveau.");
+      }
     }
   };
 
   const handleLogout = () => {
     if (window.confirm("Êtes-vous sûr de vouloir vous déconnecter ?")) {
-      localStorage.clear();
-      setIsLoggedIn(false);
-      if (navigate) {
-        navigate('/');
-      } else {
+      try {
+        // Clear all localStorage data
+        localStorage.clear();
+        
+        // Update login state
+        setIsLoggedIn(false);
+        
+        // Close the modal
+        setShowSettingsModal(false);
+        
+        // Navigate to home page
+        if (navigate) {
+          navigate('/');
+        } else {
+          window.location.href = '/';
+        }
+        
+      } catch (error) {
+        console.error("Error during logout:", error);
+        // Fallback: force redirect
         window.location.href = '/';
       }
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[#0F0F19] border border-white/20 rounded-lg p-6 w-full max-w-md mx-4">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={() => setShowSettingsModal(false)}
+    >
+      <div 
+        className="bg-[#0F0F19] border border-white/20 rounded-lg p-6 w-full max-w-md mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-white">Paramètres</h3>
           <button
@@ -107,17 +160,24 @@ const SettingsModal = ({
           <div className="space-y-3">
             <button
               onClick={handleResetAllData}
-              className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+              className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             >
               🔄 Réinitialiser toutes les données
             </button>
 
             <button
               onClick={handleLogout}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             >
               🚪 Se déconnecter
             </button>
+          </div>
+
+          {/* Help Text */}
+          <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <p className="text-blue-300 text-xs text-center">
+              💡 Conseil: Utilisez la touche Échap pour fermer cette fenêtre
+            </p>
           </div>
         </div>
       </div>
