@@ -1529,7 +1529,21 @@ useEffect(() => {
                   calculateTotalProfits={calculateTotalProfits}
                 />
 
-                {/* Charts and Withdraw History */}
+                {/* Profil d'Investisseur et Répartition des Investissements */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                  {/* Profil d'Investisseur - Radar Chart */}
+                  <RadarChart 
+                    radarData={radarData}
+                  />
+
+                  {/* Répartition des Investissements - Simple Pie Chart */}
+                  <SimplePieChart 
+                    pieChartData={pieChartData}
+                    setCurrentPage={setCurrentPage}
+                  />
+                </div>
+
+                {/* Tableau détaillé par produit avec valeur actuelle et performance */}
                 <div className="flex flex-col">
                   {/* Portfolio Performance Chart */}
                   <PortfolioPerformanceChart 
@@ -1542,19 +1556,7 @@ useEffect(() => {
                   />
                 </div>
 +
-                {/* Behavioral Profile + Interactive Area Chart */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
-                  {/* Radar Chart */}
-                  <RadarChart 
-                    radarData={radarData}
-                  />
 
-                  {/* Simple Pie Chart */}
-                  <SimplePieChart 
-                    pieChartData={pieChartData}
-                    setCurrentPage={setCurrentPage}
-                  />
-                </div>
               </div>
             )}
 
