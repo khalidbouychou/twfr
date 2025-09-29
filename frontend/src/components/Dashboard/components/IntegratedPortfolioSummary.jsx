@@ -24,7 +24,7 @@ const IntegratedPortfolioSummary = () => {
     globalROI,
     userInvestments,
     topPerformer,
-    worstPerformer,
+  
     
     // Real-time status
     realTimeUpdates,

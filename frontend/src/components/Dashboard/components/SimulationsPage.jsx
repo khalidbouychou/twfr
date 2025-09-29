@@ -16,16 +16,18 @@ const productRecommendations = {
   agressif: ['Produits Structurés', 'OPCVM Actions', 'Gestion sous Mandat'],
 };
 
-const SimulationsPage = () => {
+const SimulationsPage = ({ userBalance }) => {
   const {
-    behaviorProfile,
     profileType,
-    accountBalance,
+    accountBalance, // Fallback balance from context
     totalInvested,
     globalROI,
     actions,
     validators
   } = useSharedData();
+
+  // Use the prop balance if available, otherwise fall back to context balance
+  const currentBalance = userBalance !== undefined ? userBalance : accountBalance;
 
   const [form, setForm] = useState({
     initialCapital: '',
@@ -61,7 +63,7 @@ const SimulationsPage = () => {
       products: productRecommendations[form.riskProfile] || [],
       profileLabel: profile.label,
       userROIBonus,
-      canAfford: validators.canInvest(capital),
+      canAfford: currentBalance >= capital,
       basedOnCurrentPerformance: globalROI > 0,
       projectedAnnualReturn: (adjustedRate * 100).toFixed(2)
     };
@@ -87,7 +89,7 @@ const SimulationsPage = () => {
           <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-4 mb-6">
             <h4 className="text-blue-400 font-medium mb-2">📊 Basé sur votre profil</h4>
             <div className="text-sm text-white/80 space-y-1">
-              <p>• Solde disponible: {accountBalance.toLocaleString()} MAD</p>
+              <p>• Solde disponible: {currentBalance.toLocaleString()} MAD</p>
               <p>• Total investi: {totalInvested.toLocaleString()} MAD</p>
               <p>• Performance actuelle: {globalROI.toFixed(2)}%</p>
               <p>• Profil de risque: {profileType || 'Non défini'}</p>
@@ -111,12 +113,12 @@ const SimulationsPage = () => {
             <select
               value={form.duration}
               onChange={(e) => handleChange('duration', e.target.value)}
-              className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors"
+              className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors [&>option]:text-black [&>option]:bg-white"
             >
-              <option value="6">6 mois</option>
-              <option value="12">1 an</option>
-              <option value="24">2 ans</option>
-              <option value="60">5 ans</option>
+              <option value="6" className="text-black bg-white">6 mois</option>
+              <option value="12" className="text-black bg-white">1 an</option>
+              <option value="24" className="text-black bg-white">2 ans</option>
+              <option value="60" className="text-black bg-white">5 ans</option>
             </select>
           </div>
           <div>
@@ -124,10 +126,10 @@ const SimulationsPage = () => {
             <select
               value={form.riskProfile}
               onChange={(e) => handleChange('riskProfile', e.target.value)}
-              className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors"
+              className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors [&>option]:text-black [&>option]:bg-white"
             >
               {riskProfiles.map((r) => (
-                <option key={r.value} value={r.value}>{r.label}</option>
+                <option key={r.value} value={r.value} className="text-black bg-white">{r.label}</option>
               ))}
             </select>
           </div>
@@ -140,7 +142,7 @@ const SimulationsPage = () => {
               Lancer la simulation
             </button>
             
-            {result && validators.canInvest(parseFloat(form.initialCapital)) && (
+            {result && currentBalance >= parseFloat(form.initialCapital) && (
               <button
                 onClick={() => {
                   const amount = parseFloat(form.initialCapital);
@@ -158,9 +160,9 @@ const SimulationsPage = () => {
             )}
           </div>
           
-          {!validators.canInvest(parseFloat(form.initialCapital)) && form.initialCapital && (
+          {currentBalance < parseFloat(form.initialCapital) && form.initialCapital && (
             <p className="text-red-400 text-sm mt-2">
-              ⚠️ Solde insuffisant. Solde disponible: {accountBalance.toLocaleString()} MAD
+              ⚠️ Solde insuffisant. Solde disponible: {currentBalance.toLocaleString()} MAD
             </p>
           )}
         </div>
@@ -216,7 +218,7 @@ const SimulationsPage = () => {
           {!result.canAfford && (
             <div className="bg-orange-500/20 border border-orange-500/30 rounded-lg p-4 mb-4">
               <p className="text-orange-400 text-sm">
-                ⚠️ Montant supérieur à votre solde actuel ({accountBalance.toLocaleString()} MAD)
+                ⚠️ Montant supérieur à votre solde actuel ({currentBalance.toLocaleString()} MAD)
               </p>
             </div>
           )}
