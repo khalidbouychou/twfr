@@ -180,48 +180,80 @@ const Pe = ({ allAnswers }) => {
     }
 
   return (
-    <div className="p-2 mt-2  rounded-lg shadow-md">
-      {lstquestion.map((question, index) => (
-                <React.Fragment key={`question-${index}`}>
-                    <div className=" flex flex-row items-start justify-between w-full gap-4 mt-8">
-          <label className="text-gray-50 w-1/2">{question.question}</label>
-          {question.type === "radio" ? (
-            <div className="flex gap-10 w-1/2 justify-start">
-              {question.options.map((option, optionIndex) => (
-                                    <label key={`radio-${index}-${optionIndex}`} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name={`question-${index}`}
-                                        value={option.label}
-                    className="w-4 h-4 text-green-50 accent-emerald-400 rounded-full"
-                                        onChange={() => handleRadioChange(index, option.label)}
-                                        checked={peAnswers[index]?.answer === option.label}
-                    required
-                  />
-                  {option.icon}
-                  <span className="text-gray-50">{option.label}</span>
-                                    </label>
-              ))}
+    <div className="p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 mt-2 rounded-xl shadow-lg bg-gray-800/30 border border-gray-700/50 backdrop-blur-sm">
+      <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+        {lstquestion.map((question, index) => (
+          <React.Fragment key={`question-${index}`}>
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between w-full gap-3 sm:gap-4 lg:gap-6">
+              {/* Question Label */}
+              <div className="w-full lg:w-5/12 xl:w-1/2">
+                <label className="text-gray-50 text-xs sm:text-sm md:text-base lg:text-lg font-medium leading-relaxed block">
+                  {question.question}
+                </label>
+              </div>
+
+              {/* Answer Options */}
+              <div className="w-full lg:w-7/12 xl:w-1/2">
+                {question.type === "radio" ? (
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 lg:gap-4 justify-start">
+                    {question.options.map((option, optionIndex) => (
+                      <label 
+                        key={`radio-${index}-${optionIndex}`} 
+                        className="flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:bg-gray-700/40 p-1.5 sm:p-2 rounded-lg transition-all duration-200 group border border-transparent hover:border-gray-600/50"
+                      >
+                        <input
+                          type="radio"
+                          name={`question-${index}`}
+                          value={option.label}
+                          className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400 bg-gray-700 border-gray-600 focus:ring-emerald-400 focus:ring-2 flex-shrink-0"
+                          onChange={() => handleRadioChange(index, option.label)}
+                          checked={peAnswers[index]?.answer === option.label}
+                          required
+                        />
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 flex-shrink-0 transition-transform group-hover:scale-110">
+                          {option.icon}
+                        </div>
+                        <span className="text-gray-100 text-xs sm:text-sm lg:text-base group-hover:text-white transition-colors">
+                          {option.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="w-full">
+                    <select 
+                      className="w-full font-medium rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-2 sm:p-3 text-xs sm:text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+                      onChange={(e) => handleSelectChange(index, e.target.value)}
+                      value={peAnswers[index]?.answer || ""}
+                      required
+                    >
+                      <option className='text-gray-400 bg-gray-800' value="">
+                        Sélectionnez une option
+                      </option>
+                      {question.options.map((option, optionIndex) => (
+                        <option 
+                          key={`option-${index}-${optionIndex}`} 
+                          className="bg-gray-800 text-gray-100 py-2" 
+                          value={option.label}
+                        >
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
             </div>
-          ) : (
-            <form className="w-1/2">
-                                <select 
-                                    className="w-full font-light rounded-lg border-none bg-white/80 p-2 placeholder-gray-500"
-                                    onChange={(e) => handleSelectChange(index, e.target.value)}
-                                    value={peAnswers[index]?.answer || ""}
-                                    required
-                                >
-                                    <option className='text-gray-500' value="">Sélectionnez une option</option>
-                {question.options.map((option, optionIndex) => (
-                                        <option key={`option-${index}-${optionIndex}`} value={option.label}>{option.label}</option>
-                ))}
-              </select>
-            </form>
-          )}
-    </div>
-    {index !== lstquestion.length - 1 && <hr className='border-0.5 border-gray-500 w-full mt-4' />}
-                </React.Fragment>
-      ))}
+            
+            {/* Separator */}
+            {index !== lstquestion.length - 1 && (
+              <div className="w-full">
+                <hr className='border-t border-gray-600/50 mt-3 sm:mt-4 lg:mt-6 opacity-60' />
+              </div>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
     </div>
   )
 }

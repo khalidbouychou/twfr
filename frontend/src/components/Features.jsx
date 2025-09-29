@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const API_KEY = 'pub_b1bf302734f24ad3b8bdae575237c3f1';
 const NEWS_URL = `https://newsdata.io/api/1/news?category=business,world&language=fr,en&apikey=${API_KEY}`;
@@ -102,14 +102,14 @@ const Features = () => {
           <>
             <button
               onClick={() => paginate(-1)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-[#3CD4AB] text-white rounded-full p-3 shadow hover:bg-[#89559F] transition-colors z-10"
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-[#3CD4AB] text-white rounded-full p-2 sm:p-3 shadow hover:bg-[#89559F] transition-colors z-10 text-sm sm:text-base"
               aria-label="Précédent"
             >
               &#8592;
             </button>
             <button
               onClick={() => paginate(1)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#3CD4AB] text-white rounded-full p-3 shadow hover:bg-[#89559F] transition-colors z-10"
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-[#3CD4AB] text-white rounded-full p-2 sm:p-3 shadow hover:bg-[#89559F] transition-colors z-10 text-sm sm:text-base"
               aria-label="Suivant"
             >
               &#8594;

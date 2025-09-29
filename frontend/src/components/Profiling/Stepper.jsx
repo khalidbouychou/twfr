@@ -71,27 +71,36 @@ const Stepper = () => {
         </div>
       </div>
     )}
-    <div className="mx-auto flex flex-col h-screen w-full">
-                <div className="flex mt-4 mb-6 mx-80">
-        <div className="flex  justify-start items-center w-1/2">
-        <a href="/" className="text-gray-200 text-l font-light hover:text-gray-700 ">Retour</a> 
+    <div className="mx-auto flex flex-col min-h-screen w-full">
+      {/* Header */}
+      <div className="flex mt-4 mb-4 lg:mb-6 px-4 lg:px-8 mx-0 lg:mx-80">
+        <div className="flex justify-start items-center w-1/2">
+          <a href="/" className="text-gray-200 text-sm lg:text-base font-light hover:text-gray-300 transition-colors">
+            ← Retour
+          </a> 
         </div> 
-        <div className="flex  justify-end items-center w-1/2">
-          <a href="/"><img src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" alt="logo" className="w-12 h-12" /></a>
+        <div className="flex justify-end items-center w-1/2">
+          <a href="/" className="hover:opacity-80 transition-opacity">
+            <img src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" alt="logo" className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12" />
+          </a>
         </div>
       </div>
                 
-      {/* Headstepper */}
-      <Headstepper currentStep={currentStep}/>
+      {/* Responsive Stepper Header */}
+      <Headstepper currentStep={currentStep} totalSteps={totalSteps}/>
                 
-      {/* Categories */}
-                <LoadingProvider isLoading={isLoading}>
-                    <Categories 
-                        currentStep={currentStep} 
-                        isLoading={isLoading}
-                        allAnswers={stepAnswers}
-                    />
-                </LoadingProvider>
+      {/* Content Area */}
+      <div className="flex-1 px-4 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <LoadingProvider isLoading={isLoading}>
+            <Categories 
+              currentStep={currentStep} 
+              isLoading={isLoading}
+              allAnswers={stepAnswers}
+            />
+          </LoadingProvider>
+        </div>
+      </div>
                 
       {/* Navigation buttons at the bottom */}
       <Navigation 

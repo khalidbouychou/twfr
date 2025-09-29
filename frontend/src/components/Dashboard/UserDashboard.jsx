@@ -1516,8 +1516,8 @@ useEffect(() => {
         />
 
         {/* Main Content */}
-        <div className={`p-2 md:p-4 pt-20 md:pt-20 transition-all duration-200 ${isSidebarHovered ? 'md:ml-64' : 'md:ml-16'}`}>
-          <div className="p-3 md:p-6 bg-[#0F0F19] border border-[#89559F]/20 rounded-lg shadow-sm">
+        <div className={`p-2 sm:p-3 lg:p-4 pt-16 sm:pt-18 lg:pt-20 transition-all duration-200 ${isSidebarHovered ? 'lg:ml-64' : 'lg:ml-16'}`}>
+          <div className="p-2 sm:p-4 lg:p-6 bg-[#0F0F19] border border-[#89559F]/20 rounded-lg shadow-sm">
             {/* Render different pages based on currentPage */}
             {currentPage === "dashboard" && (
               <div>
@@ -1530,7 +1530,7 @@ useEffect(() => {
                 />
 
                 {/* Profil d'Investisseur et Répartition des Investissements */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-6">
                   {/* Profil d'Investisseur - Radar Chart */}
                   <RadarChart 
                     radarData={radarData}
@@ -1575,7 +1575,7 @@ useEffect(() => {
                 </div>
 
                 {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8">
                   {/* Sector Breakdown - Enhanced Container */}
                   <div className="transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
                     <SectorBreakdown 

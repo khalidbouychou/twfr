@@ -172,77 +172,99 @@ const Esg = () => {
     }
 
     return (
-        <div className="  rounded-lg shadow-md ">
-            {lstquestion.map((category, categoryIndex) => (
-                <div key={`category-${categoryIndex}`}>
-                    {/* Category Title */}
-                    <h3 className="font-medium text-[#3CD4AB] mb-2 border-b-2  pb-2">
-                        {category.title}
-                    </h3>
-                    {/* Questions and Options */}
-                    <div className="p-2">
-                        {/* Q1 Questions - Select dropdowns */}
-                        {category.q1.map((question, q1Index) => (
-                            <div key={`q1-${categoryIndex}-${q1Index}`} className="flex flex-row items-start justify-between w-full gap-2 ">
-                                {/* Question on the left */}
-                                <div className="w-1/1">
-                                    <p className="text-gray-50 leading-relaxed">
-                                        {question.question}
-                                    </p>
-                                </div>
-                                
-                                {/* Select dropdown on the right */}
-                                <div className="w-1/3 ">
-                                    <select 
-                                        className="w-full p-2 border rounded-md bg-white/80"
-                                        name={`q1-${categoryIndex}-${q1Index}`}
-                                        onChange={(e) => handleSelectChange(categoryIndex, 'q1', q1Index, e.target.value)}
-                                        value={esgAnswers[`${categoryIndex}-q1-${q1Index}`]?.answer || ""}
-                                        required
-                                    >
-                                        <option className='text-green-500' value="">Sélectionnez une option</option>
-                                        {question.options.map((option, optionIndex) => (
-                                            <option key={`q1-option-${categoryIndex}-${q1Index}-${optionIndex}`} value={option.value}>
-                                                {option.label}
+        <div className="p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 mt-2 rounded-xl shadow-lg bg-gray-800/30 border border-gray-700/50 backdrop-blur-sm">
+            <div className="space-y-4 sm:space-y-5 lg:space-y-8">
+                {lstquestion.map((category, categoryIndex) => (
+                    <div key={`category-${categoryIndex}`} className="space-y-3 sm:space-y-4 lg:space-y-6">
+                        {/* Category Title */}
+                        <h3 className="font-semibold text-emerald-400 mb-2 sm:mb-3 lg:mb-4 border-b-2 border-emerald-400/50 pb-1.5 sm:pb-2 text-sm sm:text-base lg:text-lg">
+                            {category.title}
+                        </h3>
+
+                        {/* Questions Container */}
+                        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+                            {/* Q1 Questions - Select dropdowns */}
+                            {category.q1.map((question, q1Index) => (
+                                <div key={`q1-${categoryIndex}-${q1Index}`} className="flex flex-col lg:flex-row lg:items-start lg:justify-between w-full gap-3 sm:gap-4 lg:gap-6">
+                                    {/* Question on the left */}
+                                    <div className="w-full lg:w-5/12 xl:w-1/2">
+                                        <p className="text-gray-50 text-xs sm:text-sm md:text-base lg:text-lg font-medium leading-relaxed">
+                                            {question.question}
+                                        </p>
+                                    </div>
+                                    
+                                    {/* Select dropdown on the right */}
+                                    <div className="w-full lg:w-7/12 xl:w-1/2">
+                                        <select 
+                                            className="w-full font-medium rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-2 sm:p-3 text-xs sm:text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+                                            name={`q1-${categoryIndex}-${q1Index}`}
+                                            onChange={(e) => handleSelectChange(categoryIndex, 'q1', q1Index, e.target.value)}
+                                            value={esgAnswers[`${categoryIndex}-q1-${q1Index}`]?.answer || ""}
+                                            required
+                                        >
+                                            <option className='text-gray-400 bg-gray-800' value="">
+                                                Sélectionnez une option
                                             </option>
-                                        ))}
-                                    </select>
+                                            {question.options.map((option, optionIndex) => (
+                                                <option 
+                                                    key={`q1-option-${categoryIndex}-${q1Index}-${optionIndex}`} 
+                                                    className="bg-gray-800 text-gray-100 py-2"
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                        
-                        {/* Q2 Questions - Select dropdowns */}
-                        {category.q2.map((question, q2Index) => (
-                            <div key={`q2-${categoryIndex}-${q2Index}`} className="flex flex-row items-start justify-between w-full gap-2 mt-4">
-                                {/* Question on the left */}
-                                <div className="w-1/1">
-                                    <p className="text-gray-50 font-light leading-relaxed">
-                                        {question.question}
-                                    </p>
-                                </div>
-                                
-                                {/* Select dropdown on the right */}
-                                <div className="w-1/3">
-                                    <select 
-                                        className="w-full p-2 border rounded-md bg-white/80"
-                                        name={`q2-${categoryIndex}-${q2Index}`}
-                                        onChange={(e) => handleSelectChange(categoryIndex, 'q2', q2Index, e.target.value)}
-                                        value={esgAnswers[`${categoryIndex}-q2-${q2Index}`]?.answer || ""}
-                                        required
-                                    >
-                                        <option className='text-green-500' value="">Sélectionnez une option</option>
-                                        {question.options.map((option, optionIndex) => (
-                                            <option key={`q2-option-${categoryIndex}-${q2Index}-${optionIndex}`} value={option.value}>
-                                                {option.label}
+                            ))}
+                            
+                            {/* Q2 Questions - Select dropdowns */}
+                            {category.q2.map((question, q2Index) => (
+                                <div key={`q2-${categoryIndex}-${q2Index}`} className="flex flex-col lg:flex-row lg:items-start lg:justify-between w-full gap-3 sm:gap-4 lg:gap-6">
+                                    {/* Question on the left */}
+                                    <div className="w-full lg:w-5/12 xl:w-1/2">
+                                        <p className="text-gray-50 text-xs sm:text-sm md:text-base lg:text-lg font-medium leading-relaxed">
+                                            {question.question}
+                                        </p>
+                                    </div>
+                                    
+                                    {/* Select dropdown on the right */}
+                                    <div className="w-full lg:w-7/12 xl:w-1/2">
+                                        <select 
+                                            className="w-full font-medium rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-2 sm:p-3 text-xs sm:text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+                                            name={`q2-${categoryIndex}-${q2Index}`}
+                                            onChange={(e) => handleSelectChange(categoryIndex, 'q2', q2Index, e.target.value)}
+                                            value={esgAnswers[`${categoryIndex}-q2-${q2Index}`]?.answer || ""}
+                                            required
+                                        >
+                                            <option className='text-gray-400 bg-gray-800' value="">
+                                                Sélectionnez une option
                                             </option>
-                                        ))}
-                                    </select>
+                                            {question.options.map((option, optionIndex) => (
+                                                <option 
+                                                    key={`q2-option-${categoryIndex}-${q2Index}-${optionIndex}`} 
+                                                    className="bg-gray-800 text-gray-100 py-2"
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
+                            ))}
+                        </div>
+
+                        {/* Category Separator */}
+                        {categoryIndex !== lstquestion.length - 1 && (
+                            <div className="w-full">
+                                <hr className='border-t border-gray-600/50 mt-4 sm:mt-6 lg:mt-8 opacity-60' />
                             </div>
-                        ))}
+                        )}
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
     )
 }

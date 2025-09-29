@@ -128,16 +128,16 @@ const Navbar = () => {
   const avatarSrc = userProfileData?.avatar || userProfileData?.picture || userProfileData?.imageUrl || fallbackAvatar;
 
   return (
-    <nav className=" top-0 w-full   text-white">
+    <nav className="top-0 w-full text-white">
   
-      <div className="max-w-7xl mx-auto py-8 flex px-4 md:px-0">
+      <div className="max-w-7xl mx-auto py-4 lg:py-8 flex px-4 md:px-6 lg:px-0">
         {/* Logo */}
-        <Link to="/">
-          <img src="/logo.svg" alt="tawfirai" className="h-15 w-15" />
+        <Link to="/" className="flex-shrink-0">
+          <img src="/logo.svg" alt="tawfirai" className="h-12 w-12 lg:h-15 lg:w-15" />
         </Link>
 
         {/* Desktop Menu */}
-        <div className=" hidden md:flex md:items-center md:space-x-6 flex-1 justify-center">
+        <div className="hidden lg:flex lg:items-center lg:space-x-6 flex-1 justify-center">
           <a
             className={`md:p-2 px-2 py-1 rounded-full transition-colors duration-200 ${activeMenu === 'home' ? 'text-[#3CD4AB] font-bold' : 'hover:text-[#3cd4abc8]'}`}
             href="#home"
@@ -191,15 +191,34 @@ const Navbar = () => {
           >Contact</a>
         </div>
 
+        {/* Mobile menu button */}
+        <div className="flex lg:hidden items-center">
+          <button
+            onClick={toggleMenu}
+            className="text-white p-2 rounded-md hover:bg-white/10 focus:outline-none"
+            aria-label="Toggle menu"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {isMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
+
         {/* Desktop Buttons */}
-        <div className="hidden md:flex items-center space-x-4">
-          <Link to="/simulation" className="flex items-center gap-2 text-[#3CD4AB] px-6 py-2 bg-transparent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white transition-all duration-200">
-            <Calculator className="w-5 h-5" />
-            Simuler un projet
+        <div className="hidden lg:flex items-center space-x-2 xl:space-x-4">
+          <Link to="/simulation" className="flex items-center gap-1 xl:gap-2 text-[#3CD4AB] px-3 xl:px-6 py-2 bg-transparent rounded-full text-sm xl:text-lg hover:bg-[#3CD4AB] hover:text-white transition-all duration-200">
+            <Calculator className="w-4 h-4 xl:w-5 xl:h-5" />
+            <span className="hidden xl:inline">Simuler un projet</span>
+            <span className="xl:hidden">Simuler</span>
           </Link>
-          <button onClick={() => setIsCalendlyOpen(true)} className="flex items-center gap-2 text-white px-6 py-2 bg-transparent rounded-full text-lg hover:bg-[#3CD4AB] transition-all duration-200">
-            <MessageCircle className="w-5 h-5" />
-            Contactez un expert
+          <button onClick={() => setIsCalendlyOpen(true)} className="flex items-center gap-1 xl:gap-2 text-white px-3 xl:px-6 py-2 bg-transparent rounded-full text-sm xl:text-lg hover:bg-[#3CD4AB] transition-all duration-200">
+            <MessageCircle className="w-4 h-4 xl:w-5 xl:h-5" />
+            <span className="hidden xl:inline">Contactez un expert</span>
+            <span className="xl:hidden">Expert</span>
           </button>
          {console.log(isLoggedIn)}
          {isLoggedIn ? (
@@ -244,47 +263,46 @@ const Navbar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
          ) : (
-          <Link  to="/login" className="text-white px-6 py-2 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
-            Se connecter
+          <Link  to="/login" className="text-white px-3 xl:px-6 py-2 bg-accent rounded-full text-sm xl:text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
+            <span className="hidden lg:inline">Se connecter</span>
+            <span className="lg:hidden">Login</span>
           </Link>
          )}
 
-        </div>
-
-        {/* Burger menu */}
-        <div className="md:hidden">
-          <button onClick={toggleMenu} className="text-[#89559F] focus:outline-none" aria-label="Toggle menu">
-            <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-          </button>
         </div>
       </div>
 
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
-        <div className="fixed inset-0 bg-[#191930] z-40 flex flex-col justify-between h-screen w-full transition-all duration-300">
-          <div className="flex flex-col items-center pt-8 space-y-6 flex-1 w-full">
-            <button
-              onClick={closeMenu}
-              className="self-end mr-6 mb-4 text-white text-3xl focus:outline-none"
-              aria-label="Close menu"
-            >
-              &times;
-            </button>
+        <div className="lg:hidden fixed inset-0 bg-[#191930] z-40 flex flex-col justify-between h-screen w-full transition-all duration-300">
+          <div className="flex flex-col items-center pt-4 space-y-4 flex-1 w-full overflow-y-auto">
+            <div className="flex justify-between items-center w-full px-4 mb-4">
+              <Link to="/" onClick={closeMenu}>
+                <img src="/logo.svg" alt="tawfirai" className="h-10 w-10" />
+              </Link>
+              <button
+                onClick={closeMenu}
+                className="text-white p-2 hover:bg-white/10 rounded-md focus:outline-none"
+                aria-label="Close menu"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             <a
               href="#home"
-              className={`block py-2 px-4 text-lg rounded-full transition-colors duration-200 w-11/12 ${activeMenu === 'home' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F] text-white'}`}
+              className={`block py-3 px-4 text-base rounded-lg transition-colors duration-200 w-11/12 text-center ${activeMenu === 'home' ? 'text-[#3CD4AB] bg-white/10 font-bold' : 'hover:text-[#3CD4AB] hover:bg-white/5 text-white'}`}
               onClick={() => { setActiveMenu('home'); closeMenu(); }}
             >Accueil</a>
             <a
               href="#About us"
-              className={`block py-2 px-4 text-lg rounded-full transition-colors duration-200 w-11/12 ${activeMenu === 'about' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F] text-white'}`}
+              className={`block py-3 px-4 text-base rounded-lg transition-colors duration-200 w-11/12 text-center ${activeMenu === 'about' ? 'text-[#3CD4AB] bg-white/10 font-bold' : 'hover:text-[#3CD4AB] hover:bg-white/5 text-white'}`}
               onClick={() => { setActiveMenu('about'); closeMenu(); }}
             >TawfirAI ?</a>
             {/* Nos Produits Dropdown */}
             <button
-              className={`flex items-center justify-between w-11/12 py-2 px-4 text-lg rounded-full transition-colors duration-200 focus:outline-none ${activeMenu === 'products' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F] text-white'}`}
+              className={`flex items-center justify-between w-11/12 py-3 px-4 text-base rounded-lg transition-colors duration-200 focus:outline-none ${activeMenu === 'products' ? 'text-[#3CD4AB] bg-white/10 font-bold' : 'hover:text-[#3CD4AB] hover:bg-white/5 text-white'}`}
               onClick={() => setIsMobileProductsOpen((open) => !open)}
               aria-expanded={isMobileProductsOpen}
               aria-controls="mobile-products-dropdown"
@@ -292,7 +310,7 @@ const Navbar = () => {
             >
               <span>Nos Produits</span>
               <svg
-                className={`ml-2 h-5 w-5 transition-transform duration-200 ${isMobileProductsOpen ? 'rotate-180' : ''}`}
+                className={`ml-2 h-4 w-4 transition-transform duration-200 ${isMobileProductsOpen ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -302,41 +320,43 @@ const Navbar = () => {
               </svg>
             </button>
             {isMobileProductsOpen && (
-              <div id="mobile-products-dropdown" className="flex flex-col w-10/12 mx-auto bg-[#000000] rounded-md shadow-lg mt-1 mb-2">
-                <a href="#Compte-sur-Carnet" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-t-md">Compte sur Carnet</a>
-                <a href="#Dépôt-à-Terme" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors">Dépôt à Terme</a>
-                <a href="#Gestion-sous-Mandat" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">Gestion sous Mandat</a>
-                <a href="#OPCVM-Monétaires" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">OPCVM Monétaires </a>
-                <a href="#OPCVM-Actions" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">OPCVM Actions</a>
-                <a href="#Produits_Structurés-Capital_Garanti" className="block px-6 py-3 text-base text-gray-200 hover:bg-[#89559F] hover:text-white transition-colors rounded-b-md">Produits Structurés - Capital Garanti</a>
+              <div id="mobile-products-dropdown" className="flex flex-col w-10/12 mx-auto bg-black/50 backdrop-blur-sm rounded-lg shadow-lg mt-2 mb-2 border border-white/10">
+                <a href="#Compte-sur-Carnet" className="block px-4 py-2 text-sm text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors first:rounded-t-lg" onClick={closeMenu}>Compte sur Carnet</a>
+                <a href="#Dépôt-à-Terme" className="block px-4 py-2 text-sm text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors" onClick={closeMenu}>Dépôt à Terme</a>
+                <a href="#Gestion-sous-Mandat" className="block px-4 py-2 text-sm text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors" onClick={closeMenu}>Gestion sous Mandat</a>
+                <a href="#OPCVM-Monétaires" className="block px-4 py-2 text-sm text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors" onClick={closeMenu}>OPCVM Monétaires</a>
+                <a href="#OPCVM-Actions" className="block px-4 py-2 text-sm text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors" onClick={closeMenu}>OPCVM Actions</a>
+                <a href="#Produits_Structurés-Capital_Garanti" className="block px-4 py-2 text-sm text-gray-200 hover:bg-[#3CD4AB] hover:text-white transition-colors last:rounded-b-lg" onClick={closeMenu}>Produits Structurés</a>
               </div>
             )}
             <a
               href="#contact"
-              className={`block py-2 px-4 text-lg rounded-full transition-colors duration-200 w-11/12 ${activeMenu === 'contact' ? 'text-[#89559F] font-bold' : 'hover:text-[#89559F] text-white'}`}
+              className={`block py-3 px-4 text-base rounded-lg transition-colors duration-200 w-11/12 text-center ${activeMenu === 'contact' ? 'text-[#3CD4AB] bg-white/10 font-bold' : 'hover:text-[#3CD4AB] hover:bg-white/5 text-white'}`}
               onClick={() => { setActiveMenu('contact'); closeMenu(); }}
             >Contact</a>
+          </div>
+          
+          <div className="flex flex-col items-center space-y-3 pb-6 px-4 border-t border-white/10 pt-4">
+            <Link to="/simulation" className="flex items-center justify-center gap-2 w-full text-center text-[#3CD4AB] px-4 py-3 bg-transparent border border-[#3CD4AB] rounded-lg text-base hover:bg-[#3CD4AB] hover:text-white transition-all duration-200" onClick={closeMenu}>
+              <Calculator className="w-4 h-4" />
+              Simuler un projet
+            </Link>
             
-            <button onClick={() => setIsCalendlyOpen(true)} className="flex items-center justify-center gap-2 w-11/12 text-center text-white px-6 py-3 bg-transparent rounded-full text-lg hover:bg-[#3CD4AB] transition-all duration-200">
-              <MessageCircle className="w-5 h-5" />
+            <button onClick={() => { setIsCalendlyOpen(true); closeMenu(); }} className="flex items-center justify-center gap-2 w-full text-center text-white px-4 py-3 bg-[#3CD4AB] rounded-lg text-base hover:bg-[#3CD4AB]/80 transition-all duration-200">
+              <MessageCircle className="w-4 h-4" />
               Contactez un expert
             </button>
-          </div>
-          <div className="flex flex-col items-center space-y-4 pb-8">
-            <Link to="/simulation" className="flex items-center justify-center gap-2 w-11/12 text-center text-[#3CD4AB] px-6 py-3 bg-transparent rounded-full text-lg hover:bg-[#3CD4AB] hover:text-white transition-all duration-200">
-              <Calculator className="w-5 h-5" />
-              Commencez la simulation
-            </Link>
             {isLoggedIn ? (
-              <Link to="/dashboard" className="w-11/12 text-center">
-                <div className="w-full flex justify-center">
-                  <img src={avatarSrc} alt="Avatar" className="w-12 h-12 rounded-full object-cover border border-white/20" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }} />
+              <Link to="/dashboard" className="w-full" onClick={closeMenu}>
+                <div className="flex items-center justify-center gap-3 w-full px-4 py-3 bg-white/5 rounded-lg border border-white/10">
+                  <img src={avatarSrc} alt="Avatar" className="w-8 h-8 rounded-full object-cover border border-white/20" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }} />
+                  <span className="text-white text-sm">Mon Dashboard</span>
                 </div>
-            </Link>
+              </Link>
             ) : (
-              <Link to="/login" className="w-11/12 text-center text-white px-6 py-3 bg-accent rounded-full text-lg hover:bg-[#89559F] border border-solid border-[#89559F]">
-              Se connecter
-            </Link>
+              <Link to="/login" className="w-full text-center text-white px-4 py-3 bg-accent rounded-lg text-base hover:bg-[#89559F] border border-solid border-[#89559F]" onClick={closeMenu}>
+                Se connecter
+              </Link>
             )}
           </div>
         </div>

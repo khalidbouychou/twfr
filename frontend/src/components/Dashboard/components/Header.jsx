@@ -24,12 +24,12 @@ const Header = ({
   const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
   return (
     <nav className="bg-[#0F0F19] border-b border-white/10 fixed w-full z-30 top-0 start-0">
-      <div className="px-3 py-3 lg:px-5 lg:pl-3">
+      <div className="px-2 sm:px-3 py-2 sm:py-3 lg:px-5 lg:pl-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center justify-start rtl:justify-end">
             <button
               onClick={() => setSidebarOpen(prev => !prev)}
-              className="inline-flex items-center p-2 text-sm text-white rounded-lg md:hidden hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20"
+              className="inline-flex items-center p-1.5 sm:p-2 text-sm text-white rounded-lg lg:hidden hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20"
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -40,9 +40,9 @@ const Header = ({
               </svg>
             </button>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-white text-sm">
-              Solde: <span className="font-bold text-[#3CD4AB]">{userBalance.toLocaleString()} MAD</span>
+          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+            <div className="text-white text-xs sm:text-sm">
+              <span className="hidden sm:inline">Solde: </span><span className="font-bold text-[#3CD4AB]">{userBalance.toLocaleString()} MAD</span>
             </div>
 
             {/* Actions Dropdown */}

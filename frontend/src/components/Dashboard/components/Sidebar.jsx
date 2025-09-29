@@ -11,39 +11,39 @@ const Sidebar = ({
     <aside
       onMouseEnter={() => setIsSidebarHovered(true)}
       onMouseLeave={() => setIsSidebarHovered(false)}
-      className={`fixed top-0 left-0 z-40 h-screen pt-5 transition-all duration-200 ${
+      className={`fixed top-0 left-0 z-40 h-screen pt-3 sm:pt-4 lg:pt-5 transition-all duration-200 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      } ${isSidebarHovered ? "w-64" : "w-16"} bg-[#0F0F19] border-r border-white/10 md:translate-x-0`}
+      } ${isSidebarHovered ? "w-56 lg:w-64" : "w-14 lg:w-16"} bg-[#0F0F19] border-r border-white/10 lg:translate-x-0`}
     >
-      <div className='flex items-center justify-center px-2'>
+      <div className='flex items-center justify-center px-1 sm:px-2'>
         <a href='/' className='cursor-pointer'>
           <img 
             src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" 
-            className={`${isSidebarHovered ? "w-10 h-10" : "w-8 h-8"}`} 
+            className={`${isSidebarHovered ? "w-8 sm:w-10 h-8 sm:h-10" : "w-6 sm:w-8 h-6 sm:h-8"}`} 
             alt="TawfirAI Logo" 
           />
         </a>
       </div>
-      <div className="h-full px-3 pb-4 overflow-y-auto bg-[#0F0F19]">
-        <ul className="space-y-2 pt-4">
+      <div className="h-full px-2 lg:px-3 pb-4 overflow-y-auto bg-[#0F0F19]">
+        <ul className="space-y-1 lg:space-y-2 pt-3 lg:pt-4">
           <li>
             <button
               onClick={() => handleNavigation("dashboard")}
-              className={`flex items-center w-full p-2 text-base font-normal rounded-lg transition-colors duration-200 ${
+              className={`flex items-center w-full p-1.5 lg:p-2 text-sm lg:text-base font-normal rounded-lg transition-colors duration-200 ${
                 currentPage === "dashboard"
                   ? "bg-[#3CD4AB] text-[#0F0F19]"
                   : "text-white hover:bg-white/10 hover:text-[#3CD4AB]"
               }`}
             >
               <svg
-                className="w-6 h-6 transition duration-75"
+                className="w-5 h-5 lg:w-6 lg:h-6 transition duration-75"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
                 <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>
                 <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>
               </svg>
-              <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Dashboard</span>
+              <span className={`ml-2 lg:ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>Dashboard</span>
             </button>
           </li>
           <li>

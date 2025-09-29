@@ -194,15 +194,15 @@ const SimulationsPage = ({ userBalance }) => {
   };
 
   return (
-    <div className="flex w-full gap-8 justify-center mt-8" >
-      <div className="bg-white/5 border border-white/20 rounded-xl p-6 w-full md:max-w-2xl">
-        <h3 className="text-xl font-semibold text-white mb-6">Simulation d'investissement</h3>
+    <div className="flex flex-col lg:flex-row w-full gap-4 lg:gap-8 justify-center mt-4 lg:mt-8 px-4 lg:px-0" >
+      <div className="bg-white/5 border border-white/20 rounded-xl p-4 lg:p-6 w-full lg:max-w-2xl">
+        <h3 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Simulation d'investissement</h3>
         
         {/* User Context Info */}
         {validators.hasCompleteProfile() && (
-          <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-4 mb-6">
-            <h4 className="text-blue-400 font-medium mb-2">📊 Basé sur votre profil</h4>
-            <div className="text-sm text-white/80 space-y-1">
+          <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6">
+            <h4 className="text-blue-400 font-medium mb-2 text-sm lg:text-base">📊 Basé sur votre profil</h4>
+            <div className="text-xs lg:text-sm text-white/80 space-y-1">
               <p>• Solde disponible: {currentBalance.toLocaleString()} MAD</p>
               <p>• Total investi: {totalInvested.toLocaleString()} MAD</p>
               <p>• Performance actuelle: {globalROI.toFixed(2)}%</p>
@@ -247,11 +247,11 @@ const SimulationsPage = ({ userBalance }) => {
               ))}
             </select>
           </div>
-          <div className="flex gap-2 mt-4">
+          <div className="flex flex-col sm:flex-row gap-2 mt-4">
             <button
               onClick={handleSimulate}
               disabled={!form.initialCapital || parseFloat(form.initialCapital) <= 0}
-              className="flex-1 bg-[#3CD4AB] text-white font-medium py-3 px-4 rounded-lg hover:bg-[#89559F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-[#3CD4AB] text-white font-medium py-3 px-4 rounded-lg hover:bg-[#89559F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
             >
               Lancer la simulation
             </button>
@@ -259,7 +259,7 @@ const SimulationsPage = ({ userBalance }) => {
             {result && currentBalance >= parseFloat(form.initialCapital) && (
               <button
                 onClick={openInvestmentPopup}
-                className="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                className="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm lg:text-base"
                 title="Investir dans les produits recommandés"
               >
                 💰 Investir
@@ -276,9 +276,9 @@ const SimulationsPage = ({ userBalance }) => {
       </div>
 
       {result && (
-        <div className="bg-white/10 border border-white/20 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold text-white">Résultats & recommandations</h4>
+        <div className="bg-white/10 border border-white/20 rounded-xl p-4 lg:p-6 w-full lg:w-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+            <h4 className="text-base lg:text-lg font-semibold text-white">Résultats & recommandations</h4>
             {result.basedOnCurrentPerformance && (
               <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs">
                 ✨ Optimisé par vos performances
@@ -298,7 +298,7 @@ const SimulationsPage = ({ userBalance }) => {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 mb-4">
             <div className="bg-[#191930] rounded-lg p-4 text-center border border-red-500/30">
               <div className="text-red-300 text-xs mb-1">Scénario pessimiste</div>
               <div className="text-2xl font-bold text-red-400">{result.pessimistic.toLocaleString()} MAD</div>
@@ -345,14 +345,14 @@ const SimulationsPage = ({ userBalance }) => {
 
       {/* Investment Popup */}
       {showInvestmentPopup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 lg:p-4">
+          <div className="bg-white rounded-xl max-w-6xl w-full max-h-[95vh] lg:max-h-[90vh] overflow-y-auto mx-2 lg:mx-0">
             
             {/* Products Selection Step */}
             {currentStep === 'products' && (
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-gray-800">Sélectionnez vos investissements</h3>
+              <div className="p-4 lg:p-6">
+                <div className="flex items-center justify-between mb-4 lg:mb-6">
+                  <h3 className="text-lg lg:text-2xl font-bold text-gray-800">Sélectionnez vos investissements</h3>
                   <button 
                     onClick={() => setShowInvestmentPopup(false)}
                     className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -361,32 +361,32 @@ const SimulationsPage = ({ userBalance }) => {
                   </button>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mb-4 lg:mb-6">
                   {result?.products.map((productName, index) => {
                     const product = getProductDetails(productName);
                     return (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4 hover:border-[#3CD4AB] transition-colors">
-                        <div className="flex items-center mb-4">
+                      <div key={index} className="border border-gray-200 rounded-lg p-3 lg:p-4 hover:border-[#3CD4AB] transition-colors">
+                        <div className="flex items-center mb-3 lg:mb-4">
                           <img 
                             src={product.avatar} 
                             alt={product.title}
-                            className="w-12 h-12 rounded-full object-cover mr-3"
+                            className="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover mr-2 lg:mr-3"
                           />
                           <div>
-                            <h4 className="font-semibold text-gray-800">{product.title}</h4>
-                            <p className="text-green-600 font-medium">ROI: {product.roi}%</p>
+                            <h4 className="font-semibold text-gray-800 text-sm lg:text-base">{product.title}</h4>
+                            <p className="text-green-600 font-medium text-xs lg:text-sm">ROI: {product.roi}%</p>
                           </div>
                         </div>
                         
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <div className="mb-3 lg:mb-4">
+                          <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
                             Montant à investir (Min: {product.minInvestment.toLocaleString()} MAD)
                           </label>
                           <input
                             type="number"
                             min={product.minInvestment}
                             placeholder={product.minInvestment.toString()}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#3CD4AB]"
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#3CD4AB] text-sm lg:text-base"
                             onChange={(e) => {
                               const amount = parseFloat(e.target.value);
                               if (amount >= product.minInvestment) {
@@ -407,7 +407,7 @@ const SimulationsPage = ({ userBalance }) => {
                             }
                           }}
                           disabled={!investmentAmounts[productName] || investmentAmounts[productName] < product.minInvestment}
-                          className="w-full bg-[#3CD4AB] text-white py-2 rounded-md hover:bg-[#2ea885] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full bg-[#3CD4AB] text-white py-2 rounded-md hover:bg-[#2ea885] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
                         >
                           Ajouter au panier
                         </button>
@@ -416,21 +416,21 @@ const SimulationsPage = ({ userBalance }) => {
                   })}
                 </div>
 
-                <div className="flex justify-between items-center pt-4 border-t">
-                  <div className="text-gray-600">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 border-t gap-3">
+                  <div className="text-gray-600 text-sm lg:text-base">
                     Produits sélectionnés: {selectedProducts.length}
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
                     <button
                       onClick={() => setShowInvestmentPopup(false)}
-                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                      className="px-4 lg:px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm lg:text-base"
                     >
                       Annuler
                     </button>
                     {selectedProducts.length > 0 && (
                       <button
                         onClick={() => setCurrentStep('cart')}
-                        className="px-6 py-2 bg-[#3CD4AB] text-white rounded-md hover:bg-[#2ea885] transition-colors"
+                        className="px-4 lg:px-6 py-2 bg-[#3CD4AB] text-white rounded-md hover:bg-[#2ea885] transition-colors text-sm lg:text-base"
                       >
                         Voir le panier ({selectedProducts.length})
                       </button>
@@ -442,9 +442,9 @@ const SimulationsPage = ({ userBalance }) => {
 
             {/* Cart Step */}
             {currentStep === 'cart' && (
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-gray-800">Votre sélection</h3>
+              <div className="p-4 lg:p-6">
+                <div className="flex items-center justify-between mb-4 lg:mb-6">
+                  <h3 className="text-lg lg:text-2xl font-bold text-gray-800">Votre sélection</h3>
                   <button 
                     onClick={() => setShowInvestmentPopup(false)}
                     className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -453,22 +453,22 @@ const SimulationsPage = ({ userBalance }) => {
                   </button>
                 </div>
 
-                <div className="space-y-4 mb-6">
+                <div className="space-y-3 lg:space-y-4 mb-4 lg:mb-6">
                   {selectedProducts.map((product, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 lg:p-4 border border-gray-200 rounded-lg gap-3">
                       <div className="flex items-center">
                         <img 
                           src={product.avatar} 
                           alt={product.title}
-                          className="w-10 h-10 rounded-full object-cover mr-3"
+                          className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover mr-2 lg:mr-3"
                         />
                         <div>
-                          <h4 className="font-semibold text-gray-800">{product.title}</h4>
-                          <p className="text-gray-600">ROI: {product.roi}%</p>
+                          <h4 className="font-semibold text-gray-800 text-sm lg:text-base">{product.title}</h4>
+                          <p className="text-gray-600 text-xs lg:text-sm">ROI: {product.roi}%</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-semibold text-gray-800">{product.amount.toLocaleString()} MAD</span>
+                      <div className="flex items-center justify-between sm:justify-end gap-3">
+                        <span className="font-semibold text-gray-800 text-sm lg:text-base">{product.amount.toLocaleString()} MAD</span>
                         <button
                           onClick={() => removeFromCart(index)}
                           className="text-red-500 hover:text-red-700 text-xl"
@@ -480,33 +480,33 @@ const SimulationsPage = ({ userBalance }) => {
                   ))}
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                  <div className="flex justify-between items-center text-lg font-semibold">
+                <div className="bg-gray-50 p-3 lg:p-4 rounded-lg mb-4 lg:mb-6">
+                  <div className="flex justify-between items-center text-base lg:text-lg font-semibold">
                     <span>Total d'investissement:</span>
                     <span className="text-[#3CD4AB]">{getTotalInvestment().toLocaleString()} MAD</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-600 mt-2">
+                  <div className="flex justify-between items-center text-xs lg:text-sm text-gray-600 mt-2">
                     <span>Solde disponible:</span>
                     <span>{currentBalance.toLocaleString()} MAD</span>
                   </div>
                 </div>
 
-                <div className="flex justify-between gap-3">
+                <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
                   <button
                     onClick={() => setCurrentStep('products')}
-                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 lg:px-6 py-2 lg:py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm lg:text-base"
                   >
                     Retour
                   </button>
                   <button
                     onClick={() => setShowInvestmentPopup(false)}
-                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 lg:px-6 py-2 lg:py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm lg:text-base"
                   >
                     Annuler
                   </button>
                   <button
                     onClick={handleConfirmInvestment}
-                    className="flex-1 px-6 py-3 bg-[#3CD4AB] text-white rounded-md hover:bg-[#2ea885] transition-colors"
+                    className="flex-1 px-4 lg:px-6 py-2 lg:py-3 bg-[#3CD4AB] text-white rounded-md hover:bg-[#2ea885] transition-colors text-sm lg:text-base"
                   >
                     Confirmer l'investissement
                   </button>
@@ -516,29 +516,29 @@ const SimulationsPage = ({ userBalance }) => {
 
             {/* Loading Step */}
             {currentStep === 'loading' && (
-              <div className="p-6 text-center">
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#3CD4AB] mb-4"></div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Traitement en cours...</h3>
-                  <p className="text-gray-600">Veuillez patienter pendant que nous traitons votre investissement</p>
+              <div className="p-4 lg:p-6 text-center">
+                <div className="flex flex-col items-center justify-center py-8 lg:py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 lg:h-16 lg:w-16 border-b-2 border-[#3CD4AB] mb-4"></div>
+                  <h3 className="text-lg lg:text-xl font-semibold text-gray-800 mb-2">Traitement en cours...</h3>
+                  <p className="text-gray-600 text-sm lg:text-base px-4">Veuillez patienter pendant que nous traitons votre investissement</p>
                 </div>
               </div>
             )}
 
             {/* Confirmed Step */}
             {currentStep === 'confirmed' && (
-              <div className="p-6 text-center">
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-4 lg:p-6 text-center">
+                <div className="flex flex-col items-center justify-center py-8 lg:py-12">
+                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-6 h-6 lg:w-8 lg:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Investissement confirmé!</h3>
-                  <p className="text-gray-600 mb-4">
+                  <h3 className="text-lg lg:text-xl font-semibold text-gray-800 mb-2">Investissement confirmé!</h3>
+                  <p className="text-gray-600 mb-4 text-sm lg:text-base px-4">
                     Votre investissement de {getTotalInvestment().toLocaleString()} MAD a été traité avec succès.
                   </p>
-                  <p className="text-sm text-gray-500">Cette fenêtre se fermera automatiquement...</p>
+                  <p className="text-xs lg:text-sm text-gray-500">Cette fenêtre se fermera automatiquement...</p>
                 </div>
               </div>
             )}
@@ -548,12 +548,12 @@ const SimulationsPage = ({ userBalance }) => {
 
       {/* Alert/Toast */}
       {showAlert && (
-        <div className="fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg z-50">
-          <div className="flex items-center justify-between">
-            <span>{alertMessage}</span>
+        <div className="fixed top-2 right-2 lg:top-4 lg:right-4 bg-red-500 text-white px-4 lg:px-6 py-3 lg:py-4 rounded-lg shadow-lg z-50 max-w-sm lg:max-w-md mx-2">
+          <div className="flex items-start justify-between">
+            <span className="text-xs lg:text-sm pr-2">{alertMessage}</span>
             <button 
               onClick={() => setShowAlert(false)}
-              className="ml-4 text-white hover:text-gray-200"
+              className="ml-2 text-white hover:text-gray-200 text-lg lg:text-xl"
             >
               ×
             </button>

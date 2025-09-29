@@ -3,21 +3,21 @@ import { CloudinaryVideo } from "../lib/cloudinary-components";
 
 const Hero = () => {
   return (
-    <section className="w-full  py-10 md:py-15 ">
-      <div className="max-w-7xl mx-auto flex flex-col  md:flex-row items-center px-6 md:px-8 gap-8" data-aos="fade-up">
+    <section className="w-full py-8 sm:py-10 lg:py-15 px-4">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center px-2 sm:px-6 lg:px-8 gap-6 lg:gap-8" data-aos="fade-up">
         {/* Left: Text */}
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6">
-            Investissez intelligemment <br className="hidden md:block" /> pour
+        <div className="flex-1 text-center lg:text-left">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4 lg:mb-6">
+            Investissez intelligemment <br className="hidden lg:block" /> pour
             votre avenir financier
           </h1>
-          <p className="text-lg md:text-xl text-[#d4d4d7] mb-8 max-w-xl mx-auto md:mx-0">
+          <p className="text-base sm:text-lg lg:text-xl text-[#d4d4d7] mb-6 lg:mb-8 max-w-xl mx-auto lg:mx-0 px-4 lg:px-0">
           Obtenez des recommandations d'investissement personnalisées basées sur vos objectifs financiers et votre profil de risque
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 mt-8 items-center justify-center md:justify-start">
+          <div className="flex flex-col sm:flex-row gap-3 lg:gap-4 mt-6 lg:mt-8 items-center justify-center lg:justify-start">
             <a
               href="/simulation"
-              className="px-8 py-4 bg-[#3CD4AB] text-white font-semibold rounded-full text-lg shadow-2xl  hover:bg-[#89559F] hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] flex items-center gap-2"
+              className="px-6 sm:px-8 py-3 sm:py-4 bg-[#3CD4AB] text-white font-semibold rounded-full text-base lg:text-lg shadow-2xl hover:bg-[#89559F] hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] flex items-center gap-2"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -37,7 +37,7 @@ const Hero = () => {
             </a>
             <a
               href="#contact"
-              className="px-8 py-4 text-white font-semibold rounded-full text-lg shadow-2xl border border-white bg-[#0F0F19] hover:bg-[#f0f0f0] hover:text-[#89559f] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] flex items-center gap-2"
+              className="px-6 sm:px-8 py-3 sm:py-4 text-white font-semibold rounded-full text-base lg:text-lg shadow-2xl border border-white bg-[#0F0F19] hover:bg-[#f0f0f0] hover:text-[#89559f] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] flex items-center gap-2"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -59,14 +59,14 @@ const Hero = () => {
         </div>
 
         {/* Right: Illustration */}
-        <div className="flex-1 justify-center">
+        <div className="flex-1 flex justify-center mt-6 lg:mt-0">
           <CloudinaryVideo
             src="public/assets/00.mp4"
             autoPlay
             loop
             muted
             playsInline
-            className=" md:w-[500px] w-300  rounded-2xl shadow-lg"
+            className="w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] rounded-2xl shadow-lg"
             options={{
               quality: "auto",
               format: "auto",

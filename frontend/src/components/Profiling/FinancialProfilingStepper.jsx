@@ -68,7 +68,7 @@ const ActionButton = ({ onClick, disabled, children, primary = false }) => (
     disabled={disabled}
     variant={primary ? "default" : "secondary"}
     size="lg"
-    className={`w-32 transition-all duration-300 transform hover:scale-105 ${
+    className={`w-24 lg:w-32 transition-all duration-300 transform hover:scale-105 text-sm lg:text-base ${
       primary
         ? 'bg-[#89559F] hover:bg-[#89559F]/90 text-white shadow-lg'
         : 'bg-gray-800 hover:bg-gray-700 text-white'
@@ -162,60 +162,61 @@ const FinancialProfilingStepper = () => {
 
   return (
     <div 
-      className="min-h-screen bg-[#0F0F19] text-white flex flex-col items-center justify-center  p-4 overflow-y-auto"
+      className="min-h-screen bg-[#0F0F19] text-white flex flex-col items-center justify-center p-4 lg:p-8 overflow-y-auto"
     >
       <div className="w-full max-w-4xl my-auto">
         {/* Stepper Navigation */}
-        <div className="flex justify-center items-center mb-5 space-x-2 md:space-x-4">
+        <div className="flex justify-center items-center mb-5 space-x-1 lg:space-x-4 overflow-x-auto pb-2">
           {QUESTION_CATEGORIES.map((category, index) => {
             const isActive = currentStep === index;
             const isCompleted = isStepComplete(index);
             return (
               <React.Fragment key={category.key}>
-                <div className="flex items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
+                <div className="flex items-center min-w-fit">
+                  <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 text-sm lg:text-base ${
                     isCompleted ? 'bg-[#3CD4AB]' : isActive ? 'bg-[#89559F]' : 'bg-gray-700'
                   }`}>
                     {index + 1}
                   </div>
-                  <span className={`ml-3 font-medium hidden md:block ${isActive ? 'text-white' : 'text-gray-400'}`}>
+                  <span className={`ml-2 lg:ml-3 font-medium text-xs lg:text-sm hidden sm:block ${isActive ? 'text-white' : 'text-gray-400'}`}>
                     {category.title}
                   </span>
                 </div>
-                {index < totalSteps - 1 && <div className="flex-1 h-0.5 bg-gray-700"></div>}
+                {index < totalSteps - 1 && <div className="flex-1 h-0.5 bg-gray-700 min-w-[20px] lg:min-w-[40px]"></div>}
               </React.Fragment>
             );
           })}
         </div>
 
         {/* Main Content Card */}
-        <div className="bg-[#1A1A2E] rounded-2xl shadow-2xl p-6 md:p-12 transition-all duration-500">
+        <div className="bg-[#1A1A2E] rounded-2xl shadow-2xl p-4 lg:p-12 transition-all duration-500">
           {!isFinalStep ? (
-            <div className="min-h-[400px] flex flex-col">
+            <div className="min-h-[300px] lg:min-h-[400px] flex flex-col">
               {/* Header */}
-              <div className=" ">
-                <p className="text-gray-400 font-medium">{currentCategory.title}</p>
-                <p className="text-[#89559F] font-semibold">
+              <div className="mb-4 lg:mb-6">
+                <p className="text-gray-400 font-medium text-sm lg:text-base">{currentCategory.title}</p>
+                <p className="text-[#89559F] font-semibold text-sm lg:text-base">
                   Question {currentQuestionIndex + 1} / {currentCategory.questions.length}
                 </p>
               </div>
               
               {/* Question */}
               <div className="flex-grow flex flex-col items-center justify-center">
-                 <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-8 leading-tight">
-                   Connaissance Client
+                 <h2 className="text-xl lg:text-3xl font-bold text-white text-center mb-4 lg:mb-8 leading-tight">
+                   {currentCategory.title}
                  </h2>
                   <div className="w-full max-w-2xl mx-auto">
                    {currentQuestion?.type === 'radio' && (
                      <div className="space-y-4">
-                       <Label className="text-lg font-medium text-gray-300">{currentQuestion.label}</Label>
-                       <RadioGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                       <Label className="text-base lg:text-lg font-medium text-gray-300">{currentQuestion.label}</Label>
+                       <RadioGroup className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
                          {currentQuestion.options.map(opt => (
                            <RadioGroupItem
                              key={opt}
                              value={opt}
                              checked={formData[currentQuestion.key] === opt}
                              onChange={() => handleAnswer(opt)}
+                             className="text-sm lg:text-base"
                            >
                              {opt}
                            </RadioGroupItem>
@@ -224,27 +225,30 @@ const FinancialProfilingStepper = () => {
                      </div>
                    )}
                   {currentQuestion?.type === 'checkbox' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {currentQuestion.options.map(opt => (
-                        <button key={opt} onClick={() => handleAnswer(opt)} className={`p-4 rounded-xl border-2 transition-all font-semibold ${formData[currentQuestion.key]?.includes(opt) ? 'border-[#3CD4AB] bg-[#3CD4AB]/20 text-white' : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600'}`}>
-                          {opt}
-                        </button>
-                      ))}
+                    <div className="space-y-4">
+                      <Label className="text-base lg:text-lg font-medium text-gray-300">{currentQuestion.label}</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
+                        {currentQuestion.options.map(opt => (
+                          <button key={opt} onClick={() => handleAnswer(opt)} className={`p-3 lg:p-4 rounded-xl border-2 transition-all font-semibold text-sm lg:text-base ${formData[currentQuestion.key]?.includes(opt) ? 'border-[#3CD4AB] bg-[#3CD4AB]/20 text-white' : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600'}`}>
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                     {currentQuestion?.type === 'select' && (
                      <div className="space-y-4">
-                       <Label className="text-lg font-medium text-gray-300">{currentQuestion.label}</Label>
+                       <Label className="text-base lg:text-lg font-medium text-gray-300">{currentQuestion.label}</Label>
                       <Select 
                         value={formData[currentQuestion.key]} 
                         onValueChange={(value) => handleAnswer(value)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="text-sm lg:text-base">
                           <SelectValue placeholder="Sélectionnez une option" />
                         </SelectTrigger>
                         <SelectContent>
                           {currentQuestion.options.map(opt => (
-                            <SelectItem key={opt} value={opt}>
+                            <SelectItem key={opt} value={opt} className="text-sm lg:text-base">
                               {opt}
                             </SelectItem>
                           ))}
@@ -253,7 +257,10 @@ const FinancialProfilingStepper = () => {
                      </div>
                    )}
                   {currentQuestion?.type === 'number' && (
-                    <input type="number" value={formData[currentQuestion.key]} onChange={e => handleAnswer(e.target.value)} placeholder="Entrez un montant" className="w-full text-center p-4 bg-gray-800 border-2 border-gray-700 rounded-xl focus:outline-none focus:border-[#3CD4AB]" />
+                    <div className="space-y-4">
+                      <Label className="text-base lg:text-lg font-medium text-gray-300">{currentQuestion.label}</Label>
+                      <input type="number" value={formData[currentQuestion.key]} onChange={e => handleAnswer(e.target.value)} placeholder="Entrez un montant" className="w-full text-center p-3 lg:p-4 bg-gray-800 border-2 border-gray-700 rounded-xl focus:outline-none focus:border-[#3CD4AB] text-sm lg:text-base" />
+                    </div>
                   )}
                 </div>
               </div>
@@ -261,26 +268,26 @@ const FinancialProfilingStepper = () => {
           ) : (
             // results
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-[#3CD4AB] mb-4">Profil Complété !</h2>
-              <p className="text-gray-300 mb-8">Votre profil financier a été analysé avec succès.</p>
+              <h2 className="text-2xl lg:text-3xl font-bold text-[#3CD4AB] mb-4">Profil Complété !</h2>
+              <p className="text-gray-300 mb-6 lg:mb-8 text-sm lg:text-base">Votre profil financier a été analysé avec succès.</p>
               {recommendations && (
-                <div className="space-y-6 text-left">
-                  <div className="bg-gray-800 p-6 rounded-xl">
-                    <h3 className="text-xl font-bold mb-4">Résumé</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-300">
+                <div className="space-y-4 lg:space-y-6 text-left">
+                  <div className="bg-gray-800 p-4 lg:p-6 rounded-xl">
+                    <h3 className="text-lg lg:text-xl font-bold mb-4">Résumé</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4 text-gray-300 text-sm lg:text-base">
                       <p><span className="font-semibold text-white">Âge:</span> {formData.age}</p>
                       <p><span className="font-semibold text-white">Revenus:</span> {formData.incomeRange}</p>
                       <p><span className="font-semibold text-white">Profil de risque:</span> {recommendations.riskProfile.riskLevel}</p>
                     </div>
                   </div>
-                  <div className="bg-gray-800 p-6 rounded-xl">
-                    <h3 className="text-xl font-bold mb-4">Produits Recommandés</h3>
-                    <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-gray-800 p-4 lg:p-6 rounded-xl">
+                    <h3 className="text-lg lg:text-xl font-bold mb-4">Produits Recommandés</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
                       {recommendations.matchedProducts.map((p, i) => (
-                        <div key={i} className="bg-gray-900 p-4 rounded-lg border border-gray-700">
-                          <p className="font-bold text-lg text-white">{p.nom_produit}</p>
-                          <p className="text-[#3CD4AB] font-semibold">Compatibilité: {Math.round(p.overallCompatibility)}%</p>
-                          <p className="text-sm text-gray-400">ROI: {p.roi_annuel || 5}% | Risque: {p.risque}/7</p>
+                        <div key={i} className="bg-gray-900 p-3 lg:p-4 rounded-lg border border-gray-700">
+                          <p className="font-bold text-base lg:text-lg text-white">{p.nom_produit}</p>
+                          <p className="text-[#3CD4AB] font-semibold text-sm lg:text-base">Compatibilité: {Math.round(p.overallCompatibility)}%</p>
+                          <p className="text-xs lg:text-sm text-gray-400">ROI: {p.roi_annuel || 5}% | Risque: {p.risque}/7</p>
                         </div>
                       ))}
                     </div>
@@ -291,7 +298,7 @@ const FinancialProfilingStepper = () => {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between items-center mt-10">
+          <div className="flex justify-between items-center mt-6 lg:mt-10">
             <ActionButton 
                 onClick={prevQuestion} 
                 disabled={currentStep === 0 && currentQuestionIndex === 0}

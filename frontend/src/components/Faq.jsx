@@ -63,26 +63,28 @@ const faqData = [
 export default function Faq() {
   return (
     <div data-aos="fade-up">
-    <div id="faq" className=" min-h-screen py-30 px-4 md:px-16" data-aos="fade-up">
-      <h1  className="text-3xl font-bold mb-2 text-[#3CD4AB]">Il vous reste des questions ?</h1>
-      <p className="mb-8 text-lg text-gray-50">
-        Voici les réponses aux questions les plus fréquentes. Et si vous ne trouvez pas votre bonheur,{" "}
-       Contacter Nous 
-      </p>
+      <div id="faq" className="min-h-screen py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 xl:px-16 max-w-4xl mx-auto" data-aos="fade-up">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 text-[#3CD4AB] text-center lg:text-left">Il vous reste des questions ?</h1>
+        <p className="mb-6 sm:mb-8 text-base sm:text-lg lg:text-xl text-gray-50 text-center lg:text-left">
+          Voici les réponses aux questions les plus fréquentes. Et si vous ne trouvez pas votre bonheur,{" "}
+          Contacter Nous 
+        </p>
 
-      <Accordion type="single" collapsible defaultValue={"0"} className="flex flex-col gap-3">
-        {faqData.map((item, idx) => (
-          <AccordionItem key={idx} value={String(idx)} className="overflow-hidden">
-            <AccordionTrigger value={String(idx)}>{item.question}</AccordionTrigger>
-            <AccordionContent value={String(idx)}>
-              <div className="text-gray-100 ] rounded-xl p-5">
-                <div className=" font-medium">{item.answer}</div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-    </div>
+        <Accordion type="single" collapsible defaultValue={"0"} className="flex flex-col gap-3 sm:gap-4">
+          {faqData.map((item, idx) => (
+            <AccordionItem key={idx} value={String(idx)} className="overflow-hidden">
+              <AccordionTrigger value={String(idx)} className="text-left text-sm sm:text-base lg:text-lg font-medium">
+                {item.question}
+              </AccordionTrigger>
+              <AccordionContent value={String(idx)}>
+                <div className="text-gray-100 rounded-xl p-3 sm:p-4 lg:p-5">
+                  <div className="font-medium text-sm sm:text-base lg:text-lg leading-relaxed">{item.answer}</div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
     </div>
 
   );
