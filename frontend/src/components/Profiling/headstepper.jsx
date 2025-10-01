@@ -27,33 +27,33 @@ const headstepper = ({currentStep, totalSteps = 5}) => {
   return (
     <>
     {/* Mobile View - Show only current step */}
-    <div className="block lg:hidden w-full mb-6">
-      <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50 shadow-xl">
+    <div className="block lg:hidden w-full">
+      <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-xl p-3 border border-gray-700/50 shadow-lg">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-white bg-gradient-to-br from-[#3CD4AB] to-[#2ba885] shadow-lg">
-                <span className="text-xl">{currentStep + 1}</span>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center font-semibold text-white bg-gradient-to-br from-[#3CD4AB] to-[#2ba885] shadow-lg">
+                <span className="text-base">{currentStep + 1}</span>
               </div>
-              <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#3CD4AB] rounded-full border-2 border-gray-900 flex items-center justify-center">
+              <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#3CD4AB] rounded-full border-2 border-gray-900 flex items-center justify-center">
                 {steps[currentStep]?.icon && (
-                  <div className="scale-50">
+                  <div className="scale-[0.4]">
                     {steps[currentStep].icon}
                   </div>
                 )}
               </div>
             </div>
             <div>
-              <p className="text-white font-bold text-base sm:text-lg">{steps[currentStep]?.shortName}</p>
-              <p className="text-gray-400 text-sm">Étape {currentStep + 1} sur {steps.length}</p>
+              <p className="text-white font-medium text-sm">{steps[currentStep]?.shortName}</p>
+              <p className="text-gray-400 text-xs">Étape {currentStep + 1} sur {steps.length}</p>
             </div>
           </div>
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1">
             {steps.map((_, index) => (
               <div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === currentStep ? 'bg-[#3CD4AB] w-6' : index < currentStep ? 'bg-[#3CD4AB]/60' : 'bg-gray-600'
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  index === currentStep ? 'bg-[#3CD4AB] w-4' : index < currentStep ? 'bg-[#3CD4AB]/60' : 'bg-gray-600'
                 }`}
               />
             ))}
@@ -63,13 +63,13 @@ const headstepper = ({currentStep, totalSteps = 5}) => {
     </div>
 
     {/* Desktop View - Show all steps */}
-    <div className="hidden lg:flex w-full mb-8">
-      <div className="w-full bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-        <div className="flex items-center justify-between gap-2">
+    <div className="hidden lg:flex w-full">
+      <div className="w-full bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 shadow-lg">
+        <div className="flex items-center justify-between gap-1">
          {steps.map((step, index) => (
              <React.Fragment key={index}>
-               <div className={`flex items-center gap-4 flex-1 transition-all duration-500 ${getStepStyle(index)} ${index === currentStep ? 'scale-105' : 'scale-100'}`}>
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg transition-all duration-300 ${
+               <div className={`flex items-center gap-2 flex-1 transition-all duration-500 ${getStepStyle(index)} ${index === currentStep ? 'scale-105' : 'scale-100'}`}>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-semibold text-white shadow-lg transition-all duration-300 ${
                   index < currentStep 
                     ? 'bg-gradient-to-br from-[#3CD4AB] to-[#2ba885]' 
                     : index === currentStep 
@@ -77,28 +77,28 @@ const headstepper = ({currentStep, totalSteps = 5}) => {
                     : 'bg-gray-700/50'
                 }`}>
                   {index < currentStep ? (
-                    <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   ) : (
-                    <div className={index === currentStep ? 'scale-110' : ''}>
+                    <div className={`scale-75 ${index === currentStep ? 'scale-90' : ''}`}>
                       {step.icon}
                     </div>
                   )}
                 </div>
                 
                 <div className="flex flex-col">
-                  <p className={`font-semibold text-sm transition-all duration-300 ${
-                    index === currentStep ? 'text-white text-base' : 'text-gray-400'
+                  <p className={`font-light text-xs transition-all duration-300 ${
+                    index === currentStep ? 'text-white' : 'text-gray-400'
                   }`}>
                     {step.name}
                   </p>
-                  <p className="text-gray-500 text-xs">Étape {index + 1}</p>
+                  <p className="text-gray-500 text-[10px]">Étape {index + 1}</p>
                 </div>
               </div>
               
               {index < steps.length - 1 && (
-                <div className="flex-shrink-0 w-8 lg:w-12 h-0.5 mx-2">
+                <div className="flex-shrink-0 w-4 h-0.5 mx-1">
                   <div className={`h-full rounded-full transition-all duration-500 ${
                     index < currentStep ? 'bg-[#3CD4AB]' : 'bg-gray-700'
                   }`} />

@@ -4,8 +4,11 @@ import PfSkeleton from './PfSkeleton'
 import { UserContext } from '../Context/UserContext.jsx'
 
 const Pf = () => {
-    const { updateStepAnswers } = useContext(UserContext)
-    const [pfAnswers, setPfAnswers] = useState([])
+    const { updateStepAnswers, stepAnswers } = useContext(UserContext)
+    const [pfAnswers, setPfAnswers] = useState(() => {
+        // Initialize from stepAnswers on mount
+        return (stepAnswers && stepAnswers[2]) ? stepAnswers[2] : []
+    })
     const { isLoading } = useLoading()
 
     const handleSelectChange = (questionIndex, value) => {
@@ -61,6 +64,15 @@ const Pf = () => {
         })
     }
 
+    // Only initialize once when component mounts with saved data
+    useEffect(() => {
+        const savedAnswers = stepAnswers && stepAnswers[2] ? stepAnswers[2] : []
+        if (savedAnswers.length > 0 && pfAnswers.length === 0) {
+            setPfAnswers(savedAnswers)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
     useEffect(() => {
         // Filter out empty answers and update step answers
         const validAnswers = (pfAnswers || [])
@@ -72,9 +84,14 @@ const Pf = () => {
             }
                 return answer.answer !== undefined && answer.answer !== null && answer.answer !== "";
         });
-        updateStepAnswers(2, validAnswers) // Step 2 for PF
-        console.log("PF All Answers Updated:", validAnswers)
-    }, [pfAnswers, updateStepAnswers])
+        
+        const prevForStep = stepAnswers && stepAnswers[2] ? stepAnswers[2] : []
+        const isSame = JSON.stringify(prevForStep) === JSON.stringify(validAnswers)
+        if (!isSame) {
+            updateStepAnswers(2, validAnswers) // Step 2 for PF
+            console.log("PF All Answers Updated:", validAnswers)
+        }
+    }, [pfAnswers, stepAnswers, updateStepAnswers])
 
   const lstquestion = [
     {
@@ -169,70 +186,58 @@ const Pf = () => {
     }
 
   return (
-    <div className="w-full bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-gray-700/50 shadow-xl">
-      <div className="space-y-6">
+    <div className="w-full">
+      <div className="space-y-4">
         {lstquestion.map((question, index) => (
-          <React.Fragment key={`question-${index}`}>
-            <div className="flex flex-col lg:flex-row lg:items-start w-full gap-4 lg:gap-6 p-4 bg-gray-800/30 rounded-xl border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300">
-              {/* Question Label */}
-              <div className="w-full lg:w-2/5">
-                <label className="text-gray-100 text-base sm:text-lg font-medium leading-relaxed block">
-                  {question.question}
-                </label>
-              </div>
+          <div key={`question-${index}`} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300">
+            <label className="block text-white font-light text-sm mb-3">
+              {question.question}
+            </label>
 
-              {/* Answer Options */}
-              <div className="w-full lg:w-3/5">
-                {question.type === "checkbox" ? (
-                  <div className="flex flex-col items-start gap-3">
-                    {question.options.map((option, optionIndex) => (
-                      <label 
-                        key={`checkbox-${index}-${optionIndex}`} 
-                        className="flex items-start gap-3 cursor-pointer hover:bg-gray-700/40 p-3 rounded-xl transition-all duration-300 group border border-gray-700/30 hover:border-[#3CD4AB]/50 w-full"
-                      >
-                        <input
-                          type="checkbox"
-                          name={`question-${index}`}
-                          value={option.value}
-                          className="w-5 h-5 text-[#3CD4AB] bg-gray-700 border-gray-600 focus:ring-[#3CD4AB] focus:ring-2 flex-shrink-0 mt-0.5 rounded"
-                          onChange={(e) => handleCheckboxChange(index, option.value, e.target.checked)}
-                          checked={pfAnswers[index]?.answer?.includes(option.value) || false}
-                          required={!(pfAnswers[index]?.answer?.length > 0)}
-                        />
-                        <span className="text-gray-200 text-sm sm:text-base leading-relaxed group-hover:text-white transition-colors">
-                          {option.label}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="w-full">
-                    <select 
-                      className="w-full font-medium rounded-xl border border-gray-600/50 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-3.5 sm:p-4 text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer shadow-sm"
-                      onChange={(e) => handleSelectChange(index, e.target.value)}
-                      value={pfAnswers[index]?.answer || ""}
-                      required
-                    >
-                      <option className='text-gray-400 bg-gray-800' value="">
-                        Sélectionnez une option
-                      </option>
-                      {question.options.map((option, optionIndex) => (
-                        <option 
-                          key={`option-${index}-${optionIndex}`} 
-                          className="bg-gray-800 text-gray-100 py-2" 
-                          value={option.label}
-                        >
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+            {question.type === "checkbox" ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {question.options.map((option, optionIndex) => (
+                  <label 
+                    key={`checkbox-${index}-${optionIndex}`} 
+                    className="flex items-start gap-2 p-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-[#3CD4AB] hover:bg-white/10 cursor-pointer transition-all duration-200 group"
+                  >
+                    <input
+                      type="checkbox"
+                      name={`question-${index}`}
+                      value={option.value}
+                      className="w-4 h-4 text-[#3CD4AB] bg-gray-700 border-gray-600 focus:ring-[#3CD4AB] focus:ring-2 flex-shrink-0 mt-0.5 rounded"
+                      onChange={(e) => handleCheckboxChange(index, option.value, e.target.checked)}
+                      checked={pfAnswers[index]?.answer?.includes(option.value) || false}
+                      required={!(pfAnswers[index]?.answer?.length > 0)}
+                    />
+                    <span className="text-white/90 font-light text-sm leading-relaxed group-hover:text-white transition-colors">
+                      {option.label}
+                    </span>
+                  </label>
+                ))}
               </div>
-            </div>
-            
-        
-          </React.Fragment>
+            ) : (
+              <select 
+                className="w-full font-light rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 focus:bg-white/10 p-2.5 text-sm text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer"
+                onChange={(e) => handleSelectChange(index, e.target.value)}
+                value={pfAnswers[index]?.answer || ""}
+                required
+              >
+                <option className='text-gray-400 bg-gray-800' value="">
+                  Sélectionnez une option
+                </option>
+                {question.options.map((option, optionIndex) => (
+                  <option 
+                    key={`option-${index}-${optionIndex}`} 
+                    className="bg-gray-800 text-gray-100 py-2" 
+                    value={option.label}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
         ))}
       </div>
     </div>

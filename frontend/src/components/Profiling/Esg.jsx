@@ -4,8 +4,18 @@ import EsgSkeleton from './EsgSkeleton'
 import { UserContext } from '../Context/UserContext.jsx'
 
 const Esg = () => {
-    const { updateStepAnswers } = useContext(UserContext)
-    const [esgAnswers, setEsgAnswers] = useState({})
+    const { updateStepAnswers, stepAnswers } = useContext(UserContext)
+    const [esgAnswers, setEsgAnswers] = useState(() => {
+        // Initialize from stepAnswers on mount - convert array back to object
+        const savedAnswers = stepAnswers && stepAnswers[4] ? stepAnswers[4] : []
+        const answersObj = {}
+        savedAnswers.forEach((ans, idx) => {
+            if (ans && ans.q) {
+                answersObj[`saved-${idx}`] = ans
+            }
+        })
+        return answersObj
+    })
     const { isLoading } = useLoading()
 
     const handleSelectChange = (categoryIndex, questionType, questionIndex, value) => {
@@ -31,12 +41,32 @@ const Esg = () => {
         })
     }
 
+    // Only initialize once when component mounts with saved data
+    useEffect(() => {
+        const savedAnswers = stepAnswers && stepAnswers[4] ? stepAnswers[4] : []
+        if (savedAnswers.length > 0 && Object.keys(esgAnswers).length === 0) {
+            const answersObj = {}
+            savedAnswers.forEach((ans, idx) => {
+                if (ans && ans.q) {
+                    answersObj[`saved-${idx}`] = ans
+                }
+            })
+            setEsgAnswers(answersObj)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
     useEffect(() => {
         // Filter out empty answers and update step answers
         const validAnswers = Object.values(esgAnswers).filter(answer => answer.q && answer.answer)
-        updateStepAnswers(4, validAnswers) // Step 4 for ESG
-        console.log("ESG All Answers Updated:", validAnswers)
-    }, [esgAnswers, updateStepAnswers])
+        
+        const prevForStep = stepAnswers && stepAnswers[4] ? stepAnswers[4] : []
+        const isSame = JSON.stringify(prevForStep) === JSON.stringify(validAnswers)
+        if (!isSame) {
+            updateStepAnswers(4, validAnswers) // Step 4 for ESG
+            console.log("ESG All Answers Updated:", validAnswers)
+        }
+    }, [esgAnswers, stepAnswers, updateStepAnswers])
 
     const lstquestion = [
         {
@@ -172,100 +202,88 @@ const Esg = () => {
     }
 
     return (
-        <div className="w-full bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-gray-700/50 shadow-xl">
-            <div className="space-y-8">
+        <div className="w-full">
+            <div className="space-y-6">
                 {lstquestion.map((category, categoryIndex) => (
-                    <div key={`category-${categoryIndex}`} className="space-y-6">
+                    <div key={`category-${categoryIndex}`} className="space-y-4">
                         {/* Category Title */}
-                        <div className="flex items-center gap-3 pb-3 border-b-2 border-[#3CD4AB]/50">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3CD4AB] to-[#2ba885] flex items-center justify-center shadow-lg">
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex items-center gap-2 pb-2 border-b-2 border-[#3CD4AB]/50">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3CD4AB] to-[#2ba885] flex items-center justify-center shadow-lg">
+                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <h3 className="font-bold text-[#3CD4AB] text-lg sm:text-xl">
+                            <h3 className="font-light text-white text-base sm:text-lg">
                                 {category.title}
                             </h3>
                         </div>
 
                         {/* Questions Container */}
-                        <div className="space-y-5">
-                            {/* Q1 Questions - Select dropdowns */}
+                        <div className="space-y-3">
+                            {/* Q1 Questions */}
                             {category.q1.map((question, q1Index) => (
-                                <div key={`q1-${categoryIndex}-${q1Index}`} className="flex flex-col lg:flex-row lg:items-center w-full gap-4 lg:gap-6 p-4 bg-gray-800/30 rounded-xl border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300">
-                                    {/* Question on the left */}
-                                    <div className="w-full lg:w-2/5">
-                                        <p className="text-gray-100 text-base sm:text-lg font-medium leading-relaxed">
-                                            {question.question}
-                                        </p>
-                                    </div>
+                                <div key={`q1-${categoryIndex}-${q1Index}`} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300">
+                                    <label className="block text-white font-light text-sm mb-3">
+                                        {question.question}
+                                    </label>
                                     
-                                    {/* Select dropdown on the right */}
-                                    <div className="w-full lg:w-3/5">
-                                        <select 
-                                            className="w-full font-medium rounded-xl border border-gray-600/50 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-3.5 sm:p-4 text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer shadow-sm"
-                                            name={`q1-${categoryIndex}-${q1Index}`}
-                                            onChange={(e) => handleSelectChange(categoryIndex, 'q1', q1Index, e.target.value)}
-                                            value={esgAnswers[`${categoryIndex}-q1-${q1Index}`]?.answer || ""}
-                                            required
-                                        >
-                                            <option className='text-gray-400 bg-gray-800' value="">
-                                                Sélectionnez une option
+                                    <select 
+                                        className="w-full font-light rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 focus:bg-white/10 p-2.5 text-sm text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer"
+                                        name={`q1-${categoryIndex}-${q1Index}`}
+                                        onChange={(e) => handleSelectChange(categoryIndex, 'q1', q1Index, e.target.value)}
+                                        value={esgAnswers[`${categoryIndex}-q1-${q1Index}`]?.answer || ""}
+                                        required
+                                    >
+                                        <option className='text-gray-400 bg-gray-800' value="">
+                                            Sélectionnez une option
+                                        </option>
+                                        {question.options.map((option, optionIndex) => (
+                                            <option 
+                                                key={`q1-option-${categoryIndex}-${q1Index}-${optionIndex}`} 
+                                                className="bg-gray-800 text-gray-100 py-2"
+                                                value={option.value}
+                                            >
+                                                {option.label}
                                             </option>
-                                            {question.options.map((option, optionIndex) => (
-                                                <option 
-                                                    key={`q1-option-${categoryIndex}-${q1Index}-${optionIndex}`} 
-                                                    className="bg-gray-800 text-gray-100 py-2"
-                                                    value={option.value}
-                                                >
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                        ))}
+                                    </select>
                                 </div>
                             ))}
                             
-                            {/* Q2 Questions - Select dropdowns */}
+                            {/* Q2 Questions */}
                             {category.q2.map((question, q2Index) => (
-                                <div key={`q2-${categoryIndex}-${q2Index}`} className="flex flex-col lg:flex-row lg:items-center w-full gap-4 lg:gap-6 p-4 bg-gray-800/30 rounded-xl border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300">
-                                    {/* Question on the left */}
-                                    <div className="w-full lg:w-2/5">
-                                        <p className="text-gray-100 text-base sm:text-lg font-medium leading-relaxed">
-                                            {question.question}
-                                        </p>
-                                    </div>
+                                <div key={`q2-${categoryIndex}-${q2Index}`} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300">
+                                    <label className="block text-white font-light text-sm mb-3">
+                                        {question.question}
+                                    </label>
                                     
-                                    {/* Select dropdown on the right */}
-                                    <div className="w-full lg:w-3/5">
-                                        <select 
-                                            className="w-full font-medium rounded-xl border border-gray-600/50 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-3.5 sm:p-4 text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer shadow-sm"
-                                            name={`q2-${categoryIndex}-${q2Index}`}
-                                            onChange={(e) => handleSelectChange(categoryIndex, 'q2', q2Index, e.target.value)}
-                                            value={esgAnswers[`${categoryIndex}-q2-${q2Index}`]?.answer || ""}
-                                            required
-                                        >
-                                            <option className='text-gray-400 bg-gray-800' value="">
-                                                Sélectionnez une option
+                                    <select 
+                                        className="w-full font-light rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 focus:bg-white/10 p-2.5 text-sm text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer"
+                                        name={`q2-${categoryIndex}-${q2Index}`}
+                                        onChange={(e) => handleSelectChange(categoryIndex, 'q2', q2Index, e.target.value)}
+                                        value={esgAnswers[`${categoryIndex}-q2-${q2Index}`]?.answer || ""}
+                                        required
+                                    >
+                                        <option className='text-gray-400 bg-gray-800' value="">
+                                            Sélectionnez une option
+                                        </option>
+                                        {question.options.map((option, optionIndex) => (
+                                            <option 
+                                                key={`q2-option-${categoryIndex}-${q2Index}-${optionIndex}`} 
+                                                className="bg-gray-800 text-gray-100 py-2"
+                                                value={option.value}
+                                            >
+                                                {option.label}
                                             </option>
-                                            {question.options.map((option, optionIndex) => (
-                                                <option 
-                                                    key={`q2-option-${categoryIndex}-${q2Index}-${optionIndex}`} 
-                                                    className="bg-gray-800 text-gray-100 py-2"
-                                                    value={option.value}
-                                                >
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                        ))}
+                                    </select>
                                 </div>
                             ))}
                         </div>
 
                         {/* Category Separator */}
                         {categoryIndex !== lstquestion.length - 1 && (
-                            <div className="w-full pt-4">
+                            <div className="w-full pt-3">
                                 <hr className='border-t border-gray-600/30 opacity-60' />
                             </div>
                         )}

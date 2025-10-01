@@ -72,11 +72,11 @@ const Stepper = () => {
       </div>
     )}
     
-    <div className="min-h-screen w-full flex flex-col bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 overflow-x-hidden">
+    <div className="min-h-screen w-full flex flex-col overflow-hidden" style={{backgroundColor: '#0F0F19'}}>
       {/* Header */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <a href="/" className="text-gray-300 text-sm sm:text-base font-medium hover:text-white transition-colors flex items-center gap-2 group">
+          <a href="/" className="text-gray-300 text-sm sm:text-base font-light hover:text-white transition-colors flex items-center gap-2 group">
             <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -88,31 +88,32 @@ const Stepper = () => {
         </div>
       </div>
       
-      {/* Main Content Container - Centered with max height */}
-      <div className="flex-1 w-full flex flex-col items-center justify-start px-4 sm:px-6 lg:px-8 pb-6">
-        <div className="w-full max-w-5xl mx-auto flex flex-col gap-6 lg:gap-8">
-          {/* Stepper Header */}
-          <Headstepper currentStep={currentStep} totalSteps={totalSteps}/>
-          
-          {/* Content Area - Centered */}
-          <div className="w-full">
-            <LoadingProvider isLoading={isLoading}>
-              <Categories 
-                currentStep={currentStep} 
-                isLoading={isLoading}
-                allAnswers={stepAnswers}
-              />
-            </LoadingProvider>
+      {/* Main Content Container - Scrollable area */}
+      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden">
+        <div className="w-full px-4 sm:px-6 lg:px-8 pb-6">
+          <div className="w-full max-w-4xl mx-auto flex flex-col gap-5">
+            {/* Stepper Header */}
+            <Headstepper currentStep={currentStep} totalSteps={totalSteps}/>
+            
+            {/* Content Area */}
+            <div className="w-full">
+              <LoadingProvider isLoading={isLoading}>
+                <Categories 
+                  currentStep={currentStep} 
+                  isLoading={isLoading}
+                />
+              </LoadingProvider>
+            </div>
+            
+            {/* Navigation buttons */}
+            <Navigation 
+              currentStep={currentStep} 
+              totalSteps={totalSteps}
+              onPrevious={handlePrevious}
+              handleNext={handleNext}
+              isLoading={isLoading}
+            />
           </div>
-          
-          {/* Navigation buttons */}
-          <Navigation 
-            currentStep={currentStep} 
-            totalSteps={totalSteps}
-            onPrevious={handlePrevious}
-            handleNext={handleNext}
-            isLoading={isLoading}
-          />
         </div>
       </div>
     </div>

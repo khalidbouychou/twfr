@@ -77,17 +77,23 @@ const Header = ({
       
       // Process each cart item as an investment
       cartItems.forEach((item) => {
+        const amount = parseFloat(item.amount);
+        const initialProfit = Math.max(1, Math.round(amount * 0.001));
+        
         addUserInvestment({
+          nameProduct: item.name,
           name: item.name,
-          amount: parseFloat(item.amount),
+          valueInvested: amount,
+          amount: amount,
+          currentValue: amount + initialProfit,
+          profit: initialProfit,
+          category: getSectorFromName(item.name),
           sector: getSectorFromName(item.name),
-          risk: item.risk,
-          roi: item.roi || {
-            annual: 5,
-            liquidity: 'Standard'
-          },
+          riskLevel: item.risk || 'moderate',
+          roi_product: typeof item.roi === 'object' ? item.roi.annual : (parseFloat(item.roi) || 5),
+          picture: item.image,
           image: item.image,
-          date: new Date().toLocaleDateString('fr-FR')
+          date: new Date().toISOString()
         });
       });
       
@@ -289,7 +295,7 @@ const Header = ({
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-[#0F0F19] border border-white/20 rounded-lg shadow-lg z-50">
                   <div className="p-2">
-                    <button 
+                    <button
                       onClick={() => {
                         setShowSettingsModal(true);
                         setShowUserMenu(false);
@@ -301,6 +307,19 @@ const Header = ({
                     </button>
                     <button
                       onClick={() => {
+                        // Clear authentication data
+                        localStorage.removeItem('isLogin');
+                        localStorage.removeItem('googleProfile');
+                        localStorage.removeItem('googleCredential');
+                        localStorage.removeItem('userProfileData');
+                        
+                        // Clear user personal data (name, avatar, etc.)
+                        localStorage.removeItem('userContext');
+                        localStorage.removeItem('userName');
+                        localStorage.removeItem('userAvatar');
+                        localStorage.removeItem('userEmail');
+                        localStorage.removeItem('fullName');
+                        
                         setIsLoggedIn(false);
                         navigate("/");
                       }}
@@ -649,7 +668,7 @@ const Header = ({
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-[#0F0F19] border border-white/20 rounded-lg shadow-lg z-50">
                   <div className="p-2">
-                    <button 
+                    <button
                       onClick={() => {
                         setShowSettingsModal(true);
                         setShowUserMenu(false);
@@ -661,6 +680,19 @@ const Header = ({
                     </button>
                     <button
                       onClick={() => {
+                        // Clear authentication data
+                        localStorage.removeItem('isLogin');
+                        localStorage.removeItem('googleProfile');
+                        localStorage.removeItem('googleCredential');
+                        localStorage.removeItem('userProfileData');
+                        
+                        // Clear user personal data (name, avatar, etc.)
+                        localStorage.removeItem('userContext');
+                        localStorage.removeItem('userName');
+                        localStorage.removeItem('userAvatar');
+                        localStorage.removeItem('userEmail');
+                        localStorage.removeItem('fullName');
+                        
                         setIsLoggedIn(false);
                         navigate("/");
                       }}

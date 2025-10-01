@@ -277,10 +277,19 @@ const Navbar = () => {
               <DropdownMenuSeparator className="bg-white/10" />
               <DropdownMenuItem
                 onClick={() => {
+                  // Clear authentication data
                   localStorage.removeItem('isLogin');
                   localStorage.removeItem('googleProfile');
                   localStorage.removeItem('googleCredential');
                   localStorage.removeItem('userProfileData');
+                  
+                  // Clear user personal data (name, avatar, etc.)
+                  localStorage.removeItem('userContext');
+                  localStorage.removeItem('userName');
+                  localStorage.removeItem('userAvatar');
+                  localStorage.removeItem('userEmail');
+                  localStorage.removeItem('fullName');
+                  
                   window.location.href = '/login';
                 }}
                 className="text-red-400 hover:bg-red-400/10 cursor-pointer"

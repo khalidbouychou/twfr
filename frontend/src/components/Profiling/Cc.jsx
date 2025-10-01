@@ -5,19 +5,19 @@ import { UserContext } from '../Context/UserContext.jsx'
 
 const Cc = ({ allAnswers }) => {
     const { updateStepAnswers, stepAnswers } = useContext(UserContext)
-    const [kycAnswers , setKycAnswers] = useState([])
+    const [kycAnswers , setKycAnswers] = useState(() => {
+        // Initialize from stepAnswers on mount
+        return (stepAnswers && stepAnswers[0]) ? stepAnswers[0] : []
+    })
 
-    // Initialize answers from previous steps or existing answers (guarded)
+    // Only initialize once when component mounts with saved data
     useEffect(() => {
-        const incoming = allAnswers && allAnswers[0] ? allAnswers[0] : []
-        // Only set if local is empty OR content differs
-        const incomingStr = JSON.stringify(incoming)
-        const localStr = JSON.stringify(kycAnswers)
-        if ((kycAnswers.length === 0 && incoming.length > 0) || incomingStr !== localStr) {
-            setKycAnswers(incoming)
+        const savedAnswers = stepAnswers && stepAnswers[0] ? stepAnswers[0] : []
+        if (savedAnswers.length > 0 && kycAnswers.length === 0) {
+            setKycAnswers(savedAnswers)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [allAnswers])
+    }, [])
 
     const handleRadioChange = (questionIndex, value) => {
         setKycAnswers(prev => {
@@ -162,69 +162,63 @@ const Cc = ({ allAnswers }) => {
     }
 
   return (
-      <div className="w-full bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-gray-700/50 shadow-xl">
-        <div className="space-y-6">
+      <div className="w-full">
+        <div className="space-y-4">
         {lstquestion.map((question, index) => (
-          <React.Fragment key={`question-${index}`}>
-            <div className="flex flex-col lg:flex-row lg:items-center w-full gap-4 lg:gap-6 p-4 bg-gray-800/30 rounded-xl border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300">
-              {/* Question Label */}
-              <div className="w-full lg:w-2/5">
-                <label className="text-gray-100 text-base sm:text-lg font-medium leading-relaxed">
-                  {question.question}
-                </label>
-              </div>
+          <div key={`question-${index}`} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300">
+            <label className="block text-white font-light text-sm mb-3">
+              {question.question}
+            </label>
 
-              {/* Answer Options */}
-              <div className="w-full lg:w-3/5">
-                {question.type === "radio" ? (
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                    {question.options.map((option, optionIndex) => (
-                      <label 
-                        key={`radio-${index}-${optionIndex}`} 
-                        className="flex items-center gap-3 cursor-pointer p-3 sm:p-4 rounded-xl bg-gray-700/30 hover:bg-gray-700/50 border border-gray-600/30 hover:border-[#3CD4AB]/50 transition-all duration-300 group"
-                      >
-                        <input
-                          type="radio"
-                          name={`question-${index}`}
-                          value={option.label}
-                          className="w-5 h-5 text-[#3CD4AB] bg-gray-700 border-gray-600 focus:ring-[#3CD4AB] focus:ring-2"
-                          onChange={() => handleRadioChange(index, option.label)}
-                          checked={kycAnswers[index]?.answer === option.label}
-                          required
-                        />
-                        <div className="w-7 h-7 flex-shrink-0 text-gray-300 group-hover:text-[#3CD4AB] transition-colors">
-                          {option.icon}
-                        </div>
-                        <span className="text-gray-200 text-sm sm:text-base font-medium group-hover:text-white transition-colors">
-                          {option.label}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                ) : (
-                    <select 
-                      className="w-full font-medium rounded-xl border border-gray-600/50 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-3.5 sm:p-4 text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer shadow-sm"
-                      onChange={(e) => handleSelectChange(index, e.target.value)}
-                      value={kycAnswers[index]?.answer || ""}
+            {question.type === "radio" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {question.options.map((option, optionIndex) => (
+                  <label 
+                    key={`radio-${index}-${optionIndex}`} 
+                    className="flex items-center gap-2 p-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-[#3CD4AB] hover:bg-white/10 cursor-pointer transition-all duration-200 group"
+                  >
+                    <input
+                      type="radio"
+                      name={`question-${index}`}
+                      value={option.label}
+                      className="w-4 h-4 text-[#3CD4AB] bg-gray-700 border-gray-600 focus:ring-[#3CD4AB] focus:ring-2"
+                      onChange={() => handleRadioChange(index, option.label)}
+                      checked={kycAnswers[index]?.answer === option.label}
                       required
-                    >
-                      <option className='text-gray-400 bg-gray-800' value="">
-                        Sélectionnez une option
-                      </option>
-                      {question.options.map((option, optionIndex) => (
-                        <option 
-                          key={`option-${index}-${optionIndex}`} 
-                          className="bg-gray-800 text-gray-100 py-2" 
-                          value={option.label}
-                        >
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                )}
+                    />
+                    {option.icon && (
+                      <div className="w-5 h-5 flex-shrink-0 text-white/80 group-hover:text-[#3CD4AB] transition-colors">
+                        {option.icon}
+                      </div>
+                    )}
+                    <span className="text-white/90 font-light text-sm group-hover:text-white transition-colors">
+                      {option.label}
+                    </span>
+                  </label>
+                ))}
               </div>
-            </div>
-          </React.Fragment>
+            ) : (
+              <select 
+                className="w-full font-light rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 focus:bg-white/10 p-2.5 text-sm text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer"
+                onChange={(e) => handleSelectChange(index, e.target.value)}
+                value={kycAnswers[index]?.answer || ""}
+                required
+              >
+                <option className='text-gray-400 bg-gray-800' value="">
+                  Sélectionnez une option
+                </option>
+                {question.options.map((option, optionIndex) => (
+                  <option 
+                    key={`option-${index}-${optionIndex}`} 
+                    className="bg-gray-800 text-gray-100 py-2" 
+                    value={option.label}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
         ))}
         </div>
       </div>

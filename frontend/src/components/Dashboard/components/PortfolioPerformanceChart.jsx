@@ -1,15 +1,39 @@
 import React, { useState, useMemo } from 'react';
-import { DateRangePicker } from '../../ui/date-picker';
-import { isWithinInterval, parseISO } from 'date-fns';
+import { isWithinInterval, parseISO, subDays, subMonths, subYears, startOfDay, endOfDay } from 'date-fns';
 
 const PortfolioPerformanceChart = ({ userInvestments }) => {
-  const [dateRange, setDateRange] = useState();
+  const [dateFilter, setDateFilter] = useState('all');
 
 
 
   // Filter investments based on date range (for table display)
   const filteredInvestments = useMemo(() => {
-    if (!dateRange?.from || !dateRange?.to) {
+    // Calculate date range based on filter selection
+    const now = new Date();
+    let range = null;
+    
+    switch (dateFilter) {
+      case '7days':
+        range = { from: subDays(now, 7), to: now };
+        break;
+      case '30days':
+        range = { from: subDays(now, 30), to: now };
+        break;
+      case '3months':
+        range = { from: subMonths(now, 3), to: now };
+        break;
+      case '6months':
+        range = { from: subMonths(now, 6), to: now };
+        break;
+      case '1year':
+        range = { from: subYears(now, 1), to: now };
+        break;
+      case 'all':
+      default:
+        return userInvestments;
+    }
+    
+    if (!range) {
       return userInvestments;
     }
 
@@ -20,8 +44,8 @@ const PortfolioPerformanceChart = ({ userInvestments }) => {
           const dateStr = investment.date || investment.createdAt || investment.dateCreated;
           const investmentDate = parseISO(dateStr);
           return isWithinInterval(investmentDate, {
-            start: dateRange.from,
-            end: dateRange.to
+            start: startOfDay(range.from),
+            end: endOfDay(range.to)
           });
         } catch {
           // If date parsing fails, show the investment
@@ -31,32 +55,53 @@ const PortfolioPerformanceChart = ({ userInvestments }) => {
       // If no date available, show all investments
       return true;
     });
-  }, [dateRange, userInvestments]);
+  }, [dateFilter, userInvestments]);
 
   // Clear date filter function
   const clearDateFilter = () => {
-    setDateRange(undefined);
+    setDateFilter('all');
   };
 
   return (
     <div className="bg-[#0F0F19] rounded-xl p-6 border border-white/10 mb-8">
       <div className="flex flex-col sm:flex-col mb-6 gap-4">
-        <h3 className=" font-semibold text-white">Tableau détaillé par produit avec valeur actuelle et performance en pourcentage</h3>
-        <div className="flex items-center gap-2">
+        <h3 className="font-semibold text-white">Tableau détaillé par produit avec valeur actuelle et performance en pourcentage</h3>
+        <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm text-gray-400">Filtrer par période:</span>
-          <DateRangePicker 
-            dateRange={dateRange}
-            setDateRange={setDateRange}
-          />
-          {dateRange && (
+          <div className="relative">
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="appearance-none pl-4 pr-10 py-2.5 bg-[#0F0F19] border border-white/20 rounded-lg text-white text-sm hover:border-white/40 focus:border-[#3CD4AB] focus:outline-none focus:ring-2 focus:ring-[#3CD4AB]/20 transition-all cursor-pointer font-medium"
+              style={{
+                backgroundImage: 'none'
+              }}
+            >
+              <option value="all" className="bg-[#1a1a2e] text-white py-2">Toutes les périodes</option>
+              <option value="7days" className="bg-[#1a1a2e] text-white py-2">7 derniers jours</option>
+              <option value="30days" className="bg-[#1a1a2e] text-white py-2">30 derniers jours</option>
+              <option value="3months" className="bg-[#1a1a2e] text-white py-2">3 derniers mois</option>
+              <option value="6months" className="bg-[#1a1a2e] text-white py-2">6 derniers mois</option>
+              <option value="1year" className="bg-[#1a1a2e] text-white py-2">1 an</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-white/60">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          {dateFilter !== 'all' && (
             <button
               onClick={clearDateFilter}
-              className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+              className="px-3 py-2 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium flex items-center gap-1.5"
             >
-              Effacer
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Réinitialiser
             </button>
           )}
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500 ml-auto">
             {filteredInvestments.length} investissement(s) affiché(s)
           </span>
         </div>

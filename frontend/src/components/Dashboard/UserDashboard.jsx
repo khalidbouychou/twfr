@@ -266,6 +266,21 @@ useEffect(() => {
   const [selectedInvestment, setSelectedInvestment] = useState(null);
   const [investAmount, setInvestAmount] = useState("");
   const [investmentHistory, setInvestmentHistory] = useState(() => {
+    // First try to get from UserContext if available
+    if (userInvestments && Array.isArray(userInvestments) && userInvestments.length > 0) {
+      return userInvestments.map(inv => ({
+        id: inv.id,
+        name: inv.nameProduct || inv.name || 'Produit',
+        amount: inv.valueInvested || inv.amount || 0,
+        currentValue: inv.currentValue || inv.valueInvested || 0,
+        profit: inv.profit || ((inv.currentValue || 0) - (inv.valueInvested || 0)),
+        date: inv.date ? new Date(inv.date).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR'),
+        sector: inv.category || inv.sector || 'autre',
+        return: inv.roi_product ? `+${inv.roi_product}%` : '+0%'
+      }));
+    }
+    
+    // Otherwise try localStorage
     const storedHistory = localStorage.getItem('investmentHistory');
     if (storedHistory) {
       try {
@@ -392,6 +407,42 @@ useEffect(() => {
       localStorage.setItem('userInitialized', 'true');
     }
   }, []);
+
+  // Synchronize userInvestments from UserContext with local investmentHistory
+  useEffect(() => {
+    if (userInvestments && Array.isArray(userInvestments) && userInvestments.length > 0) {
+      // Convert UserContext investments to local investmentHistory format
+      const convertedInvestments = userInvestments.map(inv => ({
+        id: inv.id,
+        name: inv.nameProduct || inv.name || 'Produit',
+        amount: inv.valueInvested || inv.amount || 0,
+        currentValue: inv.currentValue || inv.valueInvested || 0,
+        profit: inv.profit || ((inv.currentValue || 0) - (inv.valueInvested || 0)),
+        date: inv.date ? new Date(inv.date).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR'),
+        sector: inv.category || inv.sector || 'autre',
+        return: inv.roi_product ? `+${inv.roi_product}%` : '+0%'
+      }));
+      
+      // Update investmentHistory with the converted data
+      setInvestmentHistory(prev => {
+        // Create a map of existing investments by id for quick lookup
+        const existingMap = new Map(prev.map(inv => [inv.id, inv]));
+        
+        // Update existing and add new investments
+        const merged = convertedInvestments.map(newInv => {
+          const existing = existingMap.get(newInv.id);
+          // If exists and data changed, update it; otherwise keep the new one
+          return existing ? { ...existing, ...newInv } : newInv;
+        });
+        
+        // Check if there's actually a change before updating
+        if (JSON.stringify(merged) !== JSON.stringify(prev)) {
+          return merged;
+        }
+        return prev;
+      });
+    }
+  }, [userInvestments]);
 
   // Persistence hooks - save data to localStorage whenever they change
   useEffect(() => {

@@ -5,23 +5,23 @@ import Pi from './Pi'
 import Esg from './Esg'
 import Pe from './Pe'
 
-const categories = ({currentStep, allAnswers}) => {
+const categories = ({currentStep}) => {
     return (
         <div className="w-full">
             {currentStep === 0 && (
-                <Cc allAnswers={allAnswers} />
+                <Cc />
             )}
             {currentStep === 1 && (
-                <Pe allAnswers={allAnswers} />
+                <Pe />
             )}
             {currentStep === 2 && (
-                <Pf allAnswers={allAnswers} />
+                <Pf />
             )}
             {currentStep === 3 && (
-                <Pi allAnswers={allAnswers} />
+                <Pi />
             )}
             {currentStep === 4 && (
-                <Esg allAnswers={allAnswers} />
+                <Esg />
             )}
         </div>
     )

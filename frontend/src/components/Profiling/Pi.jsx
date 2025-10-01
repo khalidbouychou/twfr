@@ -4,8 +4,11 @@ import PiSkeleton from './PiSkeleton'
 import { UserContext } from '../Context/UserContext.jsx'
 
 const Pi = () => {
-    const { updateStepAnswers } = useContext(UserContext)
-    const [piAnswers, setPiAnswers] = useState([])
+    const { updateStepAnswers, stepAnswers } = useContext(UserContext)
+    const [piAnswers, setPiAnswers] = useState(() => {
+        // Initialize from stepAnswers on mount
+        return (stepAnswers && stepAnswers[3]) ? stepAnswers[3] : []
+    })
     const { isLoading } = useLoading()
   const [selectedOptions, setSelectedOptions] = useState({});
   const [otherInputs, setOtherInputs] = useState({});
@@ -103,6 +106,15 @@ const Pi = () => {
         })
     }
 
+    // Only initialize once when component mounts with saved data
+    useEffect(() => {
+        const savedAnswers = stepAnswers && stepAnswers[3] ? stepAnswers[3] : []
+        if (savedAnswers.length > 0 && piAnswers.length === 0) {
+            setPiAnswers(savedAnswers)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
     useEffect(() => {
         // Filter out empty answers and update step answers
         const validAnswers = piAnswers.filter(answer => {
@@ -113,9 +125,14 @@ const Pi = () => {
             }
             return answer.answer && answer.answer !== "";
         });
-        updateStepAnswers(3, validAnswers) // Step 3 for PI
-        console.log("PI All Answers Updated:", validAnswers)
-    }, [piAnswers, updateStepAnswers])
+        
+        const prevForStep = stepAnswers && stepAnswers[3] ? stepAnswers[3] : []
+        const isSame = JSON.stringify(prevForStep) === JSON.stringify(validAnswers)
+        if (!isSame) {
+            updateStepAnswers(3, validAnswers) // Step 3 for PI
+            console.log("PI All Answers Updated:", validAnswers)
+        }
+    }, [piAnswers, stepAnswers, updateStepAnswers])
 
   const lstquestion = [
     {
@@ -215,115 +232,103 @@ const Pi = () => {
     }
 
   return (
-    <div className="p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 mt-2 rounded-xl shadow-lg bg-gray-800/30 border border-gray-700/50 backdrop-blur-sm">
-      <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <div className="w-full">
+      <div className="space-y-4">
         {lstquestion.map((question, index) => (
-          <React.Fragment key={`question-${index}`}>
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between w-full gap-3 sm:gap-4 lg:gap-6">
-              {/* Question Label */}
-              <div className="w-full lg:w-5/12 xl:w-1/2">
-                <label className="text-gray-50 text-xs sm:text-sm md:text-base lg:text-lg font-medium leading-relaxed block">
-                  {question.question}
-                </label>
-              </div>
+          <div key={`question-${index}`} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300">
+            <label className="block text-white font-light text-sm mb-3">
+              {question.question}
+            </label>
 
-              {/* Answer Options */}
-              <div className="w-full lg:w-7/12 xl:w-1/2">
-                {question.type === "checkbox" ? (
-                  <div className="flex flex-col items-start gap-2 sm:gap-2">
-                    {question.options.map((option, optionIndex) => (
-                      <div key={`checkbox-${index}-${optionIndex}`} className="w-full">
-                        <label className="flex items-start gap-1.5 sm:gap-2 cursor-pointer hover:bg-gray-700/40 p-1.5 sm:p-2 rounded-lg transition-all duration-200 group border border-transparent hover:border-gray-600/50">
-                          <input
-                            type="checkbox"
-                            name={`question-${index}`}
-                            value={option.value}
-                            checked={selectedOptions[index]?.[option.value] || false}
-                            onChange={(e) => handleCheckboxChange(index, option.value, e.target.checked)}
-                            className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400 bg-gray-700 border-gray-600 focus:ring-emerald-400 focus:ring-2 flex-shrink-0 mt-0.5 rounded"
-                            required={!(piAnswers[index]?.answer?.length > 0)}
-                          />
-                          <span className="text-gray-100 text-xs sm:text-sm lg:text-base group-hover:text-white transition-colors leading-relaxed">
-                            {option.label}
-                          </span>
-                        </label>
-                        {option.value === "Autres" && selectedOptions[index]?.[option.value] && (
-                          <div className="ml-4 sm:ml-6 mt-1.5">
-                            <input
-                              type="text"
-                              placeholder="Précisez votre réponse..."
-                              value={otherInputs[index] || ""}
-                              onChange={(e) => handleOtherInputChange(index, e.target.value)}
-                              className="w-full font-medium rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-2 text-xs sm:text-sm text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-200"
-                              required
-                            />
-                          </div>
-                        )}
-                        {option.value === "Non" && selectedOptions[index]?.[option.value] && (
-                          <div className="ml-4 sm:ml-6 mt-1.5">
-                            <input
-                              type="text"
-                              placeholder="Précisez votre réponse..."
-                              value={otherInputs[index] || ""}
-                              onChange={(e) => handleOtherInputChange(index, e.target.value)}
-                              className="w-full font-medium rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-2 text-xs sm:text-sm text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-200"
-                              required
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : question.type === "radio" ? (
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 lg:gap-4 justify-start">
-                    {question.options.map((option, optionIndex) => (
-                      <label 
-                        key={`radio-${index}-${optionIndex}`} 
-                        className="flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:bg-gray-700/40 p-1.5 sm:p-2 rounded-lg transition-all duration-200 group border border-transparent hover:border-gray-600/50"
-                      >
+            {question.type === "checkbox" ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                {question.options.map((option, optionIndex) => (
+                  <div key={`checkbox-${index}-${optionIndex}`} className="w-full">
+                    <label className="flex items-start gap-2 p-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-[#3CD4AB] hover:bg-white/10 cursor-pointer transition-all duration-200 group">
+                      <input
+                        type="checkbox"
+                        name={`question-${index}`}
+                        value={option.value}
+                        checked={selectedOptions[index]?.[option.value] || false}
+                        onChange={(e) => handleCheckboxChange(index, option.value, e.target.checked)}
+                        className="w-4 h-4 text-[#3CD4AB] bg-gray-700 border-gray-600 focus:ring-[#3CD4AB] focus:ring-2 flex-shrink-0 mt-0.5 rounded"
+                        required={!(piAnswers[index]?.answer?.length > 0)}
+                      />
+                      <span className="text-white/90 font-light text-sm leading-relaxed group-hover:text-white transition-colors">
+                        {option.label}
+                      </span>
+                    </label>
+                    {option.value === "Autres" && selectedOptions[index]?.[option.value] && (
+                      <div className="mt-2">
                         <input
-                          type="radio"
-                          name={`question-${index}`}
-                          value={option.label}
-                          className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400 bg-gray-700 border-gray-600 focus:ring-emerald-400 focus:ring-2 flex-shrink-0"
-                          onChange={() => handleRadioChange(index, option.label)}
-                          checked={piAnswers[index]?.answer === option.label}
+                          type="text"
+                          placeholder="Précisez votre réponse..."
+                          value={otherInputs[index] || ""}
+                          onChange={(e) => handleOtherInputChange(index, e.target.value)}
+                          className="w-full font-light rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 focus:bg-white/10 p-2 text-xs text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300"
                           required
                         />
-                        <span className="text-gray-100 text-xs sm:text-sm lg:text-base group-hover:text-white transition-colors">
-                          {option.label}
-                        </span>
-                      </label>
-                    ))}
+                      </div>
+                    )}
+                    {option.value === "Non" && selectedOptions[index]?.[option.value] && (
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          placeholder="Précisez votre réponse..."
+                          value={otherInputs[index] || ""}
+                          onChange={(e) => handleOtherInputChange(index, e.target.value)}
+                          className="w-full font-light rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 focus:bg-white/10 p-2 text-xs text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300"
+                          required
+                        />
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="w-full">
-                    <select 
-                      className="w-full font-medium rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-2 sm:p-3 text-xs sm:text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
-                      onChange={(e) => handleSelectChange(index, e.target.value)}
-                      value={piAnswers[index]?.answer || ""}
-                      required
-                    >
-                      <option className='text-gray-400 bg-gray-800' value="">
-                        Sélectionnez une option
-                      </option>
-                      {question.options.map((option, optionIndex) => (
-                        <option 
-                          key={`option-${index}-${optionIndex}`} 
-                          className="bg-gray-800 text-gray-100 py-2" 
-                          value={option.label}
-                        >
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                ))}
               </div>
-            </div>
-            
-            
-          </React.Fragment>
+            ) : question.type === "radio" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {question.options.map((option, optionIndex) => (
+                  <label 
+                    key={`radio-${index}-${optionIndex}`} 
+                    className="flex items-center gap-2 p-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-[#3CD4AB] hover:bg-white/10 cursor-pointer transition-all duration-200 group"
+                  >
+                    <input
+                      type="radio"
+                      name={`question-${index}`}
+                      value={option.label}
+                      className="w-4 h-4 text-[#3CD4AB] bg-gray-700 border-gray-600 focus:ring-[#3CD4AB] focus:ring-2 flex-shrink-0"
+                      onChange={() => handleRadioChange(index, option.label)}
+                      checked={piAnswers[index]?.answer === option.label}
+                      required
+                    />
+                    <span className="text-white/90 font-light text-sm group-hover:text-white transition-colors">
+                      {option.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <select 
+                className="w-full font-light rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 focus:bg-white/10 p-2.5 text-sm text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer"
+                onChange={(e) => handleSelectChange(index, e.target.value)}
+                value={piAnswers[index]?.answer || ""}
+                required
+              >
+                <option className='text-gray-400 bg-gray-800' value="">
+                  Sélectionnez une option
+                </option>
+                {question.options.map((option, optionIndex) => (
+                  <option 
+                    key={`option-${index}-${optionIndex}`} 
+                    className="bg-gray-800 text-gray-100 py-2" 
+                    value={option.label}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
         ))}
       </div>
     </div>
