@@ -15,11 +15,11 @@ const headstepper = ({currentStep, totalSteps = 5}) => {
 
     const getStepStyle = (stepIndex) => {
         if (stepIndex < currentStep) {
-            return " bg-[#3CD4AB] border-none text-white";
+            return "  border-none text-green-400";
         } else if (stepIndex === currentStep) {
-            return "  border-none bg-white text-gray-800";
+            return "  border-none text-gray-50";
         } else {
-            return "text-gray-600 border-none bg-gray-50";
+            return "text-gray-600 border-none ";
         }
     };
 
@@ -27,24 +27,33 @@ const headstepper = ({currentStep, totalSteps = 5}) => {
   return (
     <>
     {/* Mobile View - Show only current step */}
-    <div className="block md:hidden mx-4 mb-6">
-      <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+    <div className="block lg:hidden w-full mb-6">
+      <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50 shadow-xl">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white bg-[#3CD4AB]`}>
-              {currentStep + 1}
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-white bg-gradient-to-br from-[#3CD4AB] to-[#2ba885] shadow-lg">
+                <span className="text-xl">{currentStep + 1}</span>
+              </div>
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#3CD4AB] rounded-full border-2 border-gray-900 flex items-center justify-center">
+                {steps[currentStep]?.icon && (
+                  <div className="scale-50">
+                    {steps[currentStep].icon}
+                  </div>
+                )}
+              </div>
             </div>
             <div>
-              <p className="text-white font-semibold text-sm">{steps[currentStep]?.shortName}</p>
-              <p className="text-gray-400 text-xs">Étape {currentStep + 1} sur {steps.length}</p>
+              <p className="text-white font-bold text-base sm:text-lg">{steps[currentStep]?.shortName}</p>
+              <p className="text-gray-400 text-sm">Étape {currentStep + 1} sur {steps.length}</p>
             </div>
           </div>
-          <div className="flex gap-1">
+          <div className="flex flex-col gap-1.5">
             {steps.map((_, index) => (
               <div
                 key={index}
                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index <= currentStep ? 'bg-[#3CD4AB]' : 'bg-gray-600'
+                  index === currentStep ? 'bg-[#3CD4AB] w-6' : index < currentStep ? 'bg-[#3CD4AB]/60' : 'bg-gray-600'
                 }`}
               />
             ))}
@@ -54,32 +63,50 @@ const headstepper = ({currentStep, totalSteps = 5}) => {
     </div>
 
     {/* Desktop View - Show all steps */}
-    <div className="hidden md:flex flex-col mx-4 lg:mx-80">
-      <div>
-        <ol className="grid grid-cols-5 divide-x divide-gray-700 overflow-hidden rounded-2xl bg-gray-800/30 border border-gray-700">
+    <div className="hidden lg:flex w-full mb-8">
+      <div className="w-full bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+        <div className="flex items-center justify-between gap-2">
          {steps.map((step, index) => (
-             <li key={index} className={`flex flex-col items-center justify-center gap-3 p-4 transition-all duration-500 ${getStepStyle(index)}`}>
-                <div className="flex items-center justify-center">
-                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300">
-                      {index <= currentStep ? (
-                        index < currentStep ? (
-                          <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          index + 1
-                        )
-                      ) : (
-                        index + 1
-                      )}
+             <React.Fragment key={index}>
+               <div className={`flex items-center gap-4 flex-1 transition-all duration-500 ${getStepStyle(index)} ${index === currentStep ? 'scale-105' : 'scale-100'}`}>
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg transition-all duration-300 ${
+                  index < currentStep 
+                    ? 'bg-gradient-to-br from-[#3CD4AB] to-[#2ba885]' 
+                    : index === currentStep 
+                    ? 'bg-gradient-to-br from-[#89559F] to-[#7a4a8f]' 
+                    : 'bg-gray-700/50'
+                }`}>
+                  {index < currentStep ? (
+                    <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <div className={index === currentStep ? 'scale-110' : ''}>
+                      {step.icon}
                     </div>
+                  )}
                 </div>
-                <p className="leading-tight text-center">
-                    <strong className="block font-medium text-xs lg:text-sm">{step.name}</strong>
-                </p>
-            </li>
+                
+                <div className="flex flex-col">
+                  <p className={`font-semibold text-sm transition-all duration-300 ${
+                    index === currentStep ? 'text-white text-base' : 'text-gray-400'
+                  }`}>
+                    {step.name}
+                  </p>
+                  <p className="text-gray-500 text-xs">Étape {index + 1}</p>
+                </div>
+              </div>
+              
+              {index < steps.length - 1 && (
+                <div className="flex-shrink-0 w-8 lg:w-12 h-0.5 mx-2">
+                  <div className={`h-full rounded-full transition-all duration-500 ${
+                    index < currentStep ? 'bg-[#3CD4AB]' : 'bg-gray-700'
+                  }`} />
+                </div>
+              )}
+             </React.Fragment>
          ))}
-        </ol>
+        </div>
       </div>
     </div>
   </>

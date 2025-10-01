@@ -15,6 +15,7 @@ import Contactus from "./components/Contactus";
 import UserDashboard from './components/Dashboard/UserDashboard';
 import DataSharingDemo from './components/Dashboard/DataSharingDemo';
 import { UserContext } from './components/Context/UserContext.jsx';
+import { CartProvider } from './components/Context/CartContext.jsx';
 import Login from './components/Login/Login';
 import Stepper from './components/Profiling/Stepper';
 import TawfirStats from "./components/TawfirState";
@@ -75,19 +76,21 @@ const App = () => {
 
   return (
       <GoogleOAuthProvider clientId={googleClientId}>
-      <BrowserRouter>
-        <Routes>
-          {/* <Route path="/test" element={<Test/>} /> */}
-          {/* Public routes */}
-            <Route path="/login" element={<RedirectIfAuth><Login /></RedirectIfAuth>} />
-          <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={<RequireAuth><UserDashboard /></RequireAuth>} />
-          <Route path="/simulation" element={<Stepper/>} />
-          
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+        <CartProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* <Route path="/test" element={<Test/>} /> */}
+              {/* Public routes */}
+                <Route path="/login" element={<RedirectIfAuth><Login /></RedirectIfAuth>} />
+              <Route path="/" element={<LandingPage />} />
+                <Route path="/dashboard" element={<RequireAuth><UserDashboard /></RequireAuth>} />
+              <Route path="/simulation" element={<Stepper/>} />
+              
+              {/* Catch all route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </CartProvider>
       </GoogleOAuthProvider>
   );
 };

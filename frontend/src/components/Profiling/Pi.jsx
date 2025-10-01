@@ -322,12 +322,7 @@ const Pi = () => {
               </div>
             </div>
             
-            {/* Separator */}
-            {index !== lstquestion.length - 1 && (
-              <div className="w-full">
-                <hr className='border-t border-gray-600/50 mt-3 sm:mt-4 lg:mt-6 opacity-60' />
-              </div>
-            )}
+            
           </React.Fragment>
         ))}
       </div>

@@ -53,14 +53,38 @@ const UserDashboard = () => {
 
   // Prefer profile from context (Google or manual); fallback simple
   const fallbackAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
+  
+  // Get avatar from multiple possible sources including Google profile
+  const getAvatarSrc = () => {
+    // First check userProfileData (unified context)
+    if (userProfileData?.avatar) return userProfileData.avatar;
+    if (userProfileData?.picture) return userProfileData.picture;
+    if (userProfileData?.imageUrl) return userProfileData.imageUrl;
+    
+    // Check Google profile in localStorage
+    try {
+      const googleProfile = JSON.parse(localStorage.getItem('googleProfile') || '{}');
+      if (googleProfile.picture) return googleProfile.picture;
+    } catch (e) {
+      console.error('Error parsing Google profile:', e);
+    }
+    
+    // Check alternative profile data in localStorage
+    try {
+      const profileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
+      if (profileData.avatar) return profileData.avatar;
+      if (profileData.picture) return profileData.picture;
+    } catch (e) {
+      console.error('Error parsing profile data:', e);
+    }
+    
+    return fallbackAvatar;
+  };
+  
   const userData = {
     name: userProfileData?.fullName || userProfileData?.name || "Utilisateur",
     email: userProfileData?.email || "",
-    avatar:
-      userProfileData?.avatar ||
-      userProfileData?.picture ||
-      userProfileData?.imageUrl ||
-      fallbackAvatar,
+    avatar: getAvatarSrc(),
     createdAt: new Date()
   };
 
@@ -653,8 +677,9 @@ useEffect(() => {
         };
       }
 
-      const growthRate = 0.02 + Math.random() * 0.06; // 2-8% growth
-      const currentValue = inv.amount * (1 + growthRate);
+      // Use actual current value from investment (amount + profit)
+      // If currentValue doesn't exist, calculate it from profit
+      const currentValue = inv.currentValue || (inv.amount + (inv.profit || 0));
 
       productGroups[inv.name].totalInvested += inv.amount;
       productGroups[inv.name].currentValue += currentValue;
@@ -1231,7 +1256,7 @@ useEffect(() => {
     }
   }, [pendingInvestment, clearPendingInvestment]);
 
-  // Update pie chart data every 30 seconds
+  // Update pie chart data in real-time based on investmentHistory changes
   useEffect(() => {
     const updatePieChartData = () => {
       if (!investmentHistory || investmentHistory.length === 0) {
@@ -1241,70 +1266,46 @@ useEffect(() => {
 
       const colors = ['#3CD4AB', '#89559F', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
       
-      // Update pie chart data with incremented ROI
-      setPieChartData(prevData => {
-        // Group investments by product name to avoid duplicates
-        const groupedInvestments = investmentHistory.reduce((acc, investment) => {
-          const productName = investment?.name || `Produit ${acc.size + 1}`;
-          
-          if (acc.has(productName)) {
-            // Product already exists - add to existing amounts
-            const existing = acc.get(productName);
-            existing.invested += investment?.amount || 0;
-            existing.roi += investment?.profit || 0;
-          } else {
-            // New product - create new entry
-            acc.set(productName, {
-              name: productName,
-              invested: investment?.amount || 0,
-              roi: investment?.profit || 0
-            });
-          }
-          
-          return acc;
-        }, new Map());
-
-        // Convert Map to Array
-        const uniqueProducts = Array.from(groupedInvestments.values());
+      // Group investments by product name and use ACTUAL profit values from investmentHistory
+      const groupedInvestments = investmentHistory.reduce((acc, investment) => {
+        const productName = investment?.name || `Produit ${acc.size + 1}`;
         
-        // Check if we need to rebuild or just increment
-        const hasStructureChanged = prevData.length === 0 || 
-                                   prevData.length !== uniqueProducts.length ||
-                                   prevData.some(prev => !uniqueProducts.find(curr => curr.name === prev.name));
-        
-        if (hasStructureChanged) {
-          // Structure changed - rebuild from grouped investments
-          return uniqueProducts.map((product, index) => ({
-            ...product,
-            total: product.invested + product.roi,
-            color: colors[index % colors.length]
-          }));
+        if (acc.has(productName)) {
+          // Product already exists - add to existing amounts
+          const existing = acc.get(productName);
+          existing.invested += investment?.amount || 0;
+          existing.roi += investment?.profit || 0; // Sum actual current profits
         } else {
-          // Same structure - increment ROI by 2 MAD and sync invested amounts
-          return uniqueProducts.map((product, index) => {
-            const prevProduct = prevData.find(prev => prev.name === product.name);
-            const currentRoi = prevProduct ? prevProduct.roi + 2 : product.roi;
-            
-            return {
-              name: product.name,
-              invested: product.invested,
-              roi: currentRoi,
-              total: product.invested + currentRoi,
-              color: colors[index % colors.length]
-            };
+          // New product - create new entry
+          acc.set(productName, {
+            name: productName,
+            invested: investment?.amount || 0,
+            roi: investment?.profit || 0 // Use actual current profit
           });
         }
-      });
+        
+        return acc;
+      }, new Map());
+
+      // Convert Map to Array and build chart data
+      const uniqueProducts = Array.from(groupedInvestments.values());
+      
+      // Always use actual values from investmentHistory (no independent incrementing)
+      const newPieChartData = uniqueProducts.map((product, index) => ({
+        name: product.name,
+        invested: product.invested,
+        roi: product.roi, // This is the sum of actual current profits
+        total: product.invested + product.roi,
+        color: colors[index % colors.length]
+      }));
+      
+      setPieChartData(newPieChartData);
     };
 
-    // Initial update
+    // Update immediately when investmentHistory changes
     updatePieChartData();
 
-    // Set up interval for real-time updates
-    const interval = setInterval(updatePieChartData, 30000); // Update every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [investmentHistory]);
+  }, [investmentHistory]); // Re-run whenever investmentHistory changes (including profit updates)
 
   const matchedInvestments = useMemo(() => {
     if (!userResults || !userResults.matchedProducts) return [];
@@ -1327,6 +1328,7 @@ useEffect(() => {
       );
 
       return {
+        id: p.id || p.nom_produit, // Add unique id for cart functionality
         name: p.nom_produit,
         risk: Number(p.risque) || 3,
         return: `${Math.max(
@@ -1482,6 +1484,7 @@ useEffect(() => {
           showMobileMenu={showMobileMenu}
           setShowMobileMenu={setShowMobileMenu}
           userBalance={userBalance}
+          setUserBalance={setUserBalance}
           setBalanceOperation={setBalanceOperation}
           setShowBalanceModal={setShowBalanceModal}
           userData={userData}
@@ -1499,16 +1502,19 @@ useEffect(() => {
           setNotificationHistory={setNotificationHistory}
           setNotifications={setNotifications}
           notificationRef={notificationRef}
-          setSidebarOpen={setSidebarOpen}
           portfolioData={portfolioData}
           calculateTotalProfits={calculateTotalProfits}
           setShowProfitModal={setShowProfitModal}
           setProfitOperation={setProfitOperation}
+          setInvestmentHistory={setInvestmentHistory}
+          addUserInvestment={addUserInvestment}
+          getSectorFromName={getSectorFromName}
         />
 
         {/* Sidebar */}
         <Sidebar 
           sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
           isSidebarHovered={isSidebarHovered}
           setIsSidebarHovered={setIsSidebarHovered}
           currentPage={currentPage}
@@ -1516,8 +1522,8 @@ useEffect(() => {
         />
 
         {/* Main Content */}
-        <div className={`p-2 sm:p-3 lg:p-4 pt-16 sm:pt-18 lg:pt-20 transition-all duration-200 ${isSidebarHovered ? 'lg:ml-64' : 'lg:ml-16'}`}>
-          <div className="p-2 sm:p-4 lg:p-6 bg-[#0F0F19] border border-[#89559F]/20 rounded-lg shadow-sm">
+        <div className={`p-2 sm:p-3 lg:p-4 pt-32 sm:pt-36 lg:pt-20 pb-24 lg:pb-8 transition-all duration-200 ${isSidebarHovered ? 'lg:ml-64' : 'lg:ml-16'} h-screen overflow-y-auto`}>
+          <div className="p-2 sm:p-4 lg:p-6 bg-[#0F0F19] border border-[#89559F]/20 rounded-lg shadow-sm min-h-full">
             {/* Render different pages based on currentPage */}
             {currentPage === "dashboard" && (
               <div>
@@ -1719,6 +1725,7 @@ useEffect(() => {
                 userResults={userResults}
                 matchedInvestments={matchedInvestments}
                 handleInvestClick={handleInvestClick}
+                userBalance={userBalance}
               />
             )}
 
@@ -2136,7 +2143,7 @@ useEffect(() => {
         </div>
 
         {/* Floating AI Assistant Button */}
-        <div className="fixed bottom-6 right-6 z-40">
+        <div className="fixed bottom-20 lg:bottom-6 right-6 z-40">
           <button
             onClick={() => setShowAIAssistant(true)}
             className="group relative w-14 h-14 bg-gradient-to-r from-[#3CD4AB] to-emerald-400 hover:from-[#3CD4AB]/90 hover:to-emerald-400/90 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center transform hover:scale-110"

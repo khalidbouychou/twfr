@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSharedData } from '../../Context/useSharedData.js';
+import { useCart } from '../../Context/CartContext';
 
 // Mock product data with avatars and ROI information
 const getProductDetails = (productName) => {
@@ -75,6 +76,9 @@ const SimulationsPage = ({ userBalance }) => {
     validators
   } = useSharedData();
 
+  // Cart context
+  const { addMultipleToCart } = useCart();
+
   // Use the prop balance if available, otherwise fall back to context balance
   const currentBalance = userBalance !== undefined ? userBalance : accountBalance;
 
@@ -87,8 +91,7 @@ const SimulationsPage = ({ userBalance }) => {
   
   // Investment flow states
   const [showInvestmentPopup, setShowInvestmentPopup] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState([]); // Cart
-  const [currentStep, setCurrentStep] = useState('products'); // 'products' | 'cart' | 'loading' | 'confirmed'
+  const [selectedProductsForSelection, setSelectedProductsForSelection] = useState({}); // Checkbox selections
   const [investmentAmounts, setInvestmentAmounts] = useState({});
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -100,58 +103,107 @@ const SimulationsPage = ({ userBalance }) => {
   // Investment flow functions
   const openInvestmentPopup = () => {
     setShowInvestmentPopup(true);
-    setCurrentStep('products');
-    setSelectedProducts([]);
+    setSelectedProductsForSelection({});
     setInvestmentAmounts({});
   };
 
-  const addToCart = (product, amount) => {
-    const productDetails = getProductDetails(product);
-    setSelectedProducts(prev => [...prev, { ...productDetails, amount: parseFloat(amount) }]);
-    setInvestmentAmounts(prev => ({ ...prev, [product]: parseFloat(amount) }));
-  };
-
-  const removeFromCart = (productIndex) => {
-    setSelectedProducts(prev => prev.filter((_, index) => index !== productIndex));
-  };
-
-  const getTotalInvestment = () => {
-    return selectedProducts.reduce((total, product) => total + product.amount, 0);
-  };
-
-  const handleConfirmInvestment = async () => {
-    const totalInvestment = getTotalInvestment();
+  const handleProductCheckbox = (productName, checked) => {
+    setSelectedProductsForSelection(prev => ({
+      ...prev,
+      [productName]: checked
+    }));
     
-    // Check if user has sufficient balance
-    if (totalInvestment > currentBalance) {
-      setAlertMessage(`Solde insuffisant. Vous avez ${currentBalance.toLocaleString()} MAD mais vous voulez investir ${totalInvestment.toLocaleString()} MAD.`);
-      setShowAlert(true);
-      return;
-    }
-
-    setCurrentStep('loading');
-    
-    // Simulate loading time
-    setTimeout(() => {
-      // Process investments
-      selectedProducts.forEach(product => {
-        actions.buyInvestment({
-          nameProduct: product.title,
-          category: 'investment',
-          roi_product: product.roi,
-          avatar: product.avatar
-        }, product.amount);
+    // Clear amount if unchecked
+    if (!checked) {
+      setInvestmentAmounts(prev => {
+        const newAmounts = { ...prev };
+        delete newAmounts[productName];
+        return newAmounts;
       });
+    }
+  };
+
+  const handleAmountChange = (productName, amount) => {
+    setInvestmentAmounts(prev => ({
+      ...prev,
+      [productName]: amount
+    }));
+  };
+
+  const getTotalSelectedAmount = () => {
+    return Object.entries(investmentAmounts).reduce((total, [productName, amount]) => {
+      if (selectedProductsForSelection[productName] && amount) {
+        return total + parseFloat(amount);
+      }
+      return total;
+    }, 0);
+  };
+
+  const getSelectedProductsCount = () => {
+    return Object.values(selectedProductsForSelection).filter(Boolean).length;
+  };
+
+  const canAddToCart = () => {
+    const hasSelection = getSelectedProductsCount() > 0;
+    const allSelectedHaveAmounts = Object.entries(selectedProductsForSelection).every(([productName, isSelected]) => {
+      if (isSelected) {
+        const amount = investmentAmounts[productName];
+        const product = getProductDetails(productName);
+        return amount && parseFloat(amount) >= product.minInvestment;
+      }
+      return true;
+    });
+    const totalAmount = getTotalSelectedAmount();
+    const initialCapital = parseFloat(form.initialCapital) || 0;
+    
+    return hasSelection && allSelectedHaveAmounts && totalAmount <= initialCapital && totalAmount > 0;
+  };
+
+  const handleAddToCart = () => {
+    // Prepare array of products to add
+    const productsToAdd = [];
+    
+    Object.entries(selectedProductsForSelection).forEach(([productName, isSelected]) => {
+      if (isSelected && investmentAmounts[productName]) {
+        const productDetails = getProductDetails(productName);
+        const amount = parseFloat(investmentAmounts[productName]);
+        
+        console.log('Preparing to add to cart:', productName, 'Amount:', amount);
+        
+        productsToAdd.push({
+          product: {
+            id: productName,
+            name: productDetails.title,
+            image: productDetails.avatar,
+            min: productDetails.minInvestment,
+            risk: 5, // Default risk level
+            roi: {
+              annual: productDetails.roi
+            }
+          },
+          amount: amount
+        });
+      }
+    });
+    
+    console.log('Total products to add:', productsToAdd.length);
+    
+    // Add all products to cart in a single operation
+    if (productsToAdd.length > 0) {
+      addMultipleToCart(productsToAdd);
       
-      setCurrentStep('confirmed');
+      // Show success message
+      setAlertMessage(`${productsToAdd.length} produit(s) ajouté(s) au panier avec succès!`);
+      setShowAlert(true);
       
-      // Close popup after 2 seconds
+      // Close popup after short delay
       setTimeout(() => {
+        setShowAlert(false);
         setShowInvestmentPopup(false);
-        setCurrentStep('products');
-        setSelectedProducts([]);
+        setSelectedProductsForSelection({});
+        setInvestmentAmounts({});
       }, 2000);
-    }, 2000);
+    }
   };
 
   const handleSimulate = () => {
@@ -194,7 +246,7 @@ const SimulationsPage = ({ userBalance }) => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row w-full gap-4 lg:gap-8 justify-center mt-4 lg:mt-8 px-4 lg:px-0" >
+    <div className="flex flex-col lg:flex-row w-full gap-4 lg:gap-8 justify-center mt-4 lg:mt-8 px-4 lg:px-0 h-full overflow-y-auto" >
       <div className="bg-white/5 border border-white/20 rounded-xl p-4 lg:p-6 w-full lg:max-w-2xl">
         <h3 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Simulation d'investissement</h3>
         
@@ -349,206 +401,142 @@ const SimulationsPage = ({ userBalance }) => {
           <div className="bg-white rounded-xl max-w-6xl w-full max-h-[95vh] lg:max-h-[90vh] overflow-y-auto mx-2 lg:mx-0">
             
             {/* Products Selection Step */}
-            {currentStep === 'products' && (
-              <div className="p-4 lg:p-6">
-                <div className="flex items-center justify-between mb-4 lg:mb-6">
-                  <h3 className="text-lg lg:text-2xl font-bold text-gray-800">Sélectionnez vos investissements</h3>
-                  <button 
-                    onClick={() => setShowInvestmentPopup(false)}
-                    className="text-gray-500 hover:text-gray-700 text-2xl"
-                  >
-                    ×
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mb-4 lg:mb-6">
-                  {result?.products.map((productName, index) => {
-                    const product = getProductDetails(productName);
-                    return (
-                      <div key={index} className="border border-gray-200 rounded-lg p-3 lg:p-4 hover:border-[#3CD4AB] transition-colors">
-                        <div className="flex items-center mb-3 lg:mb-4">
-                          <img 
-                            src={product.avatar} 
-                            alt={product.title}
-                            className="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover mr-2 lg:mr-3"
-                          />
-                          <div>
-                            <h4 className="font-semibold text-gray-800 text-sm lg:text-base">{product.title}</h4>
-                            <p className="text-green-600 font-medium text-xs lg:text-sm">ROI: {product.roi}%</p>
-                          </div>
-                        </div>
-                        
-                        <div className="mb-3 lg:mb-4">
-                          <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
-                            Montant à investir (Min: {product.minInvestment.toLocaleString()} MAD)
-                          </label>
-                          <input
-                            type="number"
-                            min={product.minInvestment}
-                            placeholder={product.minInvestment.toString()}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#3CD4AB] text-sm lg:text-base"
-                            onChange={(e) => {
-                              const amount = parseFloat(e.target.value);
-                              if (amount >= product.minInvestment) {
-                                setInvestmentAmounts(prev => ({ ...prev, [productName]: amount }));
-                              }
-                            }}
-                          />
-                        </div>
-                        
-                        <button
-                          onClick={() => {
-                            const amount = investmentAmounts[productName];
-                            if (amount >= product.minInvestment) {
-                              addToCart(productName, amount);
-                            } else {
-                              setAlertMessage(`Montant minimum requis: ${product.minInvestment.toLocaleString()} MAD`);
-                              setShowAlert(true);
-                            }
-                          }}
-                          disabled={!investmentAmounts[productName] || investmentAmounts[productName] < product.minInvestment}
-                          className="w-full bg-[#3CD4AB] text-white py-2 rounded-md hover:bg-[#2ea885] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
-                        >
-                          Ajouter au panier
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 border-t gap-3">
-                  <div className="text-gray-600 text-sm lg:text-base">
-                    Produits sélectionnés: {selectedProducts.length}
+            <div className="p-4 lg:p-6">
+              <div className="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 className="text-lg lg:text-2xl font-bold text-gray-800">Sélectionnez vos investissements</h3>
+                <button 
+                  onClick={() => setShowInvestmentPopup(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              
+              {/* Capital and Total Summary */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                  <div>
+                    <span className="text-sm lg:text-base text-gray-700">Capital initial: </span>
+                    <span className="font-bold text-[#3CD4AB] text-base lg:text-lg">{parseFloat(form.initialCapital).toLocaleString()} MAD</span>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
-                    <button
-                      onClick={() => setShowInvestmentPopup(false)}
-                      className="px-4 lg:px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm lg:text-base"
-                    >
-                      Annuler
-                    </button>
-                    {selectedProducts.length > 0 && (
-                      <button
-                        onClick={() => setCurrentStep('cart')}
-                        className="px-4 lg:px-6 py-2 bg-[#3CD4AB] text-white rounded-md hover:bg-[#2ea885] transition-colors text-sm lg:text-base"
-                      >
-                        Voir le panier ({selectedProducts.length})
-                      </button>
-                    )}
+                  <div>
+                    <span className="text-sm lg:text-base text-gray-700">Total sélectionné: </span>
+                    <span className={`font-bold text-base lg:text-lg ${getTotalSelectedAmount() > parseFloat(form.initialCapital) ? 'text-red-500' : 'text-gray-800'}`}>
+                      {getTotalSelectedAmount().toLocaleString()} MAD
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-sm lg:text-base text-gray-700">Restant: </span>
+                    <span className={`font-bold text-base lg:text-lg ${(parseFloat(form.initialCapital) - getTotalSelectedAmount()) < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                      {(parseFloat(form.initialCapital) - getTotalSelectedAmount()).toLocaleString()} MAD
+                    </span>
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Cart Step */}
-            {currentStep === 'cart' && (
-              <div className="p-4 lg:p-6">
-                <div className="flex items-center justify-between mb-4 lg:mb-6">
-                  <h3 className="text-lg lg:text-2xl font-bold text-gray-800">Votre sélection</h3>
-                  <button 
-                    onClick={() => setShowInvestmentPopup(false)}
-                    className="text-gray-500 hover:text-gray-700 text-2xl"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <div className="space-y-3 lg:space-y-4 mb-4 lg:mb-6">
-                  {selectedProducts.map((product, index) => (
-                    <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 lg:p-4 border border-gray-200 rounded-lg gap-3">
-                      <div className="flex items-center">
-                        <img 
-                          src={product.avatar} 
-                          alt={product.title}
-                          className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover mr-2 lg:mr-3"
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mb-4 lg:mb-6">
+                {result?.products.map((productName, index) => {
+                  const product = getProductDetails(productName);
+                  const isSelected = selectedProductsForSelection[productName];
+                  const currentAmount = investmentAmounts[productName] || '';
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={`border-2 rounded-lg p-3 lg:p-4 transition-all ${
+                        isSelected 
+                          ? 'border-[#3CD4AB] bg-[#3CD4AB]/5' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      {/* Checkbox and Product Header */}
+                      <div className="flex items-start mb-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected || false}
+                          onChange={(e) => handleProductCheckbox(productName, e.target.checked)}
+                          className="mt-1 mr-3 w-5 h-5 text-[#3CD4AB] rounded focus:ring-[#3CD4AB] cursor-pointer"
                         />
-                        <div>
-                          <h4 className="font-semibold text-gray-800 text-sm lg:text-base">{product.title}</h4>
-                          <p className="text-gray-600 text-xs lg:text-sm">ROI: {product.roi}%</p>
+                        <div className="flex-1">
+                          <div className="flex items-center mb-2">
+                            <img 
+                              src={product.avatar} 
+                              alt={product.title}
+                              className="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover mr-2 lg:mr-3"
+                            />
+                            <div>
+                              <h4 className="font-semibold text-gray-800 text-sm lg:text-base">{product.title}</h4>
+                              <p className="text-green-600 font-medium text-xs lg:text-sm">ROI: {product.roi}%</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between sm:justify-end gap-3">
-                        <span className="font-semibold text-gray-800 text-sm lg:text-base">{product.amount.toLocaleString()} MAD</span>
-                        <button
-                          onClick={() => removeFromCart(index)}
-                          className="text-red-500 hover:text-red-700 text-xl"
-                        >
-                          ×
-                        </button>
+                      
+                      {/* Amount Input */}
+                      <div className={isSelected ? '' : 'opacity-50 pointer-events-none'}>
+                        <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
+                          Montant à investir (Min: {product.minInvestment.toLocaleString()} MAD)
+                        </label>
+                        <input
+                          type="number"
+                          min={product.minInvestment}
+                          value={currentAmount}
+                          placeholder={product.minInvestment.toString()}
+                          disabled={!isSelected}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#3CD4AB] text-sm lg:text-base disabled:bg-gray-100"
+                          onChange={(e) => handleAmountChange(productName, e.target.value)}
+                        />
+                        {isSelected && currentAmount && parseFloat(currentAmount) < product.minInvestment && (
+                          <p className="text-red-500 text-xs mt-1">
+                            Minimum requis: {product.minInvestment.toLocaleString()} MAD
+                          </p>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
+              </div>
 
-                <div className="bg-gray-50 p-3 lg:p-4 rounded-lg mb-4 lg:mb-6">
-                  <div className="flex justify-between items-center text-base lg:text-lg font-semibold">
-                    <span>Total d'investissement:</span>
-                    <span className="text-[#3CD4AB]">{getTotalInvestment().toLocaleString()} MAD</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs lg:text-sm text-gray-600 mt-2">
-                    <span>Solde disponible:</span>
-                    <span>{currentBalance.toLocaleString()} MAD</span>
-                  </div>
+              {/* Footer with Actions */}
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 border-t gap-3">
+                <div className="text-gray-600 text-sm lg:text-base">
+                  Produits sélectionnés: {getSelectedProductsCount()} / {result?.products.length}
                 </div>
-
                 <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
                   <button
-                    onClick={() => setCurrentStep('products')}
-                    className="flex-1 px-4 lg:px-6 py-2 lg:py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm lg:text-base"
-                  >
-                    Retour
-                  </button>
-                  <button
                     onClick={() => setShowInvestmentPopup(false)}
-                    className="flex-1 px-4 lg:px-6 py-2 lg:py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm lg:text-base"
+                    className="px-4 lg:px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm lg:text-base"
                   >
                     Annuler
                   </button>
                   <button
-                    onClick={handleConfirmInvestment}
-                    className="flex-1 px-4 lg:px-6 py-2 lg:py-3 bg-[#3CD4AB] text-white rounded-md hover:bg-[#2ea885] transition-colors text-sm lg:text-base"
+                    onClick={handleAddToCart}
+                    disabled={!canAddToCart()}
+                    className="px-4 lg:px-6 py-2 bg-gradient-to-r from-[#3CD4AB] to-emerald-500 hover:from-[#2bb894] hover:to-emerald-600 text-white rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base font-semibold flex items-center justify-center gap-2"
                   >
-                    Confirmer l'investissement
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Ajouter au panier ({getSelectedProductsCount()})
                   </button>
                 </div>
               </div>
-            )}
-
-            {/* Loading Step */}
-            {currentStep === 'loading' && (
-              <div className="p-4 lg:p-6 text-center">
-                <div className="flex flex-col items-center justify-center py-8 lg:py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 lg:h-16 lg:w-16 border-b-2 border-[#3CD4AB] mb-4"></div>
-                  <h3 className="text-lg lg:text-xl font-semibold text-gray-800 mb-2">Traitement en cours...</h3>
-                  <p className="text-gray-600 text-sm lg:text-base px-4">Veuillez patienter pendant que nous traitons votre investissement</p>
-                </div>
-              </div>
-            )}
-
-            {/* Confirmed Step */}
-            {currentStep === 'confirmed' && (
-              <div className="p-4 lg:p-6 text-center">
-                <div className="flex flex-col items-center justify-center py-8 lg:py-12">
-                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <svg className="w-6 h-6 lg:w-8 lg:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg lg:text-xl font-semibold text-gray-800 mb-2">Investissement confirmé!</h3>
-                  <p className="text-gray-600 mb-4 text-sm lg:text-base px-4">
-                    Votre investissement de {getTotalInvestment().toLocaleString()} MAD a été traité avec succès.
+              
+              {getTotalSelectedAmount() > parseFloat(form.initialCapital) && (
+                <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-red-600 text-sm">
+                    ⚠️ Le montant total sélectionné dépasse votre capital initial. Veuillez ajuster les montants.
                   </p>
-                  <p className="text-xs lg:text-sm text-gray-500">Cette fenêtre se fermera automatiquement...</p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
 
       {/* Alert/Toast */}
       {showAlert && (
-        <div className="fixed top-2 right-2 lg:top-4 lg:right-4 bg-red-500 text-white px-4 lg:px-6 py-3 lg:py-4 rounded-lg shadow-lg z-50 max-w-sm lg:max-w-md mx-2">
+        <div className="fixed top-2 right-2 lg:top-4 lg:right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 lg:px-6 py-3 lg:py-4 rounded-lg shadow-lg z-50 max-w-sm lg:max-w-md mx-2 animate-fade-in">
           <div className="flex items-start justify-between">
             <span className="text-xs lg:text-sm pr-2">{alertMessage}</span>
             <button 

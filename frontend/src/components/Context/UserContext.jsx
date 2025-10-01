@@ -194,7 +194,13 @@ export const UserProvider = ({ children }) => {
 
   // Derived aliases
   const userProfileData = userContext?.fullname
-    ? { fullName: userContext.fullname, avatar: userContext.avatar, email: userContext.email }
+    ? { 
+        fullName: userContext.fullname, 
+        name: userContext.fullname,
+        avatar: userContext.avatar, 
+        picture: userContext.avatar, // Ensure Google compatibility
+        email: userContext.email 
+      }
     : null;
   const userResults = userContext?.rawResults || null;
   const isProfileComplete = Boolean(userContext?.isProfileComplete);
@@ -223,6 +229,30 @@ export const UserProvider = ({ children }) => {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
+
+  // Initialize from Google profile if context is empty but Google data exists
+  useEffect(() => {
+    if (!userContext.fullname || !userContext.avatar) {
+      try {
+        const googleProfile = JSON.parse(localStorage.getItem('googleProfile') || '{}');
+        const userProfileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
+        const isLogin = localStorage.getItem('isLogin') === 'true';
+        
+        if ((googleProfile.name || userProfileData.fullName) && isLogin) {
+          setUserContext((prev) => ({
+            ...prev,
+            fullname: prev.fullname || userProfileData.fullName || googleProfile.name || '',
+            avatar: prev.avatar || userProfileData.avatar || googleProfile.picture || '',
+            email: prev.email || userProfileData.email || googleProfile.email || '',
+            isLogin: prev.isLogin || isLogin,
+            isProfileComplete: prev.isProfileComplete || Boolean(userProfileData.fullName || googleProfile.name)
+          }));
+        }
+      } catch (e) {
+        console.error('Error syncing profile data:', e);
+      }
+    }
+  }, [userContext.fullname, userContext.avatar]);
 
   // Legacy updaters mapped to unified state
 

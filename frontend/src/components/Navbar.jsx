@@ -125,7 +125,35 @@ const Navbar = () => {
   };
 
   const fallbackAvatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=User';
-  const avatarSrc = userProfileData?.avatar || userProfileData?.picture || userProfileData?.imageUrl || fallbackAvatar;
+  
+  // Get avatar from multiple possible sources including Google profile
+  const getAvatarSrc = () => {
+    // First check userProfileData (unified context)
+    if (userProfileData?.avatar) return userProfileData.avatar;
+    if (userProfileData?.picture) return userProfileData.picture;
+    if (userProfileData?.imageUrl) return userProfileData.imageUrl;
+    
+    // Check Google profile in localStorage
+    try {
+      const googleProfile = JSON.parse(localStorage.getItem('googleProfile') || '{}');
+      if (googleProfile.picture) return googleProfile.picture;
+    } catch (e) {
+      console.error('Error parsing Google profile:', e);
+    }
+    
+    // Check alternative profile data in localStorage
+    try {
+      const profileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
+      if (profileData.avatar) return profileData.avatar;
+      if (profileData.picture) return profileData.picture;
+    } catch (e) {
+      console.error('Error parsing profile data:', e);
+    }
+    
+    return fallbackAvatar;
+  };
+  
+  const avatarSrc = getAvatarSrc();
 
   return (
     <nav className="top-0 w-full text-white">
@@ -349,7 +377,15 @@ const Navbar = () => {
             {isLoggedIn ? (
               <Link to="/dashboard" className="w-full" onClick={closeMenu}>
                 <div className="flex items-center justify-center gap-3 w-full px-4 py-3 bg-white/5 rounded-lg border border-white/10">
-                  <img src={avatarSrc} alt="Avatar" className="w-8 h-8 rounded-full object-cover border border-white/20" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }} />
+                  <img 
+                    src={avatarSrc} 
+                    alt="Avatar" 
+                    className="w-8 h-8 rounded-full object-cover border border-white/20" 
+                    onError={(e) => { 
+                      e.currentTarget.onerror = null; 
+                      e.currentTarget.src = fallbackAvatar; 
+                    }} 
+                  />
                   <span className="text-white text-sm">Mon Dashboard</span>
                 </div>
               </Link>

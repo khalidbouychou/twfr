@@ -169,37 +169,37 @@ const Pf = () => {
     }
 
   return (
-    <div className="p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 mt-2 rounded-xl shadow-lg bg-gray-800/30 border border-gray-700/50 backdrop-blur-sm">
-      <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+    <div className="w-full bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-gray-700/50 shadow-xl">
+      <div className="space-y-6">
         {lstquestion.map((question, index) => (
           <React.Fragment key={`question-${index}`}>
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between w-full gap-3 sm:gap-4 lg:gap-6">
+            <div className="flex flex-col lg:flex-row lg:items-start w-full gap-4 lg:gap-6 p-4 bg-gray-800/30 rounded-xl border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300">
               {/* Question Label */}
-              <div className="w-full lg:w-5/12 xl:w-1/2">
-                <label className="text-gray-50 text-xs sm:text-sm md:text-base lg:text-lg font-medium leading-relaxed block">
+              <div className="w-full lg:w-2/5">
+                <label className="text-gray-100 text-base sm:text-lg font-medium leading-relaxed block">
                   {question.question}
                 </label>
               </div>
 
               {/* Answer Options */}
-              <div className="w-full lg:w-7/12 xl:w-1/2">
+              <div className="w-full lg:w-3/5">
                 {question.type === "checkbox" ? (
-                  <div className="flex flex-col items-start gap-2 sm:gap-2">
+                  <div className="flex flex-col items-start gap-3">
                     {question.options.map((option, optionIndex) => (
                       <label 
                         key={`checkbox-${index}-${optionIndex}`} 
-                        className="flex items-start gap-1.5 sm:gap-2 cursor-pointer hover:bg-gray-700/40 p-1.5 sm:p-2 rounded-lg transition-all duration-200 group border border-transparent hover:border-gray-600/50"
+                        className="flex items-start gap-3 cursor-pointer hover:bg-gray-700/40 p-3 rounded-xl transition-all duration-300 group border border-gray-700/30 hover:border-[#3CD4AB]/50 w-full"
                       >
                         <input
                           type="checkbox"
                           name={`question-${index}`}
                           value={option.value}
-                          className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400 bg-gray-700 border-gray-600 focus:ring-emerald-400 focus:ring-2 flex-shrink-0 mt-0.5 rounded"
+                          className="w-5 h-5 text-[#3CD4AB] bg-gray-700 border-gray-600 focus:ring-[#3CD4AB] focus:ring-2 flex-shrink-0 mt-0.5 rounded"
                           onChange={(e) => handleCheckboxChange(index, option.value, e.target.checked)}
                           checked={pfAnswers[index]?.answer?.includes(option.value) || false}
                           required={!(pfAnswers[index]?.answer?.length > 0)}
                         />
-                        <span className="text-gray-100 text-xs sm:text-sm lg:text-base leading-relaxed group-hover:text-white transition-colors">
+                        <span className="text-gray-200 text-sm sm:text-base leading-relaxed group-hover:text-white transition-colors">
                           {option.label}
                         </span>
                       </label>
@@ -208,7 +208,7 @@ const Pf = () => {
                 ) : (
                   <div className="w-full">
                     <select 
-                      className="w-full font-medium rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-2 sm:p-3 text-xs sm:text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+                      className="w-full font-medium rounded-xl border border-gray-600/50 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-3.5 sm:p-4 text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer shadow-sm"
                       onChange={(e) => handleSelectChange(index, e.target.value)}
                       value={pfAnswers[index]?.answer || ""}
                       required
@@ -231,12 +231,7 @@ const Pf = () => {
               </div>
             </div>
             
-            {/* Separator */}
-            {index !== lstquestion.length - 1 && (
-              <div className="w-full">
-                <hr className='border-t border-gray-600/50 mt-3 sm:mt-4 lg:mt-6 opacity-60' />
-              </div>
-            )}
+        
           </React.Fragment>
         ))}
       </div>

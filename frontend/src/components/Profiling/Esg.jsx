@@ -172,31 +172,38 @@ const Esg = () => {
     }
 
     return (
-        <div className="p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6 mt-2 rounded-xl shadow-lg bg-gray-800/30 border border-gray-700/50 backdrop-blur-sm">
-            <div className="space-y-4 sm:space-y-5 lg:space-y-8">
+        <div className="w-full bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-gray-700/50 shadow-xl">
+            <div className="space-y-8">
                 {lstquestion.map((category, categoryIndex) => (
-                    <div key={`category-${categoryIndex}`} className="space-y-3 sm:space-y-4 lg:space-y-6">
+                    <div key={`category-${categoryIndex}`} className="space-y-6">
                         {/* Category Title */}
-                        <h3 className="font-semibold text-emerald-400 mb-2 sm:mb-3 lg:mb-4 border-b-2 border-emerald-400/50 pb-1.5 sm:pb-2 text-sm sm:text-base lg:text-lg">
-                            {category.title}
-                        </h3>
+                        <div className="flex items-center gap-3 pb-3 border-b-2 border-[#3CD4AB]/50">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3CD4AB] to-[#2ba885] flex items-center justify-center shadow-lg">
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <h3 className="font-bold text-[#3CD4AB] text-lg sm:text-xl">
+                                {category.title}
+                            </h3>
+                        </div>
 
                         {/* Questions Container */}
-                        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+                        <div className="space-y-5">
                             {/* Q1 Questions - Select dropdowns */}
                             {category.q1.map((question, q1Index) => (
-                                <div key={`q1-${categoryIndex}-${q1Index}`} className="flex flex-col lg:flex-row lg:items-start lg:justify-between w-full gap-3 sm:gap-4 lg:gap-6">
+                                <div key={`q1-${categoryIndex}-${q1Index}`} className="flex flex-col lg:flex-row lg:items-center w-full gap-4 lg:gap-6 p-4 bg-gray-800/30 rounded-xl border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300">
                                     {/* Question on the left */}
-                                    <div className="w-full lg:w-5/12 xl:w-1/2">
-                                        <p className="text-gray-50 text-xs sm:text-sm md:text-base lg:text-lg font-medium leading-relaxed">
+                                    <div className="w-full lg:w-2/5">
+                                        <p className="text-gray-100 text-base sm:text-lg font-medium leading-relaxed">
                                             {question.question}
                                         </p>
                                     </div>
                                     
                                     {/* Select dropdown on the right */}
-                                    <div className="w-full lg:w-7/12 xl:w-1/2">
+                                    <div className="w-full lg:w-3/5">
                                         <select 
-                                            className="w-full font-medium rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-2 sm:p-3 text-xs sm:text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+                                            className="w-full font-medium rounded-xl border border-gray-600/50 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-3.5 sm:p-4 text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer shadow-sm"
                                             name={`q1-${categoryIndex}-${q1Index}`}
                                             onChange={(e) => handleSelectChange(categoryIndex, 'q1', q1Index, e.target.value)}
                                             value={esgAnswers[`${categoryIndex}-q1-${q1Index}`]?.answer || ""}
@@ -221,18 +228,18 @@ const Esg = () => {
                             
                             {/* Q2 Questions - Select dropdowns */}
                             {category.q2.map((question, q2Index) => (
-                                <div key={`q2-${categoryIndex}-${q2Index}`} className="flex flex-col lg:flex-row lg:items-start lg:justify-between w-full gap-3 sm:gap-4 lg:gap-6">
+                                <div key={`q2-${categoryIndex}-${q2Index}`} className="flex flex-col lg:flex-row lg:items-center w-full gap-4 lg:gap-6 p-4 bg-gray-800/30 rounded-xl border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300">
                                     {/* Question on the left */}
-                                    <div className="w-full lg:w-5/12 xl:w-1/2">
-                                        <p className="text-gray-50 text-xs sm:text-sm md:text-base lg:text-lg font-medium leading-relaxed">
+                                    <div className="w-full lg:w-2/5">
+                                        <p className="text-gray-100 text-base sm:text-lg font-medium leading-relaxed">
                                             {question.question}
                                         </p>
                                     </div>
                                     
                                     {/* Select dropdown on the right */}
-                                    <div className="w-full lg:w-7/12 xl:w-1/2">
+                                    <div className="w-full lg:w-3/5">
                                         <select 
-                                            className="w-full font-medium rounded-lg border border-gray-600 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-2 sm:p-3 text-xs sm:text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+                                            className="w-full font-medium rounded-xl border border-gray-600/50 bg-gray-700/50 hover:bg-gray-700/70 focus:bg-gray-700 p-3.5 sm:p-4 text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300 appearance-none cursor-pointer shadow-sm"
                                             name={`q2-${categoryIndex}-${q2Index}`}
                                             onChange={(e) => handleSelectChange(categoryIndex, 'q2', q2Index, e.target.value)}
                                             value={esgAnswers[`${categoryIndex}-q2-${q2Index}`]?.answer || ""}
@@ -258,8 +265,8 @@ const Esg = () => {
 
                         {/* Category Separator */}
                         {categoryIndex !== lstquestion.length - 1 && (
-                            <div className="w-full">
-                                <hr className='border-t border-gray-600/50 mt-4 sm:mt-6 lg:mt-8 opacity-60' />
+                            <div className="w-full pt-4">
+                                <hr className='border-t border-gray-600/30 opacity-60' />
                             </div>
                         )}
                     </div>

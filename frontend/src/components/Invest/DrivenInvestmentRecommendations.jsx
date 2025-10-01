@@ -29,14 +29,305 @@ import {
 } from 'react-icons/io5';
 import { ROICalculator } from '../Algo';
 import { useUserContext } from '../Context/useUserContext';
+import { useCart } from '../Context/CartContext';
 
 const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) => {
   const { addUserInvestment } = useUserContext();
+  const { addMultipleToCart } = useCart();
   const [selectedView, setSelectedView] = useState('summary'); // 'summary', 'scenarios', 'simulation'
   const [selectedScenario, setSelectedScenario] = useState(0);
   const [investmentAmounts, setInvestmentAmounts] = useState({});
   const [simulationPeriod, setSimulationPeriod] = useState(5);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState({}); // Track which products are selected for cart
+  const [showCartSuccessAlert, setShowCartSuccessAlert] = useState(false);
+
+  // Load recommendations from localStorage if no userResults
+  const [localRecommendations, setLocalRecommendations] = useState(null);
+  
+  useEffect(() => {
+    if (!userResults) {
+      const stored = localStorage.getItem('userResults');
+      if (stored) {
+        try {
+          setLocalRecommendations(JSON.parse(stored));
+        } catch (error) {
+          console.error('Error parsing stored recommendations:', error);
+        }
+      }
+    }
+  }, [userResults]);
+
+  const recommendations = userResults || localRecommendations;
+
+  // Initialize investment amounts for each product
+  useEffect(() => {
+    if (recommendations?.matchedProducts) {
+      const initialAmounts = {};
+      recommendations.matchedProducts.forEach(product => {
+        initialAmounts[product.id] = 1000; // Default 1000 MAD
+      });
+      setInvestmentAmounts(initialAmounts);
+    }
+  }, [recommendations]);
+
+  // Generate portfolio allocation data for charts
+  const portfolioAllocation = useMemo(() => {
+    if (!recommendations?.matchedProducts) return [];
+
+    const categories = {};
+    recommendations.matchedProducts.forEach(product => {
+      const category = getProductCategory(product.nom_produit);
+      if (!categories[category]) {
+        categories[category] = {
+          name: category,
+          value: 0,
+          count: 0,
+          products: []
+        };
+      }
+      categories[category].value += product.overallCompatibility || 0;
+      categories[category].count += 1;
+      categories[category].products.push(product);
+    });
+
+    // Convert to percentage and sort
+    const total = Object.values(categories).reduce((sum, cat) => sum + cat.value, 0);
+    return Object.values(categories)
+      .map(cat => ({
+        ...cat,
+        value: Math.round((cat.value / total) * 100),
+        percentage: Math.round((cat.value / total) * 100)
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [recommendations]);
+
+  // Generate alternative scenarios
+  const alternativeScenarios = useMemo(() => {
+    if (!recommendations?.matchedProducts) return [];
+
+    const scenarios = [
+      {
+        name: "Scénario Conservateur",
+        description: "Focus sur la sécurité et la stabilité",
+        allocation: { conservative: 70, balanced: 25, aggressive: 5 },
+        products: recommendations.matchedProducts
+          .filter(p => p.risque <= 3)
+          .slice(0, 4)
+          .map(p => ({ ...p, allocation: 25 }))
+      },
+      {
+        name: "Scénario Équilibré",
+        description: "Équilibre entre sécurité et croissance",
+        allocation: { conservative: 40, balanced: 45, aggressive: 15 },
+        products: recommendations.matchedProducts
+          .filter(p => p.risque >= 2 && p.risque <= 5)
+          .slice(0, 4)
+          .map(p => ({ ...p, allocation: 25 }))
+      },
+      {
+        name: "Scénario Croissance",
+        description: "Focus sur la croissance et les rendements",
+        allocation: { conservative: 20, balanced: 35, aggressive: 45 },
+        products: recommendations.matchedProducts
+          .filter(p => p.risque >= 4)
+          .slice(0, 4)
+          .map(p => ({ ...p, allocation: 25 }))
+      },
+      {
+        name: "Scénario Retraite",
+        description: "Optimisé pour la préparation à la retraite",
+        allocation: { conservative: 50, balanced: 35, aggressive: 15 },
+        products: recommendations.matchedProducts
+          .filter(p => p.type === 'Obligations' || p.type === 'Fonds')
+          .slice(0, 4)
+          .map(p => ({ ...p, allocation: 25 }))
+      },
+      {
+        name: "Scénario ESG",
+        description: "Investissements responsables et durables",
+        allocation: { conservative: 30, balanced: 50, aggressive: 20 },
+        products: recommendations.matchedProducts
+          .filter(p => p.categories?.includes('Équilibré'))
+          .slice(0, 4)
+          .map(p => ({ ...p, allocation: 25 }))
+      }
+    ];
+
+    return scenarios;
+  }, [recommendations]);
+
+  // Calculate simulation results
+  const simulationResults = useMemo(() => {
+    if (!recommendations?.matchedProducts || Object.keys(investmentAmounts).length === 0) return null;
+
+    const results = [];
+    let totalInvested = 0;
+    let totalExpectedValue = 0;
+
+    recommendations.matchedProducts.forEach(product => {
+      const amount = investmentAmounts[product.id];
+      if (amount && amount > 0) {
+        const roi = product.rendement_annuel_moyen !== undefined ? product.rendement_annuel_moyen : 
+                    (product.roi_annuel !== undefined ? product.roi_annuel : 5);
+        const roiCalculator = new ROICalculator(amount, roi, product.risque || 5);
+        const expectedValue = roiCalculator.calculateFutureValue(simulationPeriod);
+        const roi5Years = roiCalculator.calculateROI(simulationPeriod);
+
+        results.push({
+          product,
+          amount,
+          expectedValue,
+          roi5Years,
+          risk: product.risque || 5
+        });
+
+        totalInvested += amount;
+        totalExpectedValue += expectedValue;
+      }
+    });
+
+    const totalReturn = totalExpectedValue - totalInvested;
+    const totalReturnPercentage = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
+
+    return {
+      results,
+      totalInvested,
+      totalExpectedValue,
+      totalReturn,
+      totalReturnPercentage
+    };
+  }, [recommendations, investmentAmounts, simulationPeriod]);
+
+  // Helper function to get product category
+  const getProductCategory = (productName) => {
+    if (!productName) return 'Autre';
+    const name = productName.toLowerCase();
+    if (name.includes('action') || name.includes('bourse')) return 'Actions';
+    if (name.includes('obligation') || name.includes('bond')) return 'Obligations';
+    if (name.includes('immobilier') || name.includes('reit')) return 'Immobilier';
+    return 'Fonds';
+  };
+
+  // Get category color
+  const getCategoryColor = (category) => {
+    const colors = {
+      'Actions': '#3B82F6',
+      'Obligations': '#10B981',
+      'Immobilier': '#F59E0B',
+      'Fonds': '#8B5CF6',
+      'Autre': '#6B7280'
+    };
+    return colors[category] || colors['Autre'];
+  };
+
+  // Handle investment amount change
+  const handleInvestmentAmountChange = (productId, amount) => {
+    setInvestmentAmounts(prev => ({
+      ...prev,
+      [productId]: parseFloat(amount) || 0
+    }));
+  };
+
+  // Handle product checkbox toggle
+  const handleProductCheckboxToggle = (productId, checked) => {
+    setSelectedProducts(prev => ({
+      ...prev,
+      [productId]: checked
+    }));
+    if (!checked) {
+      // Clear amount when unchecking
+      setInvestmentAmounts(prev => {
+        const updated = { ...prev };
+        delete updated[productId];
+        return updated;
+      });
+    }
+  };
+
+  // Get selected products count
+  const getSelectedProductsCount = () => {
+    return Object.values(selectedProducts).filter(Boolean).length;
+  };
+
+  // Get total selected amount
+  const getTotalSelectedAmount = () => {
+    return Object.entries(selectedProducts).reduce((total, [productId, isSelected]) => {
+      if (isSelected && investmentAmounts[productId]) {
+        return total + parseFloat(investmentAmounts[productId]);
+      }
+      return total;
+    }, 0);
+  };
+
+  // Handle add to cart
+  const handleAddToCart = () => {
+    const productsToAdd = [];
+    
+    Object.entries(selectedProducts).forEach(([productId, isSelected]) => {
+      if (isSelected && investmentAmounts[productId]) {
+        const product = recommendations.matchedProducts.find(p => p.id === productId);
+        if (product) {
+          const amount = parseFloat(investmentAmounts[productId]);
+          productsToAdd.push({
+            product: {
+              id: productId,
+              name: product.nom_produit,
+              image: product.avatar,
+              min: product.montant_minimum || 1000,
+              risk: product.risque || 5,
+              roi: {
+                annual: product.rendement_annuel_moyen || product.roi_annuel || 5
+              }
+            },
+            amount: amount
+          });
+        }
+      }
+    });
+
+    if (productsToAdd.length > 0) {
+      addMultipleToCart(productsToAdd);
+      setShowCartSuccessAlert(true);
+      
+      // Clear selections
+      setSelectedProducts({});
+      setInvestmentAmounts({});
+      
+      // Hide alert after 3 seconds
+      setTimeout(() => {
+        setShowCartSuccessAlert(false);
+      }, 3000);
+    }
+  };import { 
+  IoTrendingUp, 
+  IoShieldCheckmark, 
+  IoTime, 
+  IoStar,
+  IoInformationCircle,
+  IoCheckmarkCircle,
+  IoWarning,
+  IoCash,
+  IoPieChart,
+  IoBarChart,
+  IoCalculator,
+  IoArrowForward,
+  IoArrowBack
+} from 'react-icons/io5';
+import { ROICalculator } from '../Algo';
+import { useUserContext } from '../Context/useUserContext';
+import { useCart } from '../Context/CartContext';
+
+const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) => {
+  const { addUserInvestment } = useUserContext();
+  const { addMultipleToCart } = useCart();
+  const [selectedView, setSelectedView] = useState('summary'); // 'summary', 'scenarios', 'simulation'
+  const [selectedScenario, setSelectedScenario] = useState(0);
+  const [investmentAmounts, setInvestmentAmounts] = useState({});
+  const [simulationPeriod, setSimulationPeriod] = useState(5);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState({}); // Track which products are selected for cart
+  const [showCartSuccessAlert, setShowCartSuccessAlert] = useState(false);
 
   // Load recommendations from localStorage if no userResults
   const [localRecommendations, setLocalRecommendations] = useState(null);
