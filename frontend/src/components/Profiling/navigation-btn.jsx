@@ -1,11 +1,22 @@
 import React, { useContext } from 'react'
 import { UserContext } from '../Context/UserContext.jsx'
 
-const Navigation = ({currentStep, totalSteps, onPrevious, handleNext, isLoading}) => {
+const Navigation = ({currentStep, totalSteps, onPrevious, handleNext, isLoading, isStepComplete, showAlert, getMissingFields}) => {
     const { confirmAnswers } = useContext(UserContext)
 
     const handleButtonClick = () => {
         if (currentStep === totalSteps - 1) {
+            // Validate last step before confirming
+            if (!isStepComplete(currentStep)) {
+                const missingFields = getMissingFields(currentStep);
+                if (missingFields.length > 0) {
+                  const fieldsList = missingFields.map((field, idx) => `${idx + 1}. ${field}`).join('\n');
+                  showAlert(`Veuillez répondre aux questions suivantes :\n\n${fieldsList}`);
+                } else {
+                  showAlert('Veuillez répondre à toutes les questions avant de confirmer.');
+                }
+                return;
+            }
             confirmAnswers()
         } else {
             handleNext()

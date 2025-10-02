@@ -178,3 +178,15 @@ body {
     transform: translate(-50%, 0);
   }
 }
+
+/* Slide in from right animation for top-right alert */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

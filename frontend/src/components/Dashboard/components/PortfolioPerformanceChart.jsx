@@ -39,20 +39,48 @@ const PortfolioPerformanceChart = ({ userInvestments }) => {
 
     // Filter investments by creation date if available
     return userInvestments.filter(investment => {
-      if (investment.date || investment.createdAt || investment.dateCreated) {
+      // Try multiple date field names
+      const dateStr = investment.date || investment.createdAt || investment.dateCreated || investment.timestamp;
+      
+      if (dateStr) {
         try {
-          const dateStr = investment.date || investment.createdAt || investment.dateCreated;
-          const investmentDate = parseISO(dateStr);
-          return isWithinInterval(investmentDate, {
-            start: startOfDay(range.from),
-            end: endOfDay(range.to)
-          });
-        } catch {
+          // Handle different date formats
+          let investmentDate;
+          
+          // If it's already a Date object
+          if (dateStr instanceof Date) {
+            investmentDate = dateStr;
+          }
+          // If it's an ISO string or date string
+          else if (typeof dateStr === 'string') {
+            // Try parsing as ISO first
+            investmentDate = new Date(dateStr);
+            
+            // If invalid, try parseISO
+            if (isNaN(investmentDate.getTime())) {
+              investmentDate = parseISO(dateStr);
+            }
+          }
+          // If it's a timestamp number
+          else if (typeof dateStr === 'number') {
+            investmentDate = new Date(dateStr);
+          }
+          
+          // Validate the date
+          if (investmentDate && !isNaN(investmentDate.getTime())) {
+            return isWithinInterval(investmentDate, {
+              start: startOfDay(range.from),
+              end: endOfDay(range.to)
+            });
+          }
+        } catch (error) {
+          console.error('Date parsing error for investment:', investment, error);
           // If date parsing fails, show the investment
           return true;
         }
       }
-      // If no date available, show all investments
+      
+      // If no date available, show all investments (assume they're recent)
       return true;
     });
   }, [dateFilter, userInvestments]);
@@ -185,6 +213,7 @@ const PortfolioPerformanceChart = ({ userInvestments }) => {
               <thead>
                 <tr className="border-b border-white/10">
                   <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Produit</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">Date</th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">Investi</th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">Valeur Actuelle</th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">Performance</th>
@@ -197,6 +226,24 @@ const PortfolioPerformanceChart = ({ userInvestments }) => {
                   const currentValue = parseFloat(investment.currentValue) || investedAmount;
                   const gainLoss = currentValue - investedAmount;
                   const performancePercent = investedAmount > 0 ? ((gainLoss / investedAmount) * 100) : 0;
+                  
+                  // Format investment date
+                  const dateStr = investment.date || investment.createdAt || investment.dateCreated || investment.timestamp;
+                  let formattedDate = 'N/A';
+                  if (dateStr) {
+                    try {
+                      const date = dateStr instanceof Date ? dateStr : new Date(dateStr);
+                      if (!isNaN(date.getTime())) {
+                        formattedDate = date.toLocaleDateString('fr-FR', { 
+                          day: '2-digit', 
+                          month: '2-digit', 
+                          year: 'numeric' 
+                        });
+                      }
+                    } catch {
+                      formattedDate = 'N/A';
+                    }
+                  }
                   
                   return (
                     <tr key={investment.id || index} className="hover:bg-white/5 transition-colors">
@@ -221,6 +268,11 @@ const PortfolioPerformanceChart = ({ userInvestments }) => {
                             <div className="text-white font-medium">{investment.nameProduct || investment.name || 'Produit Inconnu'}</div>
                             <div className="text-gray-400 text-sm">{investment.category || 'Non catégorisé'}</div>
                           </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <div className="text-gray-300 text-sm">
+                          {formattedDate}
                         </div>
                       </td>
                       <td className="py-4 px-4 text-right">

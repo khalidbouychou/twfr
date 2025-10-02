@@ -14,13 +14,58 @@ const Pi = () => {
   const [otherInputs, setOtherInputs] = useState({});
 
   const handleCheckboxChange = (questionIndex, optionValue, checked) => {
-    setSelectedOptions(prev => ({
-      ...prev,
-      [questionIndex]: {
-        ...prev[questionIndex],
-        [optionValue]: checked
-      }
-    }));
+    // Special handling for "Non" option - it should deselect all other options
+    if (optionValue === "Non" && checked) {
+      // Clear all other selections for this question
+      setSelectedOptions(prev => ({
+        ...prev,
+        [questionIndex]: {
+          [optionValue]: true
+        }
+      }));
+      
+      // Update piAnswers with only "Non"
+      setPiAnswers(prev => {
+        const newAnswers = [...prev]
+        newAnswers[questionIndex] = {
+          q: lstquestion[questionIndex].question,
+          answer: [optionValue]
+        }
+        console.log("PI Checkbox Answer:", {
+          question: lstquestion[questionIndex].question,
+          selectedOptions: [optionValue],
+          allAnswers: newAnswers
+        })
+        return newAnswers
+      });
+      
+      // Clear any "Autres" or "Non" input
+      setOtherInputs(prev => ({
+        ...prev,
+        [questionIndex]: ""
+      }));
+      return;
+    }
+    
+    // If any other option is checked, uncheck "Non"
+    if (checked && optionValue !== "Non") {
+      setSelectedOptions(prev => ({
+        ...prev,
+        [questionIndex]: {
+          ...prev[questionIndex],
+          [optionValue]: checked,
+          "Non": false // Uncheck "Non"
+        }
+      }));
+    } else {
+      setSelectedOptions(prev => ({
+        ...prev,
+        [questionIndex]: {
+          ...prev[questionIndex],
+          [optionValue]: checked
+        }
+      }));
+    }
 
         // Update piAnswers
         setPiAnswers(prev => {
@@ -41,6 +86,12 @@ const Pi = () => {
                 // Only add if not already present
                 if (!newAnswers[questionIndex].answer.includes(optionValue)) {
                     newAnswers[questionIndex].answer.push(optionValue)
+                }
+                // If adding a non-"Non" option, remove "Non" from answers
+                if (optionValue !== "Non") {
+                    newAnswers[questionIndex].answer = newAnswers[questionIndex].answer.filter(
+                        item => item !== "Non"
+                    )
                 }
             } else {
                 newAnswers[questionIndex].answer = newAnswers[questionIndex].answer.filter(
@@ -233,28 +284,52 @@ const Pi = () => {
 
   return (
     <div className="w-full">
+      {/* Info banner */}
+      <div className="mb-4 flex items-start gap-3 rounded-xl bg-blue-500/10 border border-blue-500/20 px-4 py-3">
+        <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+        </svg>
+        <div className="text-sm text-blue-200 font-light">
+          <span className="font-medium text-blue-100">Information importante :</span> Toutes les questions sont obligatoires pour passer à l'étape suivante.
+        </div>
+      </div>
+      
       <div className="space-y-4">
         {lstquestion.map((question, index) => (
           <div key={`question-${index}`} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300">
-            <label className="block text-white font-light text-sm mb-3">
-              {question.question}
+            <label className="flex items-start gap-2 text-white font-light text-sm mb-3">
+              <span className="text-red-400 text-lg leading-none">*</span>
+              <span className="flex-1">{question.question}</span>
             </label>
 
             {question.type === "checkbox" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                {question.options.map((option, optionIndex) => (
+                {question.options.map((option, optionIndex) => {
+                  // Check if "Non" is selected for this question
+                  const isNonSelected = selectedOptions[index]?.["Non"] || false;
+                  // Disable all other options if "Non" is selected
+                  const isDisabled = isNonSelected && option.value !== "Non";
+                  
+                  return (
                   <div key={`checkbox-${index}-${optionIndex}`} className="w-full">
-                    <label className="flex items-start gap-2 p-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-[#3CD4AB] hover:bg-white/10 cursor-pointer transition-all duration-200 group">
+                    <label className={`flex items-start gap-2 p-2.5 rounded-lg bg-white/5 border border-white/10 cursor-pointer transition-all duration-200 group ${
+                      isDisabled 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'hover:border-[#3CD4AB] hover:bg-white/10'
+                    }`}>
                       <input
                         type="checkbox"
                         name={`question-${index}`}
                         value={option.value}
                         checked={selectedOptions[index]?.[option.value] || false}
                         onChange={(e) => handleCheckboxChange(index, option.value, e.target.checked)}
-                        className="w-4 h-4 text-[#3CD4AB] bg-gray-700 border-gray-600 focus:ring-[#3CD4AB] focus:ring-2 flex-shrink-0 mt-0.5 rounded"
+                        disabled={isDisabled}
+                        className="w-4 h-4 text-[#3CD4AB] bg-gray-700 border-gray-600 focus:ring-[#3CD4AB] focus:ring-2 flex-shrink-0 mt-0.5 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                         required={!(piAnswers[index]?.answer?.length > 0)}
                       />
-                      <span className="text-white/90 font-light text-sm leading-relaxed group-hover:text-white transition-colors">
+                      <span className={`text-white/90 font-light text-sm leading-relaxed transition-colors ${
+                        isDisabled ? 'text-white/50' : 'group-hover:text-white'
+                      }`}>
                         {option.label}
                       </span>
                     </label>
@@ -270,20 +345,8 @@ const Pi = () => {
                         />
                       </div>
                     )}
-                    {option.value === "Non" && selectedOptions[index]?.[option.value] && (
-                      <div className="mt-2">
-                        <input
-                          type="text"
-                          placeholder="Précisez votre réponse..."
-                          value={otherInputs[index] || ""}
-                          onChange={(e) => handleOtherInputChange(index, e.target.value)}
-                          className="w-full font-light rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 focus:bg-white/10 p-2 text-xs text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-300"
-                          required
-                        />
-                      </div>
-                    )}
                   </div>
-                ))}
+                )})}
               </div>
             ) : question.type === "radio" ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">

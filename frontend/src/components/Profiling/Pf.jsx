@@ -187,11 +187,22 @@ const Pf = () => {
 
   return (
     <div className="w-full">
+      {/* Info banner */}
+      <div className="mb-4 flex items-start gap-3 rounded-xl bg-blue-500/10 border border-blue-500/20 px-4 py-3">
+        <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+        </svg>
+        <div className="text-sm text-blue-200 font-light">
+          <span className="font-medium text-blue-100">Information importante :</span> Toutes les questions sont obligatoires pour passer à l'étape suivante.
+        </div>
+      </div>
+      
       <div className="space-y-4">
         {lstquestion.map((question, index) => (
           <div key={`question-${index}`} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300">
-            <label className="block text-white font-light text-sm mb-3">
-              {question.question}
+            <label className="flex items-start gap-2 text-white font-light text-sm mb-3">
+              <span className="text-red-400 text-lg leading-none">*</span>
+              <span className="flex-1">{question.question}</span>
             </label>
 
             {question.type === "checkbox" ? (
