@@ -129,9 +129,9 @@ const Navbar = () => {
   // Get avatar from multiple possible sources including Google profile
   const getAvatarSrc = () => {
     // First check userProfileData (unified context)
-    if (userProfileData?.avatar) return userProfileData.avatar;
-    if (userProfileData?.picture) return userProfileData.picture;
-    if (userProfileData?.imageUrl) return userProfileData.imageUrl;
+    if (userProfileData?.avatar) return userProfileData?.avatar;
+    if (userProfileData?.picture) return userProfileData?.picture;
+    if (userProfileData?.imageUrl) return userProfileData?.imageUrl;
     
     // Check Google profile in localStorage
     try {

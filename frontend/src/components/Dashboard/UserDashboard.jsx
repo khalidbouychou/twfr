@@ -48,7 +48,7 @@ import {
 } from './components';
 
 const UserDashboard = () => {
-  const { setIsLoggedIn, userProfileData, userInvestments } = useContext(UserContext);
+  const { setIsLoggedIn, userProfileData, userInvestments, accountBalance, updateAccountBalance } = useContext(UserContext);
   const { pendingInvestment, clearPendingInvestment, addUserInvestment } = useUserContext();
 
   // Prefer profile from context (Google or manual); fallback simple
@@ -100,11 +100,37 @@ const UserDashboard = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("paypal");
   const [profitOperation, setProfitOperation] = useState("withdraw");
 
+  // Use context balance with local state fallback for backward compatibility
   const [userBalance, setUserBalance] = useState(() => {
+    // Try to sync with context balance first
+    if (accountBalance > 0) return accountBalance;
+    // Otherwise check localStorage
     const storedBalance = localStorage.getItem('userBalance');
     return storedBalance ? parseFloat(storedBalance) : 0;
   });
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  
+  // Sync local balance with context balance (only when context changes)
+  useEffect(() => {
+    if (accountBalance >= 0 && accountBalance !== userBalance) {
+      setUserBalance(accountBalance);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountBalance]);
+  
+  // Wrapped setter that updates both local and context
+  const updateBalance = useCallback((value) => {
+    if (typeof value === 'function') {
+      setUserBalance(prev => {
+        const newValue = value(prev);
+        updateAccountBalance(newValue, 'set');
+        return newValue;
+      });
+    } else {
+      setUserBalance(value);
+      updateAccountBalance(value, 'set');
+    }
+  }, [updateAccountBalance]);
 
   const [recommendationEngine] = useState(new RecommendationEngine());
   const [portfolioData, setPortfolioData] = useState(() => {
@@ -509,7 +535,7 @@ useEffect(() => {
     if (!amount || amount <= 0 || isNaN(amount)) return;
 
     if (balanceOperation === "add") {
-      setUserBalance((prev) => prev + amount);
+      updateBalance((prev) => prev + amount);
       setTransactionsHistory((prev) => [
         {
           id: Date.now(),
@@ -539,7 +565,7 @@ useEffect(() => {
         ...prev
       ]);
     } else if (balanceOperation === "withdraw") {
-      setUserBalance((prev) => prev - amount);
+      updateBalance((prev) => prev - amount);
       setTransactionsHistory((prev) => [
         {
           id: Date.now(),
@@ -645,7 +671,7 @@ useEffect(() => {
         ...prev
       ]);
     } else if (profitOperation === "add") {
-      setUserBalance((prev) => prev + totalProfits);
+      updateBalance((prev) => prev + totalProfits);
 
       const profitAddNotif = {
         id: Date.now(),
@@ -1171,7 +1197,7 @@ useEffect(() => {
       return;
     }
 
-    setUserBalance((prev) => prev - amount);
+    updateBalance((prev) => prev - amount);
 
     const initialProfit = Math.max(1, Math.round(amount * 0.001));
 
@@ -1535,7 +1561,7 @@ useEffect(() => {
           showMobileMenu={showMobileMenu}
           setShowMobileMenu={setShowMobileMenu}
           userBalance={userBalance}
-          setUserBalance={setUserBalance}
+          setUserBalance={updateBalance}
           setBalanceOperation={setBalanceOperation}
           setShowBalanceModal={setShowBalanceModal}
           userData={userData}
