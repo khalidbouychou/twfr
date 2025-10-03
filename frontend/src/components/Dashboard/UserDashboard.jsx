@@ -57,9 +57,9 @@ const UserDashboard = () => {
   // Get avatar from multiple possible sources including Google profile
   const getAvatarSrc = () => {
     // First check userProfileData (unified context)
-    if (userProfileData?.avatar) return userProfileData.avatar;
-    if (userProfileData?.picture) return userProfileData.picture;
-    if (userProfileData?.imageUrl) return userProfileData.imageUrl;
+    if (userProfileData?.avatar) return userProfileData?.avatar;
+    if (userProfileData?.picture) return userProfileData?.picture;
+    if (userProfileData?.imageUrl) return userProfileData?.imageUrl;
     
     // Check Google profile in localStorage
     try {
@@ -1203,12 +1203,12 @@ useEffect(() => {
 
     const newInvestment = {
       id: Date.now(),
-      name: selectedInvestment.name,
+      name: selectedInvestment?.name,
       amount: amount,
       currentValue: amount + initialProfit,
       profit: initialProfit,
       date: new Date().toLocaleDateString("fr-FR"),
-      sector: getSectorFromName(selectedInvestment.name),
+      sector: getSectorFromName(selectedInvestment?.name),
       return: `+${((initialProfit / amount) * 100).toFixed(1)}%`
     };
     setInvestmentHistory((prev) => [newInvestment, ...prev]);
@@ -1216,9 +1216,9 @@ useEffect(() => {
     // Add to shared context so Dashboardchart receives data
     try {
       addUserInvestment({
-        picture: selectedInvestment.image || "",
-        nameProduct: selectedInvestment.name,
-        category: getSectorFromName(selectedInvestment.name) || "other",
+        picture: selectedInvestment?.image || "",
+        nameProduct: selectedInvestment?.name,
+        category: getSectorFromName(selectedInvestment?.name) || "other",
         valueInvested: amount,
         currentValue: amount + initialProfit,
         date: new Date().toISOString(),
@@ -1414,7 +1414,7 @@ useEffect(() => {
         )}%`,
         min: 1000,
         description: p.duree_recommandee,
-        image: p.avatar || "/public/assets/marketstock.png",
+        image: p?.avatar || "/public/assets/marketstock.png",
         roi: {
           annual: p.roi_annuel !== undefined ? p.roi_annuel : 5,
           roi1Year: roi1Year.roiPercentage,
@@ -2070,8 +2070,8 @@ useEffect(() => {
                   {/* Product Image */}
                   <div className="mb-4">
                     <img
-                      src={selectedInvestment.image}
-                      alt={selectedInvestment.name}
+                      src={selectedInvestment?.image}
+                      alt={selectedInvestment?.name}
                       className="w-full h-40 object-cover rounded-lg"
                     />
                   </div>
@@ -2079,23 +2079,23 @@ useEffect(() => {
                   {/* Product Details */}
                   <div className="mb-6">
                     <h4 className="text-lg font-semibold text-white mb-2">
-                      {selectedInvestment.name}
+                      {selectedInvestment?.name}
                     </h4>
                     <p className="text-white/60 text-sm mb-3">
-                      {selectedInvestment.description}
+                      {selectedInvestment?.description}
                     </p>
 
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-white/60">Rendement:</span>
                         <span className="text-[#3CD4AB] font-semibold ml-2">
-                          {selectedInvestment.return}
+                          {selectedInvestment?.return}
                         </span>
                       </div>
                       <div>
                         <span className="text-white/60">Risque:</span>
                         <span className="text-white ml-2">
-                          {selectedInvestment.risk}/10
+                          {selectedInvestment?.risk}/10
                         </span>
                       </div>
                       <div className="col-span-2">
@@ -2103,7 +2103,7 @@ useEffect(() => {
                           Investissement minimum:
                         </span>
                         <span className="text-white font-semibold ml-2">
-                          {selectedInvestment.min.toLocaleString()} MAD
+                          {selectedInvestment?.min?.toLocaleString()} MAD
                         </span>
                       </div>
                     </div>
@@ -2146,15 +2146,15 @@ useEffect(() => {
                         value={investAmount}
                         onChange={handleInvestAmountChange}
                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none"
-                        placeholder={`Minimum ${selectedInvestment.min.toLocaleString()} MAD`}
-                        min={selectedInvestment.min}
+                        placeholder={`Minimum ${selectedInvestment?.min.toLocaleString()} MAD`}
+                        min={selectedInvestment?.min}
                         max={userBalance}
                       />
                       {investAmount &&
                         parseFloat(investAmount) < selectedInvestment.min && (
                           <p className="text-red-400 text-sm mt-1">
                             Le montant minimum est de{" "}
-                            {selectedInvestment.min.toLocaleString()} MAD
+                            {selectedInvestment?.min.toLocaleString()} MAD
                           </p>
                         )}
                       {investAmount &&
@@ -2176,7 +2176,7 @@ useEffect(() => {
                         onClick={handleConfirmInvestment}
                         disabled={
                           !investAmount ||
-                          parseFloat(investAmount) < selectedInvestment.min ||
+                          parseFloat(investAmount) < selectedInvestment?.min ||
                           parseFloat(investAmount) > userBalance
                         }
                         className="flex-1 bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19] font-medium py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
