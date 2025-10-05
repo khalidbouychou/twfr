@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { BotMessageSquare } from 'lucide-react';
 
 const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioData }) => {
   const [messages, setMessages] = useState([
@@ -185,24 +186,8 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#3CD4AB] to-emerald-400 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                {/* Robot head */}
-                <rect x="6" y="6" width="12" height="10" rx="2" fill="currentColor"/>
-                {/* Robot antenna */}
-                <line x1="12" y1="2" x2="12" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <circle cx="12" cy="2" r="1.5" fill="currentColor"/>
-                {/* Robot eyes */}
-                <circle cx="9" cy="10" r="1.5" fill="white"/>
-                <circle cx="15" cy="10" r="1.5" fill="white"/>
-                {/* Robot mouth */}
-                <rect x="10" y="13" width="4" height="1" fill="white"/>
-                {/* Robot body */}
-                <rect x="8" y="16" width="8" height="6" rx="1" fill="currentColor"/>
-                {/* Robot arms */}
-                <rect x="4" y="18" width="3" height="2" rx="1" fill="currentColor"/>
-                <rect x="17" y="18" width="3" height="2" rx="1" fill="currentColor"/>
-              </svg>
+            <div className="w-10 h-10 rounded-full bg-[#0F0F19] border-2 border-[#3CD4AB] flex items-center justify-center">
+              <BotMessageSquare className="w-6 h-6 text-[#3CD4AB]" strokeWidth={2} />
             </div>
             <div>
               <h3 className="text-white font-semibold">Assistant IA Tawfir</h3>

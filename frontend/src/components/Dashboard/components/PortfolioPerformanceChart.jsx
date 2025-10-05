@@ -3,8 +3,18 @@ import { isWithinInterval, parseISO, subDays, subMonths, subYears, startOfDay, e
 
 const PortfolioPerformanceChart = ({ userInvestments }) => {
   const [dateFilter, setDateFilter] = useState('all');
+  const [isFiltering, setIsFiltering] = useState(false);
 
-
+  // Handle date filter change with loading state
+  const handleDateFilterChange = (value) => {
+    setIsFiltering(true);
+    setDateFilter(value);
+    
+    // Simulate loading state for better UX
+    setTimeout(() => {
+      setIsFiltering(false);
+    }, 300);
+  };
 
   // Filter investments based on date range (for table display)
   const filteredInvestments = useMemo(() => {
@@ -99,7 +109,7 @@ const PortfolioPerformanceChart = ({ userInvestments }) => {
           <div className="relative">
             <select
               value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+              onChange={(e) => handleDateFilterChange(e.target.value)}
               className="appearance-none pl-4 pr-10 py-2.5 bg-[#0F0F19] border border-white/20 rounded-lg text-white text-sm hover:border-white/40 focus:border-[#3CD4AB] focus:outline-none focus:ring-2 focus:ring-[#3CD4AB]/20 transition-all cursor-pointer font-medium"
               style={{
                 backgroundImage: 'none'
@@ -136,11 +146,56 @@ const PortfolioPerformanceChart = ({ userInvestments }) => {
       </div>
       
       <div className="h-100 overflow-y-scroll scrollbar-hide  ">
-        {filteredInvestments.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
+        {isFiltering ? (
+          // Loading State
+          <div className="flex items-center justify-center py-16">
+            <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3CD4AB]"></div>
+              <p className="text-gray-400 text-sm">Chargement des investissements...</p>
+            </div>
+          </div>
+        ) : filteredInvestments.length === 0 ? (
+          // No Data State
+          <div className="flex items-center justify-center py-16">
             <div className="text-center">
-              <h3 className="text-xl font-medium text-white mb-2">Aucun investissement</h3>
-              <p className="text-gray-400">Commencez à investir pour voir vos performances ici</p>
+              <svg 
+                className="w-20 h-20 text-white/20 mx-auto mb-4" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={1.5} 
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                />
+              </svg>
+              <h3 className="text-xl font-medium text-white mb-2">
+                {dateFilter === 'all' ? 'Aucun investissement' : 'Aucune donnée trouvée'}
+              </h3>
+              <p className="text-gray-400 mb-1">
+                {dateFilter === 'all' 
+                  ? 'Commencez à investir pour voir vos performances ici'
+                  : 'Aucun investissement trouvé pour cette période'}
+              </p>
+              {dateFilter !== 'all' && (
+                <p className="text-gray-500 text-sm mt-2">
+                  {dateFilter === '7days' && 'Aucun investissement créé au cours des 7 derniers jours'}
+                  {dateFilter === '30days' && 'Aucun investissement créé au cours des 30 derniers jours'}
+                  {dateFilter === '3months' && 'Aucun investissement créé au cours des 3 derniers mois'}
+                  {dateFilter === '6months' && 'Aucun investissement créé au cours des 6 derniers mois'}
+                  {dateFilter === '1year' && 'Aucun investissement créé au cours de l\'année'}
+                </p>
+              )}
+              {dateFilter !== 'all' && (
+                <button
+                  onClick={clearDateFilter}
+                  className="mt-4 px-4 py-2 bg-[#3CD4AB] hover:bg-[#2bb894] text-white rounded-lg transition-colors text-sm font-medium"
+                >
+                  Afficher tous les investissements
+                </button>
+              )}
             </div>
           </div>
         ) : (

@@ -66,7 +66,13 @@ const productRecommendations = {
   agressif: ['Produits Structurés', 'OPCVM Actions', 'Gestion sous Mandat'],
 };
 
-const SimulationsPage = ({ userBalance }) => {
+const SimulationsPage = ({ 
+  userBalance, 
+  simulationDateFilter, 
+  setSimulationDateFilter, 
+  getFilteredSimulations,
+  recentSimulations = []
+}) => {
   const {
     profileType,
     accountBalance, // Fallback balance from context
@@ -95,9 +101,23 @@ const SimulationsPage = ({ userBalance }) => {
   const [investmentAmounts, setInvestmentAmounts] = useState({});
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  
+  // Date filter loading state
+  const [isFilteringSimulations, setIsFilteringSimulations] = useState(false);
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+  
+  // Handle date filter change with loading state
+  const handleDateFilterChange = async (newFilter) => {
+    setIsFilteringSimulations(true);
+    setSimulationDateFilter(newFilter);
+    
+    // Simulate a brief loading period for better UX
+    setTimeout(() => {
+      setIsFilteringSimulations(false);
+    }, 300);
   };
 
   // Investment flow functions
@@ -546,6 +566,148 @@ const SimulationsPage = ({ userBalance }) => {
               ×
             </button>
           </div>
+        </div>
+      )}
+      
+      {/* Recent Simulations Section */}
+      {recentSimulations && recentSimulations.length > 0 && (
+        <div className="bg-white/5 border border-white/20 rounded-xl p-4 lg:p-6 w-full mt-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+            <h3 className="text-lg lg:text-xl font-semibold text-white">Historique des simulations</h3>
+            
+            {/* Date Filter */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleDateFilterChange("all")}
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                  simulationDateFilter === "all"
+                    ? "bg-[#3CD4AB] text-white"
+                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                }`}
+              >
+                Tout
+              </button>
+              <button
+                onClick={() => handleDateFilterChange("today")}
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                  simulationDateFilter === "today"
+                    ? "bg-[#3CD4AB] text-white"
+                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                }`}
+              >
+                Aujourd'hui
+              </button>
+              <button
+                onClick={() => handleDateFilterChange("week")}
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                  simulationDateFilter === "week"
+                    ? "bg-[#3CD4AB] text-white"
+                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                }`}
+              >
+                7 jours
+              </button>
+              <button
+                onClick={() => handleDateFilterChange("month")}
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                  simulationDateFilter === "month"
+                    ? "bg-[#3CD4AB] text-white"
+                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                }`}
+              >
+                30 jours
+              </button>
+            </div>
+          </div>
+          
+          {/* Loading State */}
+          {isFilteringSimulations ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="flex flex-col items-center gap-3">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#3CD4AB]"></div>
+                <p className="text-white/60 text-sm">Chargement des simulations...</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Filtered Simulations List */}
+              {getFilteredSimulations && getFilteredSimulations().length > 0 ? (
+                <div className="space-y-3">
+                  {getFilteredSimulations().map((sim, index) => (
+                    <div 
+                      key={index} 
+                      className="bg-white/10 border border-white/20 rounded-lg p-4 hover:bg-white/15 transition-colors"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-white font-medium">
+                              {sim.initialCapital?.toLocaleString()} MAD
+                            </span>
+                            <span className="text-white/50">•</span>
+                            <span className="text-white/70 text-sm">
+                              {sim.duration} mois
+                            </span>
+                            <span className="text-white/50">•</span>
+                            <span className="text-white/70 text-sm capitalize">
+                              {sim.riskProfile}
+                            </span>
+                          </div>
+                          <div className="text-white/50 text-xs">
+                            {new Date(sim.createdAt).toLocaleString('fr-FR')}
+                          </div>
+                        </div>
+                        <div className="flex gap-4 text-sm">
+                          <div className="text-center">
+                            <div className="text-white/60 text-xs mb-1">Attendu</div>
+                            <div className="text-[#3CD4AB] font-medium">
+                              {sim.result?.expected?.toLocaleString()} MAD
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-white/60 text-xs mb-1">Optimiste</div>
+                            <div className="text-green-400 font-medium">
+                              {sim.result?.optimistic?.toLocaleString()} MAD
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* No Data Message */
+                <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <svg 
+                      className="w-16 h-16 text-white/30" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                      />
+                    </svg>
+                    <div>
+                      <p className="text-white/70 font-medium mb-1">
+                        Aucune simulation trouvée
+                      </p>
+                      <p className="text-white/50 text-sm">
+                        {simulationDateFilter === "today" && "Aucune simulation créée aujourd'hui"}
+                        {simulationDateFilter === "week" && "Aucune simulation créée cette semaine"}
+                        {simulationDateFilter === "month" && "Aucune simulation créée ce mois-ci"}
+                        {simulationDateFilter === "all" && "Créez votre première simulation ci-dessus"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
     </div>

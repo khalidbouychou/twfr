@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogOut, UserRoundCog } from "lucide-react";
+import { LogOut, UserRoundCog, Wallet, TrendingUp, TrendingDown, Sparkles, ArrowDownToLine } from "lucide-react";
 import { useCart } from '../../Context/CartContext';
 
 const Header = ({ 
@@ -35,6 +35,14 @@ const Header = ({
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [processingMessage, setProcessingMessage] = useState('');
+  
+  // Withdraw balance states
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [showWithdrawProcessing, setShowWithdrawProcessing] = useState(false);
+  const [showWithdrawSuccess, setShowWithdrawSuccess] = useState(false);
+  const [showWithdrawError, setShowWithdrawError] = useState(false);
+  const [withdrawErrorMessage, setWithdrawErrorMessage] = useState('');
 
   const handleValidateInvestments = () => {
     const totalAmount = getTotalAmount();
@@ -116,6 +124,48 @@ const Header = ({
 
   const handleCancelInvestment = () => {
     setShowConfirmationModal(false);
+  };
+
+  // Handle withdraw balance
+  const handleWithdrawBalance = () => {
+    const amount = parseFloat(withdrawAmount);
+    
+    // Validation
+    if (!withdrawAmount || amount <= 0) {
+      setWithdrawErrorMessage('Veuillez entrer un montant valide');
+      setShowWithdrawError(true);
+      setTimeout(() => setShowWithdrawError(false), 3000);
+      return;
+    }
+    
+    if (amount > userBalance) {
+      setWithdrawErrorMessage('Solde insuffisant pour ce retrait');
+      setShowWithdrawError(true);
+      setTimeout(() => setShowWithdrawError(false), 3000);
+      return;
+    }
+    
+    // Show processing
+    setShowWithdrawModal(false);
+    setShowWithdrawProcessing(true);
+    
+    // Simulate processing (2 seconds)
+    setTimeout(() => {
+      // Deduct from balance
+      setUserBalance(prevBalance => prevBalance - amount);
+      
+      // Hide processing and show success
+      setShowWithdrawProcessing(false);
+      setShowWithdrawSuccess(true);
+      
+      // Reset form
+      setWithdrawAmount('');
+      
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => {
+        setShowWithdrawSuccess(false);
+      }, 3000);
+    }, 2000);
   };
 
   return (
@@ -369,8 +419,19 @@ const Header = ({
                         }}
                         className="w-full text-left px-4 py-3 text-white hover:bg-emerald-500/20 hover:text-emerald-300 transition-colors duration-200 flex items-center space-x-3"
                       >
-                        <span>💰</span>
+                        <Wallet className="w-5 h-5" />
                         <span>Ajouter des Fonds</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          setShowWithdrawModal(true);
+                          setIsActionsDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-white hover:bg-red-500/20 hover:text-red-300 transition-colors duration-200 flex items-center space-x-3"
+                      >
+                        <ArrowDownToLine className="w-5 h-5" />
+                        <span>Retirer du Solde</span>
                       </button>
                       
                       {calculateTotalProfits() > 0 && (
@@ -383,7 +444,7 @@ const Header = ({
                             }}
                             className="w-full text-left px-4 py-3 text-white hover:bg-purple-500/20 hover:text-purple-300 transition-colors duration-200 flex items-center space-x-3"
                           >
-                            <span>🎯</span>
+                            <TrendingDown className="w-5 h-5" />
                             <span>Retirer les Profits</span>
                           </button>
                           <button
@@ -394,7 +455,7 @@ const Header = ({
                             }}
                             className="w-full text-left px-4 py-3 text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition-colors duration-200 flex items-center space-x-3"
                           >
-                            <span>✨</span>
+                            <Sparkles className="w-5 h-5" />
                             <span>Ajouter au Solde</span>
                           </button>
                         </>
@@ -460,8 +521,19 @@ const Header = ({
                         }}
                         className="w-full text-left px-4 py-3 text-white hover:bg-emerald-500/20 hover:text-emerald-300 transition-colors duration-200 flex items-center space-x-3"
                       >
-                        <span>💰</span>
+                        <Wallet className="w-5 h-5" />
                         <span>Ajouter des Fonds</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          setShowWithdrawModal(true);
+                          setIsActionsDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-white hover:bg-red-500/20 hover:text-red-300 transition-colors duration-200 flex items-center space-x-3"
+                      >
+                        <ArrowDownToLine className="w-5 h-5" />
+                        <span>Retirer du Solde</span>
                       </button>
                       
                       {calculateTotalProfits() > 0 && (
@@ -474,7 +546,7 @@ const Header = ({
                             }}
                             className="w-full text-left px-4 py-3 text-white hover:bg-purple-500/20 hover:text-purple-300 transition-colors duration-200 flex items-center space-x-3"
                           >
-                            <span>🎯</span>
+                            <TrendingDown className="w-5 h-5" />
                             <span>Retirer les Profits</span>
                           </button>
                           <button
@@ -485,7 +557,7 @@ const Header = ({
                             }}
                             className="w-full text-left px-4 py-3 text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition-colors duration-200 flex items-center space-x-3"
                           >
-                            <span>✨</span>
+                            <Sparkles className="w-5 h-5" />
                             <span>Ajouter au Solde</span>
                           </button>
                         </>
@@ -843,6 +915,138 @@ const Header = ({
                 <p className="text-white/60 text-sm mb-1">Nouveau solde:</p>
                 <p className="text-[#3CD4AB] font-bold text-2xl">{userBalance.toLocaleString()} MAD</p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Withdraw Balance Modal */}
+      {showWithdrawModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-[#1a1a2e] rounded-2xl p-8 max-w-md w-full border border-white/10 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                <ArrowDownToLine className="w-6 h-6 text-red-400" />
+                Retirer du Solde
+              </h3>
+              <button
+                onClick={() => setShowWithdrawModal(false)}
+                className="text-white/60 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="bg-white/5 rounded-lg p-4 mb-6">
+              <p className="text-white/60 text-sm mb-1">Solde disponible:</p>
+              <p className="text-[#3CD4AB] font-bold text-2xl">{userBalance.toLocaleString()} MAD</p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-white/80 mb-2">
+                Montant à retirer
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:border-red-400 focus:outline-none transition-colors pr-16"
+                  min="0"
+                  step="0.01"
+                />
+                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60">MAD</span>
+              </div>
+            </div>
+
+            {withdrawAmount && parseFloat(withdrawAmount) > 0 && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-white/70">Nouveau solde:</span>
+                  <span className="text-white font-bold">
+                    {(userBalance - parseFloat(withdrawAmount)).toLocaleString()} MAD
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowWithdrawModal(false);
+                  setWithdrawAmount('');
+                }}
+                className="flex-1 px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors font-semibold"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleWithdrawBalance}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-lg transition-all shadow-lg"
+              >
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Withdraw Processing Modal */}
+      {showWithdrawProcessing && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-[#1a1a2e] rounded-2xl p-8 max-w-md w-full border border-white/10 shadow-2xl">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">Processing...</h3>
+              <div className="my-4 text-white/60">|</div>
+              <div className="my-4 text-white/60">|</div>
+              <p className="text-white/70 mb-4">Traitement de votre retrait en cours...</p>
+              <div className="my-4 text-white/60">|</div>
+              <div className="my-4 text-white/60">|</div>
+              <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-500 to-cyan-600 h-full rounded-full animate-pulse" style={{width: '70%'}}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Withdraw Success Modal */}
+      {showWithdrawSuccess && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-[#1a1a2e] rounded-2xl p-8 max-w-md w-full border border-white/10 shadow-2xl animate-fade-in">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">Retrait réussi!</h3>
+              <p className="text-white/70 mb-4">Votre retrait a été traité avec succès</p>
+              <div className="bg-white/5 rounded-lg p-4 w-full">
+                <p className="text-white/60 text-sm mb-1">Nouveau solde:</p>
+                <p className="text-[#3CD4AB] font-bold text-2xl">{userBalance.toLocaleString()} MAD</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Withdraw Error Modal */}
+      {showWithdrawError && (
+        <div className="fixed top-4 right-4 z-[70] animate-fade-in">
+          <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 border border-red-400/20">
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <div>
+              <p className="font-semibold">Erreur!</p>
+              <p className="text-sm text-white/90">{withdrawErrorMessage}</p>
             </div>
           </div>
         </div>

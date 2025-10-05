@@ -30,7 +30,7 @@ const ConfirmationPopup = () => {
             let stepIndex = -1
             for (let i = 0; i < 5; i++) {
                 if (stepAnswers[i] && stepAnswers[i].some(stepAnswer => 
-                    stepAnswer.q === answer.q && stepAnswer.answer === answer.answer
+                    stepAnswer?.q === answer?.q && stepAnswer?.answer === answer?.answer
                 )) {
                     stepIndex = i
                     break

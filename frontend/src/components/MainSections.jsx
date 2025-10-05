@@ -30,7 +30,7 @@ const sections = [
 const MainSections = () => {
   return (
     <section id="About us" className="w-full py-15 bg-gray-50 rounded-2xl" data-aos="fade-up">
-      <h2  className="block text-2xl md:text-4xl font-bold text-center  w-full  mb-15">
+      <h2  className="text-gray-900 block text-2xl md:text-4xl font-bold text-center  w-full  mb-15">
         À propos de TawfirAI
       </h2>
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row flex-wrap gap-8 md:px-0">

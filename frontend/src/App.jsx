@@ -21,6 +21,14 @@ import Stepper from './components/Profiling/Stepper';
 import TawfirStats from "./components/TawfirState";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Loader from "./components/Loader";
+import { 
+  // VisionMission, 
+  // FiveStepSimulation, 
+  AIRecommendation, 
+  UXPrinciples, 
+  // LaunchExpansion, 
+  SecurityCompliance 
+} from './components/newsections';
 
 
 const LandingPage = () => (
@@ -28,9 +36,15 @@ const LandingPage = () => (
     <Navbar />
     <HeroSection />
     <MainSections />
+    {/* <VisionMission /> */}
+    {/* <FiveStepSimulation /> */}
     <HowItWorks />
     <Products />
+    <UXPrinciples />
+    <AIRecommendation />
     <TawfirStats/>
+    {/* <LaunchExpansion /> */}
+    <SecurityCompliance />
     <News />
     <Reviews />
     <Faq />

@@ -15,6 +15,22 @@ const InvestmentsPage = ({
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showInsufficientBalanceAlert, setShowInsufficientBalanceAlert] = useState(false);
+  
+  // Toast notification states
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
+
+  // Show toast notification
+  const showNotification = (message, type = 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  };
 
   const handleAddToCartClick = (investment, e) => {
     e.stopPropagation();
@@ -28,7 +44,7 @@ const InvestmentsPage = ({
     
     // Check minimum investment
     if (!investmentAmount || amount < selectedProduct.min) {
-      alert(`Le montant minimum d'investissement est de ${selectedProduct.min.toLocaleString()} MAD`);
+      showNotification(`Le montant minimum d'investissement est de ${selectedProduct.min.toLocaleString()} MAD`, 'error');
       return;
     }
 
@@ -309,6 +325,19 @@ const InvestmentsPage = ({
               <p className="font-semibold">Solde insuffisant!</p>
               <p className="text-sm text-white/90">Votre solde actuel: {userBalance?.toLocaleString()} MAD</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-4 right-4 z-50 animate-fade-in">
+          <div className={`px-6 py-4 rounded-lg shadow-lg border ${
+            toastType === 'success' ? 'bg-green-500 border-green-600 text-white' :
+            toastType === 'error' ? 'bg-red-500 border-red-600 text-white' :
+            'bg-blue-500 border-blue-600 text-white'
+          }`}>
+            <span className="font-medium">{toastMessage}</span>
           </div>
         </div>
       )}

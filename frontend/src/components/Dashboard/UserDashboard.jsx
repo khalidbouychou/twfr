@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useContext, useCallback } from "react";
 import { UserContext } from "../Context/UserContext";
 import { useNavigate, Link } from "react-router-dom";
-import { LogOut, UserRoundCog } from "lucide-react";
+import { LogOut, UserRoundCog, BotMessageSquare } from "lucide-react";
 import { useNewsData } from "../../hooks/useNewsData";
 import { useMarketQuotes } from "../../hooks/useMarketQuotes";
 import Dashboardchart from "../Charts/Dashboardchart";
@@ -51,15 +51,23 @@ const UserDashboard = () => {
   const { setIsLoggedIn, userProfileData, userInvestments, accountBalance, updateAccountBalance } = useContext(UserContext);
   const { pendingInvestment, clearPendingInvestment, addUserInvestment } = useUserContext();
 
+  // State to trigger re-render when profile is updated
+  const [profileUpdateTrigger, setProfileUpdateTrigger] = useState(0);
+
   // Prefer profile from context (Google or manual); fallback simple
   const fallbackAvatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
   
   // Get avatar from multiple possible sources including Google profile
-  const getAvatarSrc = () => {
-    // First check userProfileData (unified context)
-    if (userProfileData?.avatar) return userProfileData?.avatar;
-    if (userProfileData?.picture) return userProfileData?.picture;
-    if (userProfileData?.imageUrl) return userProfileData?.imageUrl;
+  // Using useMemo to recompute when profileUpdateTrigger changes
+  const getAvatarSrc = useMemo(() => {
+    // Check localStorage first (most up-to-date after profile update)
+    try {
+      const profileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
+      if (profileData.avatar) return profileData.avatar;
+      if (profileData.picture) return profileData.picture;
+    } catch (e) {
+      console.error('Error parsing profile data:', e);
+    }
     
     // Check Google profile in localStorage
     try {
@@ -69,24 +77,31 @@ const UserDashboard = () => {
       console.error('Error parsing Google profile:', e);
     }
     
-    // Check alternative profile data in localStorage
-    try {
-      const profileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
-      if (profileData.avatar) return profileData.avatar;
-      if (profileData.picture) return profileData.picture;
-    } catch (e) {
-      console.error('Error parsing profile data:', e);
-    }
+    // Finally check userProfileData from context (unified context)
+    if (userProfileData?.avatar) return userProfileData?.avatar;
+    if (userProfileData?.picture) return userProfileData?.picture;
+    if (userProfileData?.imageUrl) return userProfileData?.imageUrl;
     
     return fallbackAvatar;
-  };
+  }, [userProfileData, profileUpdateTrigger, fallbackAvatar]);
   
-  const userData = {
-    name: userProfileData?.fullName || userProfileData?.name || "Utilisateur",
+  // Get user name from localStorage, recomputes when profileUpdateTrigger changes
+  const getUserName = useMemo(() => {
+    try {
+      const profileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
+      return profileData.fullName || profileData.name || userProfileData?.fullName || userProfileData?.name || "Utilisateur";
+    } catch (e) {
+      return userProfileData?.fullName || userProfileData?.name || "Utilisateur";
+    }
+  }, [userProfileData, profileUpdateTrigger]);
+  
+  // userData object with useMemo to ensure it updates when avatar/name changes
+  const userData = useMemo(() => ({
+    name: getUserName,
     email: userProfileData?.email || "",
-    avatar: getAvatarSrc(),
+    avatar: getAvatarSrc,
     createdAt: new Date()
-  };
+  }), [getUserName, userProfileData?.email, getAvatarSrc]);
 
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -99,6 +114,22 @@ const UserDashboard = () => {
   const [balanceAmount, setBalanceAmount] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("paypal");
   const [profitOperation, setProfitOperation] = useState("withdraw");
+  
+  // Toast notification states
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success'); // 'success' | 'error' | 'info'
+
+  // Show toast notification
+  const showNotification = (message, type = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  };
 
   // Use context balance with local state fallback for backward compatibility
   const [userBalance, setUserBalance] = useState(() => {
@@ -432,6 +463,20 @@ useEffect(() => {
       // Mark user as initialized
       localStorage.setItem('userInitialized', 'true');
     }
+  }, []);
+
+  // Listen for profile updates from SettingsModal
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      // Force re-render by updating trigger
+      setProfileUpdateTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('userProfileUpdated', handleProfileUpdate);
+    
+    return () => {
+      window.removeEventListener('userProfileUpdated', handleProfileUpdate);
+    };
   }, []);
 
   // Synchronize userInvestments from UserContext with local investmentHistory
@@ -980,12 +1025,12 @@ useEffect(() => {
     const capital = parseFloat(simulationForm.initialCapital);
 
     if (!capital || capital <= 0) {
-      alert("Veuillez entrer un capital initial valide");
+      showNotification("Veuillez entrer un capital initial valide", "error");
       return;
     }
 
     if (capital > userBalance) {
-      alert("Capital insuffisant dans votre solde");
+      showNotification("Capital insuffisant dans votre solde", "error");
       return;
     }
 
@@ -994,6 +1039,22 @@ useEffect(() => {
       simulationForm.duration,
       simulationForm.riskProfile
     );
+    
+    // Calculate scenario-based results for display
+    const baseReturns = {
+      conservateur: 0.04,
+      modere: 0.07,
+      dynamique: 0.1,
+      agressif: 0.15
+    };
+    
+    const durationMonths = parseInt(simulationForm.duration);
+    const years = durationMonths / 12;
+    const baseReturn = baseReturns[simulationForm.riskProfile] || 0.04;
+    
+    const pessimistic = Math.round(capital * Math.pow(1 + baseReturn * 0.6, years));
+    const expected = Math.round(capital * Math.pow(1 + baseReturn, years));
+    const optimistic = Math.round(capital * Math.pow(1 + baseReturn * 1.4, years));
 
     const newSimulation = {
       id: Date.now(),
@@ -1015,8 +1076,16 @@ useEffect(() => {
       riskProfile:
         simulationForm.riskProfile.charAt(0).toUpperCase() +
         simulationForm.riskProfile.slice(1),
-      createdAt: new Date().toLocaleDateString("fr-FR"),
-      status: "active"
+      createdAt: new Date().toISOString(), // Store as ISO string for reliable parsing
+      status: "active",
+      result: {
+        finalValue: result.finalValue,
+        totalReturn: result.totalReturn,
+        monthlyGrowth: result.monthlyGrowth,
+        pessimistic: pessimistic,
+        expected: expected,
+        optimistic: optimistic
+      }
     };
 
     setRecentSimulations((prev) => [newSimulation, ...prev]);
@@ -1181,19 +1250,20 @@ useEffect(() => {
     const amount = parseFloat(investAmount);
 
     if (!amount || amount <= 0) {
-      alert("Veuillez entrer un montant valide");
+      showNotification("Veuillez entrer un montant valide", "error");
       return;
     }
 
     if (amount < selectedInvestment.min) {
-      alert(
-        `Le montant minimum d'investissement est de ${selectedInvestment.min.toLocaleString()} MAD`
+      showNotification(
+        `Le montant minimum d'investissement est de ${selectedInvestment.min.toLocaleString()} MAD`,
+        "error"
       );
       return;
     }
 
     if (amount > userBalance) {
-      alert("Solde insuffisant");
+      showNotification("Solde insuffisant", "error");
       return;
     }
 
@@ -2223,29 +2293,13 @@ useEffect(() => {
         <div className="fixed bottom-20 lg:bottom-6 right-6 z-40">
           <button
             onClick={() => setShowAIAssistant(true)}
-            className="group relative w-14 h-14 bg-gradient-to-r from-[#3CD4AB] to-emerald-400 hover:from-[#3CD4AB]/90 hover:to-emerald-400/90 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center transform hover:scale-110"
+            className="group relative w-14 h-14 bg-[#0F0F19] border-2 border-[#3CD4AB] hover:border-emerald-400 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center transform hover:scale-110"
           >
-            {/* Robot AI Icon */}
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-              {/* Robot head */}
-              <rect x="6" y="6" width="12" height="10" rx="2" fill="currentColor"/>
-              {/* Robot antenna */}
-              <line x1="12" y1="2" x2="12" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <circle cx="12" cy="2" r="1.5" fill="currentColor"/>
-              {/* Robot eyes */}
-              <circle cx="9" cy="10" r="1.5" fill="white"/>
-              <circle cx="15" cy="10" r="1.5" fill="white"/>
-              {/* Robot mouth */}
-              <rect x="10" y="13" width="4" height="1" fill="white"/>
-              {/* Robot body */}
-              <rect x="8" y="16" width="8" height="6" rx="1" fill="currentColor"/>
-              {/* Robot arms */}
-              <rect x="4" y="18" width="3" height="2" rx="1" fill="currentColor"/>
-              <rect x="17" y="18" width="3" height="2" rx="1" fill="currentColor"/>
-            </svg>
+            {/* Lucide Bot Icon */}
+            <BotMessageSquare className="w-7 h-7 text-[#3CD4AB] group-hover:text-emerald-400 transition-colors" strokeWidth={2} />
             
             {/* Pulse animation */}
-            <div className="absolute inset-0 rounded-full bg-[#2a78633e] animate-ping opacity-20"></div>
+            <div className="absolute inset-0 rounded-full bg-[#3CD4AB]/20 animate-ping opacity-20"></div>
             
             {/* Tooltip */}
             <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
@@ -2255,6 +2309,19 @@ useEffect(() => {
           </button>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-4 right-4 z-[60] animate-fade-in">
+          <div className={`px-6 py-4 rounded-lg shadow-lg border ${
+            toastType === 'success' ? 'bg-green-500 border-green-600 text-white' :
+            toastType === 'error' ? 'bg-red-500 border-red-600 text-white' :
+            'bg-blue-500 border-blue-600 text-white'
+          }`}>
+            <span className="font-medium">{toastMessage}</span>
+          </div>
+        </div>
+      )}
     </>
   );
 };
