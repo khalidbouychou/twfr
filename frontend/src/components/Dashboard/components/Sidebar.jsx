@@ -6,7 +6,8 @@ const Sidebar = ({
   setIsSidebarHovered, 
   currentPage, 
   handleNavigation,
-  setSidebarOpen
+  setSidebarOpen,
+  setShowAIAssistant
 }) => {
   const menuItems = [
     {
@@ -60,11 +61,44 @@ const Sidebar = ({
           <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"></path>
         </svg>
       )
+    },
+    {
+      id: "ai-assistant",
+      label: "Assistant IA",
+      mobileLabel: "Assistant",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 8V4H8"/>
+          <rect width="16" height="12" x="4" y="8" rx="2"/>
+          <path d="M2 14h2"/>
+          <path d="M20 14h2"/>
+          <path d="M15 13v2"/>
+          <path d="M9 13v2"/>
+        </svg>
+      ),
+      isAIAssistant: true
+    },
+    {
+      id: "messages",
+      label: "Messages",
+      mobileLabel: "Messages",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/>
+          <path d="M7 11h10"/>
+          <path d="M7 15h6"/>
+          <path d="M7 7h8"/>
+        </svg>
+      )
     }
   ];
 
-  const handleItemClick = (itemId) => {
-    handleNavigation(itemId);
+  const handleItemClick = (itemId, isAIAssistant = false) => {
+    if (isAIAssistant) {
+      setShowAIAssistant(true);
+    } else {
+      handleNavigation(itemId);
+    }
     if (window.innerWidth < 1024) {
       setSidebarOpen(false);
     }
@@ -93,9 +127,9 @@ const Sidebar = ({
           <ul className="space-y-2 pt-4">{menuItems.map((item) => (
               <li key={item.id}>
                 <button
-                  onClick={() => handleNavigation(item.id)}
+                  onClick={() => item.isAIAssistant ? setShowAIAssistant(true) : handleNavigation(item.id)}
                   className={`flex items-center w-full p-2 text-base font-normal rounded-lg transition-colors duration-200 ${
-                    currentPage === item.id
+                    currentPage === item.id && !item.isAIAssistant
                       ? "bg-[#3CD4AB] text-[#0F0F19]"
                       : "text-white hover:bg-white/10 hover:text-[#3CD4AB]"
                   }`}
@@ -147,9 +181,9 @@ const Sidebar = ({
             {menuItems.map((item) => (
               <li key={item.id}>
                 <button
-                  onClick={() => handleItemClick(item.id)}
+                  onClick={() => handleItemClick(item.id, item.isAIAssistant)}
                   className={`flex items-center w-full p-3 text-base font-medium rounded-lg transition-colors duration-200 ${
-                    currentPage === item.id
+                    currentPage === item.id && !item.isAIAssistant
                       ? "bg-[#3CD4AB] text-[#0F0F19]"
                       : "text-white hover:bg-white/10 hover:text-[#3CD4AB]"
                   }`}
@@ -169,14 +203,14 @@ const Sidebar = ({
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => handleItemClick(item.id)}
+              onClick={() => handleItemClick(item.id, item.isAIAssistant)}
               className={`flex flex-col items-center justify-center w-full h-full transition-colors duration-200 ${
-                currentPage === item.id
+                currentPage === item.id && !item.isAIAssistant
                   ? "text-[#3CD4AB]"
                   : "text-white/60 hover:text-white"
               }`}
             >
-              <div className={`${currentPage === item.id ? "scale-110" : "scale-100"} transition-transform duration-200`}>
+              <div className={`${currentPage === item.id && !item.isAIAssistant ? "scale-110" : "scale-100"} transition-transform duration-200`}>
                 {item.icon}
               </div>
               <span className="text-xs mt-1 font-medium">{item.mobileLabel}</span>

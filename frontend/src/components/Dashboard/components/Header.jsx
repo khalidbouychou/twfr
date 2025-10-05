@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LogOut, UserRoundCog, Wallet, TrendingUp, TrendingDown, Sparkles, ArrowDownToLine } from "lucide-react";
 import { useCart } from '../../Context/CartContext';
+import { Progress } from '../../ui/progress';
 
 const Header = ({ 
   userData, 
@@ -39,10 +40,9 @@ const Header = ({
   // Withdraw balance states
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [showWithdrawProcessing, setShowWithdrawProcessing] = useState(false);
-  const [showWithdrawSuccess, setShowWithdrawSuccess] = useState(false);
   const [showWithdrawError, setShowWithdrawError] = useState(false);
   const [withdrawErrorMessage, setWithdrawErrorMessage] = useState('');
+
 
   const handleValidateInvestments = () => {
     const totalAmount = getTotalAmount();
@@ -145,27 +145,19 @@ const Header = ({
       return;
     }
     
-    // Show processing
+    // Close modal
     setShowWithdrawModal(false);
-    setShowWithdrawProcessing(true);
     
-    // Simulate processing (2 seconds)
-    setTimeout(() => {
-      // Deduct from balance
-      setUserBalance(prevBalance => prevBalance - amount);
-      
-      // Hide processing and show success
-      setShowWithdrawProcessing(false);
-      setShowWithdrawSuccess(true);
-      
-      // Reset form
-      setWithdrawAmount('');
-      
-      // Auto-hide success message after 3 seconds
-      setTimeout(() => {
-        setShowWithdrawSuccess(false);
-      }, 3000);
-    }, 2000);
+    // Deduct from balance
+    setUserBalance(prevBalance => prevBalance - amount);
+    
+    // Reset form
+    setWithdrawAmount('');
+    
+    // Show success notification at top (reuse error state with success message)
+    setWithdrawErrorMessage(`${amount.toLocaleString()} MAD retirés avec succès`);
+    setShowWithdrawError(true);
+    setTimeout(() => setShowWithdrawError(false), 3000);
   };
 
   return (
@@ -227,7 +219,7 @@ const Header = ({
                             />
                             <div className="flex-1 min-w-0">
                               <h4 className="text-white font-medium text-sm truncate">{item.name}</h4>
-                              <p className="text-[#3CD4AB] font-semibold text-sm">{parseFloat(item.amount).toLocaleString()} MAD</p>
+                              <p className="text-[#3CD4AB] font-semibold text-sm">{(Number(item.amount) || 0).toLocaleString()} MAD</p>
                             </div>
                             <button
                               onClick={(e) => {
@@ -389,7 +381,7 @@ const Header = ({
             {/* Balance Display */}
             <div className="text-white text-sm bg-white/5 px-3 py-2 rounded-lg">
               <span className="text-white/70">Solde: </span>
-              <span className="font-bold text-[#3CD4AB]">{userBalance.toLocaleString()} MAD</span>
+              <span className="font-bold text-[#3CD4AB]">{(Number(userBalance) || 0).toLocaleString()} MAD</span>
             </div>
 
             {/* Actions Dropdown */}
@@ -490,7 +482,7 @@ const Header = ({
             {/* Balance Display */}
             <div className="text-white text-xs sm:text-sm">
               <span className="hidden md:inline">Solde: </span>
-              <span className="font-bold text-[#3CD4AB]">{userBalance.toLocaleString()}</span>
+              <span className="font-bold text-[#3CD4AB]">{(Number(userBalance) || 0).toLocaleString()}</span>
               <span className="hidden sm:inline"> MAD</span>
             </div>
 
@@ -614,7 +606,7 @@ const Header = ({
                             />
                             <div className="flex-1 min-w-0">
                               <h4 className="text-white font-medium text-sm truncate">{item.name}</h4>
-                              <p className="text-[#3CD4AB] font-semibold text-sm">{parseFloat(item.amount).toLocaleString()} MAD</p>
+                              <p className="text-[#3CD4AB] font-semibold text-sm">{(Number(item.amount) || 0).toLocaleString()} MAD</p>
                             </div>
                             <button
                               onClick={(e) => {
@@ -790,7 +782,7 @@ const Header = ({
             </svg>
             <div>
               <p className="font-semibold">Solde insuffisant!</p>
-              <p className="text-sm text-white/90">Solde: {userBalance.toLocaleString()} MAD | Besoin: {getTotalAmount().toLocaleString()} MAD</p>
+              <p className="text-sm text-white/90">Solde: {(Number(userBalance) || 0).toLocaleString()} MAD | Besoin: {(Number(getTotalAmount()) || 0).toLocaleString()} MAD</p>
             </div>
           </div>
         </div>
@@ -845,7 +837,7 @@ const Header = ({
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
                           <span className="text-white/60">Montant:</span>
-                          <p className="text-[#3CD4AB] font-semibold">{parseFloat(item.amount).toLocaleString()} MAD</p>
+                          <p className="text-[#3CD4AB] font-semibold">{(Number(item.amount) || 0).toLocaleString()} MAD</p>
                         </div>
                         <div>
                           <span className="text-white/60">Risque:</span>
@@ -869,15 +861,15 @@ const Header = ({
             <div className="bg-gradient-to-r from-[#3CD4AB]/20 to-emerald-500/20 border border-[#3CD4AB]/30 rounded-lg p-4 mb-6">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-white font-semibold">Montant total:</span>
-                <span className="text-[#3CD4AB] font-bold text-2xl">{getTotalAmount().toLocaleString()} MAD</span>
+                <span className="text-[#3CD4AB] font-bold text-2xl">{(Number(getTotalAmount()) || 0).toLocaleString()} MAD</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-white/70">Solde actuel:</span>
-                <span className="text-white font-semibold">{userBalance.toLocaleString()} MAD</span>
+                <span className="text-white font-semibold">{(Number(userBalance) || 0).toLocaleString()} MAD</span>
               </div>
               <div className="flex justify-between items-center text-sm mt-1 pt-2 border-t border-white/10">
                 <span className="text-white/70">Nouveau solde:</span>
-                <span className="text-emerald-400 font-bold">{(userBalance - getTotalAmount()).toLocaleString()} MAD</span>
+                <span className="text-emerald-400 font-bold">{((Number(userBalance) || 0) - (Number(getTotalAmount()) || 0)).toLocaleString()} MAD</span>
               </div>
             </div>
 
@@ -913,7 +905,7 @@ const Header = ({
               <p className="text-white/70 mb-4">Vos investissements ont été traités avec succès</p>
               <div className="bg-white/5 rounded-lg p-4 w-full">
                 <p className="text-white/60 text-sm mb-1">Nouveau solde:</p>
-                <p className="text-[#3CD4AB] font-bold text-2xl">{userBalance.toLocaleString()} MAD</p>
+                <p className="text-[#3CD4AB] font-bold text-2xl">{(Number(userBalance) || 0).toLocaleString()} MAD</p>
               </div>
             </div>
           </div>
@@ -941,7 +933,7 @@ const Header = ({
 
             <div className="bg-white/5 rounded-lg p-4 mb-6">
               <p className="text-white/60 text-sm mb-1">Solde disponible:</p>
-              <p className="text-[#3CD4AB] font-bold text-2xl">{userBalance.toLocaleString()} MAD</p>
+              <p className="text-[#3CD4AB] font-bold text-2xl">{(Number(userBalance) || 0).toLocaleString()} MAD</p>
             </div>
 
             <div className="mb-6">
@@ -967,7 +959,7 @@ const Header = ({
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-white/70">Nouveau solde:</span>
                   <span className="text-white font-bold">
-                    {(userBalance - parseFloat(withdrawAmount)).toLocaleString()} MAD
+                    {((Number(userBalance) || 0) - (Number(withdrawAmount) || 0)).toLocaleString()} MAD
                   </span>
                 </div>
               </div>
@@ -994,58 +986,19 @@ const Header = ({
         </div>
       )}
 
-      {/* Withdraw Processing Modal */}
-      {showWithdrawProcessing && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-[#1a1a2e] rounded-2xl p-8 max-w-md w-full border border-white/10 shadow-2xl">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mb-4 animate-pulse">
-                <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Processing...</h3>
-              <div className="my-4 text-white/60">|</div>
-              <div className="my-4 text-white/60">|</div>
-              <p className="text-white/70 mb-4">Traitement de votre retrait en cours...</p>
-              <div className="my-4 text-white/60">|</div>
-              <div className="my-4 text-white/60">|</div>
-              <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-cyan-600 h-full rounded-full animate-pulse" style={{width: '70%'}}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Withdraw Success Modal */}
-      {showWithdrawSuccess && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-[#1a1a2e] rounded-2xl p-8 max-w-md w-full border border-white/10 shadow-2xl animate-fade-in">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Retrait réussi!</h3>
-              <p className="text-white/70 mb-4">Votre retrait a été traité avec succès</p>
-              <div className="bg-white/5 rounded-lg p-4 w-full">
-                <p className="text-white/60 text-sm mb-1">Nouveau solde:</p>
-                <p className="text-[#3CD4AB] font-bold text-2xl">{userBalance.toLocaleString()} MAD</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Withdraw Error Modal */}
+      {/* Simple Notification Toast (Success/Error) */}
       {showWithdrawError && (
         <div className="fixed top-4 right-4 z-[70] animate-fade-in">
-          <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 border border-red-400/20">
+          <div className={`${withdrawErrorMessage.includes('succès') ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-red-500 to-red-600'} text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 border ${withdrawErrorMessage.includes('succès') ? 'border-green-400/20' : 'border-red-400/20'}`}>
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              {withdrawErrorMessage.includes('succès') ? (
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              ) : (
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              )}
             </svg>
             <div>
-              <p className="font-semibold">Erreur!</p>
+              <p className="font-semibold">{withdrawErrorMessage.includes('succès') ? 'Succès!' : 'Erreur!'}</p>
               <p className="text-sm text-white/90">{withdrawErrorMessage}</p>
             </div>
           </div>

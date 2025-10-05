@@ -26,6 +26,7 @@ import { RecommendationEngine, ROICalculator } from "../Algo";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "../ui/chart.jsx";
 import { useUserContext } from "../Context/useUserContext";
 import { RadarChart as RChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
+import { Progress } from "../ui/progress";
 
 // Import new components
 import {
@@ -46,6 +47,7 @@ import {
   InvestmentsPage,
   AIAssistant
 } from './components';
+import Chat from './Chat';
 
 const UserDashboard = () => {
   const { setIsLoggedIn, userProfileData, userInvestments, accountBalance, updateAccountBalance } = useContext(UserContext);
@@ -114,6 +116,8 @@ const UserDashboard = () => {
   const [balanceAmount, setBalanceAmount] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("paypal");
   const [profitOperation, setProfitOperation] = useState("withdraw");
+  
+  // Processing state removed - using toast notifications instead
   
   // Toast notification states
   const [showToast, setShowToast] = useState(false);
@@ -591,6 +595,10 @@ useEffect(() => {
         },
         ...prev
       ]);
+      
+      // Show success toast notification
+      showNotification(`${amount.toLocaleString()} MAD ajoutés à votre solde`, 'success');
+      
       const newNotif = {
         id: Date.now(),
         message: `Solde ajouté: +${(!isNaN(amount) ? amount.toLocaleString() : '0')} MAD`,
@@ -609,6 +617,9 @@ useEffect(() => {
         { ...newNotif, receivedAt: new Date().toLocaleString("fr-FR") },
         ...prev
       ]);
+      
+      setBalanceAmount("");
+      setShowBalanceModal(false);
     } else if (balanceOperation === "withdraw") {
       updateBalance((prev) => prev - amount);
       setTransactionsHistory((prev) => [
@@ -621,6 +632,10 @@ useEffect(() => {
         },
         ...prev
       ]);
+      
+      // Show success toast notification
+      showNotification(`${amount.toLocaleString()} MAD retirés de votre solde`, 'success');
+      
       const newNotif = {
         id: Date.now(),
         message: `Solde retiré: -${(!isNaN(amount) ? amount.toLocaleString() : '0')} MAD`,
@@ -639,16 +654,18 @@ useEffect(() => {
         { ...newNotif, receivedAt: new Date().toLocaleString("fr-FR") },
         ...prev
       ]);
+      
+      setBalanceAmount("");
+      setShowBalanceModal(false);
     }
-
-    setBalanceAmount("");
-    setShowBalanceModal(false);
   };
 
   const handleProfitOperation = () => {
     const totalProfits = calculateTotalProfits();
 
     if (totalProfits <= 0) {
+      showNotification('Aucun profit disponible à retirer', 'warning');
+      
       const noProfitNotif = {
         id: Date.now(),
         message: `Aucun profit disponible`,
@@ -676,6 +693,9 @@ useEffect(() => {
       };
       const paymentMethodName =
         paymentMethodNames[selectedPaymentMethod] || "PayPal";
+
+      // Show success toast notification
+      showNotification(`${totalProfits.toLocaleString()} MAD de profits retirés vers ${paymentMethodName}`, 'success');
 
       const profitWithdrawNotif = {
         id: Date.now(),
@@ -717,6 +737,9 @@ useEffect(() => {
       ]);
     } else if (profitOperation === "add") {
       updateBalance((prev) => prev + totalProfits);
+
+      // Show success toast notification
+      showNotification(`${totalProfits.toLocaleString()} MAD de profits ajoutés à votre solde`, 'success');
 
       const profitAddNotif = {
         id: Date.now(),
@@ -1666,11 +1689,12 @@ useEffect(() => {
           setIsSidebarHovered={setIsSidebarHovered}
           currentPage={currentPage}
           handleNavigation={handleNavigation}
+          setShowAIAssistant={setShowAIAssistant}
         />
 
         {/* Main Content */}
-        <div className={`p-2 sm:p-3 lg:p-4 pt-32 sm:pt-36 lg:pt-20 pb-24 lg:pb-8 transition-all duration-200 ${isSidebarHovered ? 'lg:ml-64' : 'lg:ml-16'} h-screen overflow-y-auto`}>
-          <div className="p-2 sm:p-4 lg:p-6 bg-[#0F0F19] border border-[#89559F]/20 rounded-lg shadow-sm min-h-full">
+        <div className={`p-1 sm:p-2 lg:p-3 pt-28 sm:pt-32 lg:pt-16 pb-20 lg:pb-6 transition-all duration-200 ${isSidebarHovered ? 'lg:ml-64' : 'lg:ml-16'} h-screen overflow-y-auto`}>
+          <div className="p-1 sm:p-2 lg:p-3 bg-[#0F0F19] border border-[#89559F]/20 rounded-lg shadow-sm min-h-full">
             {/* Render different pages based on currentPage */}
             {currentPage === "dashboard" && (
               <div>
@@ -1683,7 +1707,7 @@ useEffect(() => {
                 />
 
                 {/* Profil d'Investisseur et Répartition des Investissements */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 lg:gap-3 mb-2 lg:mb-3">
                   {/* Profil d'Investisseur - Radar Chart */}
                   <RadarChart 
                     radarData={radarData}
@@ -1708,7 +1732,6 @@ useEffect(() => {
                     transactionsHistory={transactionsHistory}
                   />
                 </div>
-+
 
               </div>
             )}
@@ -1728,7 +1751,7 @@ useEffect(() => {
                 </div>
 
                 {/* Main Content Grid */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6 xl:gap-8">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 lg:gap-3 xl:gap-4">
                   {/* Sector Breakdown - Enhanced Container */}
                   <div className="transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
                     <SectorBreakdown 
@@ -1737,34 +1760,34 @@ useEffect(() => {
                   </div>
 
                   {/* Investment History - Enhanced Design */}
-                  <div className="group relative overflow-hidden rounded-2xl   p-6 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+                  <div className="group relative overflow-hidden rounded-xl p-3 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
                     <div className="absolute inset-0  bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm"></div>
                     
                     {/* Header with Icon */}
-                    <div className="relative flex items-center justify-between mb-2 ">
-                      <div className="flex items-center space-x-3">
+                    <div className="relative flex items-center justify-between mb-1.5">
+                      <div className="flex items-center space-x-2">
       
-                        <h3 className="text-xl font-bold text-gray-50">
+                        <h3 className="text-lg font-bold text-gray-50">
                           Historique d'Investissements
                         </h3>
                       </div>
                       
                       {/* Scroll Controls - Enhanced */}
                       {calculateInvestmentHistoryWithReturns().length > 3 && (
-                        <div className="flex gap-2">
+                        <div className="flex gap-1.5">
                           <button
                             onClick={() => scrollInvestments(-1)}
-                            className="group/btn p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 text-white border border-purple-500/30 hover:border-purple-400/50 transition-all duration-200 hover:scale-110"
+                            className="group/btn p-1.5 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 text-white border border-purple-500/30 hover:border-purple-400/50 transition-all duration-200 hover:scale-110"
                           >
-                            <svg className="w-4 h-4 transform group-hover/btn:-translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 transform group-hover/btn:-translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
                             </svg>
                           </button>
                           <button
                             onClick={() => scrollInvestments(1)}
-                            className="group/btn p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 text-white border border-purple-500/30 hover:border-purple-400/50 transition-all duration-200 hover:scale-110"
+                            className="group/btn p-1.5 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 text-white border border-purple-500/30 hover:border-purple-400/50 transition-all duration-200 hover:scale-110"
                           >
-                            <svg className="w-4 h-4 transform group-hover/btn:translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 transform group-hover/btn:translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
                             </svg>
                           </button>
@@ -1776,45 +1799,45 @@ useEffect(() => {
                     <div className="relative">
                       <div
                         ref={invListRef}
-                        className={`${calculateInvestmentHistoryWithReturns().length > 3 ? "max-h-60 overflow-y-auto" : ""}`}
+                        className={`${calculateInvestmentHistoryWithReturns().length > 3 ? "max-h-48 overflow-y-auto" : ""}`}
                         style={{ 
                           scrollBehavior: "smooth",
                           scrollbarWidth: "none",
                           msOverflowStyle: "none"
                         }}
                       >
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                           {calculateInvestmentHistoryWithReturns().map(
                             (investment) => (
                               <div
                                 key={investment.id}
                                 data-inv-item
-                                className="group/item relative overflow-hidden rounded-xl bg-gradient-to-r from-white/5 to-white/10 border border-white/10 p-4 hover:from-white/10 hover:to-white/15 hover:border-purple-400/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                                className="group/item relative overflow-hidden rounded-lg bg-gradient-to-r from-white/5 to-white/10 border border-white/10 p-2.5 hover:from-white/10 hover:to-white/15 hover:border-purple-400/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
                               >
                                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 to-indigo-600/5 opacity-0 group-hover/item:opacity-100 transition-opacity duration-300"></div>
                                 
                                 <div className="relative flex justify-between items-center">
-                                  <div className="flex items-center space-x-3">
+                                  <div className="flex items-center space-x-2">
                                     <div className="flex-shrink-0">
-                                      <span className="inline-block w-3 h-3 rounded-full bg-gradient-to-r from-[#3CD4AB] to-emerald-400 shadow-lg"></span>
+                                      <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-[#3CD4AB] to-emerald-400 shadow-lg"></span>
                                     </div>
                                     <div>
-                                      <span className="text-white font-semibold group-hover/item:text-purple-200 transition-colors">
+                                      <span className="text-white text-sm font-semibold group-hover/item:text-purple-200 transition-colors">
                                         {investment.name}
                                       </span>
-                                      <div className="text-white/60 text-sm mt-1">
+                                      <div className="text-white/60 text-xs mt-0.5">
                                         {investment.date}
                                       </div>
                                     </div>
                                   </div>
                                   
                                   <div className="text-right">
-                                    <div className="text-white font-bold text-lg group-hover/item:text-purple-200 transition-colors">
+                                    <div className="text-white font-bold text-sm group-hover/item:text-purple-200 transition-colors">
                                       {investment.amount.toLocaleString()} MAD
                                     </div>
-                                    <div className="flex items-center justify-end space-x-2 mt-1">
+                                    <div className="flex items-center justify-end space-x-1.5 mt-0.5">
                                       <div
-                                        className={`text-sm font-semibold px-2 py-1 rounded-full ${
+                                        className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
                                           investment.return.startsWith("+")
                                             ? "text-[#3CD4AB] bg-[#3CD4AB]/10"
                                             : "text-red-400 bg-red-400/10"
@@ -1900,12 +1923,17 @@ useEffect(() => {
               />
             )}
 
+            {/* Messages Page */}
+            {currentPage === "messages" && (
+              <Chat />
+            )}
+
             {/* Balance Modal */}
             {showBalanceModal && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-[#0F0F19] border border-white/20 rounded-lg p-6 w-full max-w-md mx-4">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white">
+                <div className="bg-[#0F0F19] border border-white/20 rounded-lg p-4 w-full max-w-md mx-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-white">
                       {balanceOperation === "add"
                         ? "Ajouter du Solde"
                         : "Retirer du Solde"}
@@ -1915,7 +1943,7 @@ useEffect(() => {
                       className="text-white/60 hover:text-white"
                     >
                       <svg
-                        className="w-6 h-6"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1930,9 +1958,9 @@ useEffect(() => {
                     </button>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-white/80 text-sm font-medium mb-2">
+                      <label className="block text-white/80 text-sm font-medium mb-1.5">
                         {balanceOperation === "add"
                           ? "Montant à ajouter (MAD)"
                           : "Montant à retirer (MAD)"}
@@ -1941,7 +1969,7 @@ useEffect(() => {
                         type="number"
                         value={balanceAmount}
                         onChange={(e) => setBalanceAmount(e.target.value)}
-                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none"
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none text-sm"
                         placeholder="1000"
                         min="1"
                         max={
@@ -1951,22 +1979,22 @@ useEffect(() => {
                         }
                       />
                       {balanceOperation === "withdraw" && (
-                        <p className="text-white/60 text-sm mt-1">
+                        <p className="text-white/60 text-xs mt-1">
                           Solde disponible: {userBalance.toLocaleString()} MAD
                         </p>
                       )}
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-2">
                       <button
                         onClick={() => setShowBalanceModal(false)}
-                        className="flex-1 bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+                        className="flex-1 bg-white/10 hover:bg-white/20 text-white font-medium py-2 px-3 rounded-lg transition-colors duration-200 text-sm"
                       >
                         Annuler
                       </button>
                       <button
                         onClick={handleBalanceOperation}
-                        className={`flex-1 font-medium py-3 px-4 rounded-lg transition-colors duration-200 ${
+                        className={`flex-1 font-medium py-2 px-3 rounded-lg transition-colors duration-200 text-sm ${
                           balanceOperation === "add"
                             ? "bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19]"
                             : "bg-orange-500 hover:bg-orange-600 text-white"
@@ -1989,9 +2017,9 @@ useEffect(() => {
             {/* Profit Management Modal */}
             {showProfitModal && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-[#0F0F19] border border-white/20 rounded-lg p-6 w-full max-w-md mx-4">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white">
+                <div className="bg-[#0F0F19] border border-white/20 rounded-lg p-4 w-full max-w-md mx-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-white">
                       {profitOperation === "withdraw"
                         ? "Retirer les Profits"
                         : "Ajouter au Solde"}
@@ -2001,7 +2029,7 @@ useEffect(() => {
                       className="text-white/60 hover:text-white"
                     >
                       <svg
-                        className="w-6 h-6"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -2016,13 +2044,13 @@ useEffect(() => {
                     </button>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="p-4 bg-[#3CD4AB]/10 border border-[#3CD4AB]/20 rounded-lg">
+                  <div className="space-y-3">
+                    <div className="p-3 bg-[#3CD4AB]/10 border border-[#3CD4AB]/20 rounded-lg">
                       <div className="flex items-center justify-between">
-                        <span className="text-white/80">
+                        <span className="text-white/80 text-sm">
                           Profits disponibles:
                         </span>
-                        <span className="text-2xl font-bold text-[#3CD4AB]">
+                        <span className="text-lg font-bold text-[#3CD4AB]">
                           {calculateTotalProfits().toLocaleString()} MAD
                         </span>
                       </div>
@@ -2030,14 +2058,14 @@ useEffect(() => {
 
                     {profitOperation === "withdraw" && (
                       <div>
-                        <label className="block text-white/80 text-sm font-medium mb-3">
+                        <label className="block text-white/80 text-sm font-medium mb-2">
                           Méthode de Retrait
                         </label>
-                        <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-1 gap-2">
                           {/* PayPal */}
                           <div
                             onClick={() => setSelectedPaymentMethod("paypal")}
-                            className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
+                            className={`flex items-center p-2.5 border rounded-lg cursor-pointer transition-all duration-200 ${
                               selectedPaymentMethod === "paypal"
                                 ? "border-[#3CD4AB] bg-[#3CD4AB]/10"
                                 : "border-white/20 bg-white/5 hover:bg-white/10"
@@ -2045,7 +2073,7 @@ useEffect(() => {
                           >
                             <div className="flex items-center">
                               <div
-                                className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                                className={`w-3.5 h-3.5 rounded-full border-2 mr-2.5 ${
                                   selectedPaymentMethod === "paypal"
                                     ? "border-[#3CD4AB] bg-[#3CD4AB]"
                                     : "border-white/40"
@@ -2057,13 +2085,13 @@ useEffect(() => {
                               </div>
                               <div className="flex items-center">
                                 <svg
-                                  className="w-6 h-6 mr-2"
+                                  className="w-5 h-5 mr-2"
                                   viewBox="0 0 24 24"
                                   fill="#0070ba"
                                 >
                                   <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a.696.696 0 0 1-.045-.288c.078-.815-.191-1.35-.821-1.85-.619-.49-1.555-.73-2.786-.73H8.618l-.9 5.712h2.712c2.508 0 4.416-.816 5.195-3.844z" />
                                 </svg>
-                                <span className="text-white font-medium">
+                                <span className="text-white font-medium text-sm">
                                   PayPal
                                 </span>
                               </div>
@@ -2074,8 +2102,8 @@ useEffect(() => {
                     )}
 
                     {profitOperation === "add" && (
-                      <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
-                        <p className="text-white/80 text-sm">
+                      <div className="p-3 bg-white/5 border border-white/10 rounded-lg">
+                        <p className="text-white/80 text-xs">
                           Vos profits seront ajoutés à votre solde disponible
                           pour de nouveaux investissements. Cela vous permettra
                           de profiter de l'effet de capitalisation.
@@ -2083,16 +2111,16 @@ useEffect(() => {
                       </div>
                     )}
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-2">
                       <button
                         onClick={() => setShowProfitModal(false)}
-                        className="flex-1 bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+                        className="flex-1 bg-white/10 hover:bg-white/20 text-white font-medium py-2 px-3 rounded-lg transition-colors duration-200 text-sm"
                       >
                         Annuler
                       </button>
                       <button
                         onClick={handleProfitOperation}
-                        className={`flex-1 font-medium py-3 px-4 rounded-lg transition-colors duration-200 ${
+                        className={`flex-1 font-medium py-2 px-3 rounded-lg transition-colors duration-200 text-sm ${
                           profitOperation === "withdraw"
                             ? "bg-orange-500 hover:bg-orange-600 text-white"
                             : "bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19]"
@@ -2112,9 +2140,9 @@ useEffect(() => {
             {/* Investment Popup */}
             {showInvestPopup && selectedInvestment && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-[#0F0F19] border border-white/20 rounded-lg p-6 w-full max-w-md mx-4">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white">
+                <div className="bg-[#0F0F19] border border-white/20 rounded-lg p-4 w-full max-w-md mx-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-white">
                       Investir dans {selectedInvestment.name}
                     </h3>
                     <button
@@ -2122,7 +2150,7 @@ useEffect(() => {
                       className="text-white/60 hover:text-white"
                     >
                       <svg
-                        className="w-6 h-6"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -2138,33 +2166,33 @@ useEffect(() => {
                   </div>
 
                   {/* Product Image */}
-                  <div className="mb-4">
+                  <div className="mb-3">
                     <img
                       src={selectedInvestment?.image}
                       alt={selectedInvestment?.name}
-                      className="w-full h-40 object-cover rounded-lg"
+                      className="w-full h-32 object-cover rounded-lg"
                     />
                   </div>
 
                   {/* Product Details */}
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-white mb-2">
+                  <div className="mb-4">
+                    <h4 className="text-base font-semibold text-white mb-1.5">
                       {selectedInvestment?.name}
                     </h4>
-                    <p className="text-white/60 text-sm mb-3">
+                    <p className="text-white/60 text-xs mb-2">
                       {selectedInvestment?.description}
                     </p>
 
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-2 gap-3 text-xs">
                       <div>
                         <span className="text-white/60">Rendement:</span>
-                        <span className="text-[#3CD4AB] font-semibold ml-2">
+                        <span className="text-[#3CD4AB] font-semibold ml-1.5">
                           {selectedInvestment?.return}
                         </span>
                       </div>
                       <div>
                         <span className="text-white/60">Risque:</span>
-                        <span className="text-white ml-2">
+                        <span className="text-white ml-1.5">
                           {selectedInvestment?.risk}/10
                         </span>
                       </div>
@@ -2172,7 +2200,7 @@ useEffect(() => {
                         <span className="text-white/60">
                           Investissement minimum:
                         </span>
-                        <span className="text-white font-semibold ml-2">
+                        <span className="text-white font-semibold ml-1.5">
                           {selectedInvestment?.min?.toLocaleString()} MAD
                         </span>
                       </div>
@@ -2180,15 +2208,15 @@ useEffect(() => {
                   </div>
 
                   {/* Balance Info */}
-                  <div className="mb-4 p-3 bg-white/5 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
+                  <div className="mb-3 p-2.5 bg-white/5 rounded-lg">
+                    <div className="flex justify-between items-center mb-1.5 text-xs">
                       <span className="text-white/60">Solde disponible:</span>
                       <span className="text-[#3CD4AB] font-semibold">
                         {userBalance.toLocaleString()} MAD
                       </span>
                     </div>
                     {investAmount && (
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between items-center text-xs">
                         <span className="text-white/60">
                           Solde après investissement:
                         </span>
@@ -2206,39 +2234,39 @@ useEffect(() => {
                   </div>
 
                   {/* Investment Amount Input */}
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div>
-                      <label className="block text-white/80 text-sm font-medium mb-2">
+                      <label className="block text-white/80 text-xs font-medium mb-1.5">
                         Montant à investir (MAD)
                       </label>
                       <input
                         type="number"
                         value={investAmount}
                         onChange={handleInvestAmountChange}
-                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none"
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-white/40 focus:border-[#3CD4AB] focus:outline-none text-sm"
                         placeholder={`Minimum ${selectedInvestment?.min.toLocaleString()} MAD`}
                         min={selectedInvestment?.min}
                         max={userBalance}
                       />
                       {investAmount &&
                         parseFloat(investAmount) < selectedInvestment.min && (
-                          <p className="text-red-400 text-sm mt-1">
+                          <p className="text-red-400 text-xs mt-1">
                             Le montant minimum est de{" "}
                             {selectedInvestment?.min.toLocaleString()} MAD
                           </p>
                         )}
                       {investAmount &&
                         parseFloat(investAmount) > userBalance && (
-                          <p className="text-red-400 text-sm mt-1">
+                          <p className="text-red-400 text-xs mt-1">
                             Solde insuffisant
                           </p>
                         )}
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-2">
                       <button
                         onClick={() => setShowInvestPopup(false)}
-                        className="flex-1 bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+                        className="flex-1 bg-white/10 hover:bg-white/20 text-white font-medium py-2 px-3 rounded-lg transition-colors duration-200 text-sm"
                       >
                         Annuler
                       </button>
@@ -2249,7 +2277,7 @@ useEffect(() => {
                           parseFloat(investAmount) < selectedInvestment?.min ||
                           parseFloat(investAmount) > userBalance
                         }
-                        className="flex-1 bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19] font-medium py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19] font-medium py-2 px-3 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                       >
                         Confirmer
                       </button>
@@ -2289,25 +2317,27 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Floating AI Assistant Button */}
-        <div className="fixed bottom-20 lg:bottom-6 right-6 z-40">
-          <button
-            onClick={() => setShowAIAssistant(true)}
-            className="group relative w-14 h-14 bg-[#0F0F19] border-2 border-[#3CD4AB] hover:border-emerald-400 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center transform hover:scale-110"
-          >
-            {/* Lucide Bot Icon */}
-            <BotMessageSquare className="w-7 h-7 text-[#3CD4AB] group-hover:text-emerald-400 transition-colors" strokeWidth={2} />
-            
-            {/* Pulse animation */}
-            <div className="absolute inset-0 rounded-full bg-[#3CD4AB]/20 animate-ping opacity-20"></div>
-            
-            {/* Tooltip */}
-            <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
-              Assistant IA
-              <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-            </div>
-          </button>
-        </div>
+        {/* Floating AI Assistant Button - Hide on messages page */}
+        {currentPage !== "messages" && (
+          <div className="fixed bottom-20 lg:bottom-6 right-6 z-40">
+            <button
+              onClick={() => setShowAIAssistant(true)}
+              className="group relative w-14 h-14 bg-[#0F0F19] border-2 border-[#3CD4AB] hover:border-emerald-400 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center transform hover:scale-110"
+            >
+              {/* Lucide Bot Icon */}
+              <BotMessageSquare className="w-7 h-7 text-[#3CD4AB] group-hover:text-emerald-400 transition-colors" strokeWidth={2} />
+              
+              {/* Pulse animation */}
+              <div className="absolute inset-0 rounded-full bg-[#3CD4AB]/20 animate-ping opacity-20"></div>
+              
+              {/* Tooltip */}
+              <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                Assistant IA
+                <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Toast Notification */}

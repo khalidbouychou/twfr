@@ -57,11 +57,12 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
       // Context-aware responses based on user data
       const totalInvested = userInvestments?.reduce((sum, inv) => sum + (parseFloat(inv.valueInvested) || 0), 0) || 0;
       const investmentCount = userInvestments?.length || 0;
-      const globalPerf = portfolioData?.globalPerformance || 0;
+      const globalPerf = Number(portfolioData?.globalPerformance) || 0;
+      const safeBalance = Number(userBalance) || 0;
       
       // Create context for the AI
       const context = `
-        Utilisateur: Solde: ${userBalance?.toLocaleString() || 0} MAD, 
+        Utilisateur: Solde: ${safeBalance.toLocaleString()} MAD, 
         Investissements: ${investmentCount} (total: ${totalInvested.toLocaleString()} MAD), 
         Performance: ${globalPerf.toFixed(2)}%
       `;
@@ -71,19 +72,19 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
 
       // Quick pattern matching for common queries
       if (message.includes('solde') || message.includes('balance')) {
-        response = `Votre solde actuel est de ${userBalance?.toLocaleString() || 0} MAD. ${userBalance > 10000 ? 'Vous avez un bon solde pour diversifier vos investissements !' : 'Considérez augmenter votre solde pour plus d\'opportunités d\'investissement.'}`;
+        response = `Votre solde actuel est de ${safeBalance.toLocaleString()} MAD. ${safeBalance > 10000 ? 'Vous avez un bon solde pour diversifier vos investissements !' : 'Considérez augmenter votre solde pour plus d\'opportunités d\'investissement.'}`;
       } else if (message.includes('investissement') || message.includes('invest')) {
         response = `Vous avez actuellement ${investmentCount} investissement(s) pour un total de ${totalInvested.toLocaleString()} MAD. ${investmentCount < 3 ? 'Je recommande de diversifier davantage votre portefeuille.' : 'Votre portefeuille semble bien diversifié !'}`;
       } else if (message.includes('performance') || message.includes('rendement')) {
         response = `Votre performance globale est de ${globalPerf.toFixed(2)}%. ${globalPerf > 5 ? 'Excellente performance !' : globalPerf > 0 ? 'Performance positive, continuez ainsi !' : 'Les marchés peuvent fluctuer, restez patient sur le long terme.'}`;
       } else if (message.includes('conseil') || message.includes('recommandation')) {
-        response = getPersonalizedAdvice(userBalance, investmentCount, totalInvested, globalPerf);
+        response = getPersonalizedAdvice(safeBalance, investmentCount, totalInvested, globalPerf);
       } else if (message.includes('diversification')) {
         response = getDiversificationAdvice(userInvestments);
       } else if (message.includes('risque')) {
         response = getRiskManagementAdvice(totalInvested, globalPerf);
       } else if (message.includes('bonjour') || message.includes('salut') || message.includes('hello')) {
-        response = `Bonjour ! Ravi de vous aider avec vos investissements. Avec ${userBalance?.toLocaleString() || 0} MAD de solde et ${investmentCount} investissement(s), que souhaitez-vous savoir ?`;
+        response = `Bonjour ! Ravi de vous aider avec vos investissements. Avec ${safeBalance.toLocaleString()} MAD de solde et ${investmentCount} investissement(s), que souhaitez-vous savoir ?`;
       } else if (message.includes('merci')) {
         response = `De rien ! Je suis là pour vous accompagner dans votre parcours d'investissement. N'hésitez pas si vous avez d'autres questions !`;
       } else {
@@ -101,15 +102,20 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
 
   // Helper functions for more detailed responses
   const getPersonalizedAdvice = (balance, count, invested, performance) => {
+    const safeBalance = Number(balance) || 0;
+    const safeCount = Number(count) || 0;
+    const safeInvested = Number(invested) || 0;
+    const safePerformance = Number(performance) || 0;
+    
     let advice = "Voici mes conseils personnalisés : ";
     
-    if (balance < 5000) {
+    if (safeBalance < 5000) {
       advice += "1) Constituez d'abord une épargne de sécurité, ";
     }
-    if (count < 3) {
+    if (safeCount < 3) {
       advice += "2) Diversifiez votre portefeuille sur au moins 3-5 produits différents, ";
     }
-    if (performance < 0) {
+    if (safePerformance < 0) {
       advice += "3) Réévaluez votre stratégie et considérez des investissements plus stables, ";
     }
     
@@ -123,7 +129,10 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
   };
 
   const getRiskManagementAdvice = (invested, performance) => {
-    return `Avec ${invested.toLocaleString()} MAD investis et une performance de ${performance.toFixed(2)}%, voici mes conseils de gestion des risques : 1) Ne jamais investir plus de 5-10% dans un seul actif, 2) Adapter l'allocation selon votre âge (100 - âge = % actions), 3) Rééquilibrer votre portefeuille trimestriellement.`;
+    const safeInvested = Number(invested) || 0;
+    const safePerformance = Number(performance) || 0;
+    
+    return `Avec ${safeInvested.toLocaleString()} MAD investis et une performance de ${safePerformance.toFixed(2)}%, voici mes conseils de gestion des risques : 1) Ne jamais investir plus de 5-10% dans un seul actif, 2) Adapter l'allocation selon votre âge (100 - âge = % actions), 3) Rééquilibrer votre portefeuille trimestriellement.`;
   };
 
   const getAdvancedResponse = async (message, context) => {
@@ -284,7 +293,7 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
                       ></div>
                     ))}
                   </div>
-                  <span className="text-xs text-white/50">{thinkingMessage || 'Processing...'}</span>
+                  <span className="text-xs text-white/50">{thinkingMessage}</span>
                 </div>
               </div>
             </div>

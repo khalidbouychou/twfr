@@ -111,11 +111,39 @@ body::-webkit-scrollbar-thumb:hover {
 *{
   box-sizing: border-box;
     font-family: 'Raleway', matter, helvetica, arial, sans-serif;
+    font-weight: 400; /* Normal font weight - not bold */
 }
 
 body {
     background-color: #0F0F19;
     color: white;
+    font-weight: 400; /* Ensure body text is normal weight */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Override default browser font weights */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600; /* Semi-bold for headings only */
+}
+
+p, span, div {
+  font-weight: 400; /* Normal weight for text */
+}
+
+/* Make bold elements actually semi-bold instead of extra bold */
+b, strong, .font-bold {
+  font-weight: 600 !important; /* Semi-bold instead of bold (700) */
+}
+
+/* Override semibold to be normal bold */
+.font-semibold {
+  font-weight: 500 !important; /* Medium instead of semibold (600) */
+}
+
+/* Keep medium as is */
+.font-medium {
+  font-weight: 500;
 }
 
 /* Line clamp utilities for text truncation */

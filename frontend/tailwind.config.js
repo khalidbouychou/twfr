@@ -5,9 +5,16 @@ export default {
     ],
     theme: {
       extend: {
+        fontWeight: {
+          normal: '400',
+          medium: '500',
+          semibold: '600',
+          bold: '600', // Change bold to 600 instead of 700
+          extrabold: '700',
+        },
         colors: {
           'bg-dark': '#0F0F19',  // Dark Background
-          'accent': '#3CD4AB',    // Accent Color
+          'accent-green': '#3CD4AB',    // Accent Color (renamed to avoid conflict)
           'text-light': '#ffffff', // Light Text
           'purple': '#89559F',     // Purple Color
           border: "hsl(var(--border))",
