@@ -65,8 +65,14 @@ const UserDashboard = () => {
     // Check localStorage first (most up-to-date after profile update)
     try {
       const profileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
-      if (profileData.avatar) return profileData.avatar;
-      if (profileData.picture) return profileData.picture;
+      if (profileData.avatar) {
+        console.log('Avatar from userProfileData:', profileData.avatar);
+        return profileData.avatar;
+      }
+      if (profileData.picture) {
+        console.log('Picture from userProfileData:', profileData.picture);
+        return profileData.picture;
+      }
     } catch (e) {
       console.error('Error parsing profile data:', e);
     }
@@ -74,16 +80,29 @@ const UserDashboard = () => {
     // Check Google profile in localStorage
     try {
       const googleProfile = JSON.parse(localStorage.getItem('googleProfile') || '{}');
-      if (googleProfile.picture) return googleProfile.picture;
+      if (googleProfile.picture) {
+        console.log('Picture from googleProfile:', googleProfile.picture);
+        return googleProfile.picture;
+      }
     } catch (e) {
       console.error('Error parsing Google profile:', e);
     }
     
     // Finally check userProfileData from context (unified context)
-    if (userProfileData?.avatar) return userProfileData?.avatar;
-    if (userProfileData?.picture) return userProfileData?.picture;
-    if (userProfileData?.imageUrl) return userProfileData?.imageUrl;
+    if (userProfileData?.avatar) {
+      console.log('Avatar from context:', userProfileData.avatar);
+      return userProfileData.avatar;
+    }
+    if (userProfileData?.picture) {
+      console.log('Picture from context:', userProfileData.picture);
+      return userProfileData.picture;
+    }
+    if (userProfileData?.imageUrl) {
+      console.log('ImageUrl from context:', userProfileData.imageUrl);
+      return userProfileData.imageUrl;
+    }
     
+    console.log('Using fallback avatar');
     return fallbackAvatar;
   }, [userProfileData, profileUpdateTrigger, fallbackAvatar]);
   
@@ -1507,7 +1526,7 @@ useEffect(() => {
         )}%`,
         min: 1000,
         description: p.duree_recommandee,
-        image: p?.avatar || "/public/assets/marketstock.png",
+        image: p?.avatar || "/assets/marketstock.png",
         roi: {
           annual: p.roi_annuel !== undefined ? p.roi_annuel : 5,
           roi1Year: roi1Year.roiPercentage,
@@ -1777,7 +1796,7 @@ useEffect(() => {
                         <div className="flex gap-1.5">
                           <button
                             onClick={() => scrollInvestments(-1)}
-                            className="group/btn p-1.5 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 text-white border border-purple-500/30 hover:border-purple-400/50 transition-all duration-200 hover:scale-110"
+                            className="group/btn p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-[#3CD4AB]/50 transition-all duration-200"
                           >
                             <svg className="w-3.5 h-3.5 transform group-hover/btn:-translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
@@ -1785,7 +1804,7 @@ useEffect(() => {
                           </button>
                           <button
                             onClick={() => scrollInvestments(1)}
-                            className="group/btn p-1.5 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 text-white border border-purple-500/30 hover:border-purple-400/50 transition-all duration-200 hover:scale-110"
+                            className="group/btn p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-[#3CD4AB]/50 transition-all duration-200"
                           >
                             <svg className="w-3.5 h-3.5 transform group-hover/btn:translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
@@ -1812,17 +1831,16 @@ useEffect(() => {
                               <div
                                 key={investment.id}
                                 data-inv-item
-                                className="group/item relative overflow-hidden rounded-lg bg-gradient-to-r from-white/5 to-white/10 border border-white/10 p-2.5 hover:from-white/10 hover:to-white/15 hover:border-purple-400/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                                className="group/item relative overflow-hidden rounded-lg bg-white/5 border border-white/10 p-2.5 hover:bg-white/10 hover:border-[#3CD4AB]/30 transition-all duration-200"
                               >
-                                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 to-indigo-600/5 opacity-0 group-hover/item:opacity-100 transition-opacity duration-300"></div>
                                 
                                 <div className="relative flex justify-between items-center">
                                   <div className="flex items-center space-x-2">
                                     <div className="flex-shrink-0">
-                                      <span className="inline-block w-2 h-2 rounded-full bg-gradient-to-r from-[#3CD4AB] to-emerald-400 shadow-lg"></span>
+                                      <span className="inline-block w-2 h-2 rounded-full bg-[#3CD4AB]"></span>
                                     </div>
                                     <div>
-                                      <span className="text-white text-sm font-semibold group-hover/item:text-purple-200 transition-colors">
+                                      <span className="text-white text-sm font-semibold">
                                         {investment.name}
                                       </span>
                                       <div className="text-white/60 text-xs mt-0.5">
@@ -1832,7 +1850,7 @@ useEffect(() => {
                                   </div>
                                   
                                   <div className="text-right">
-                                    <div className="text-white font-bold text-sm group-hover/item:text-purple-200 transition-colors">
+                                    <div className="text-white font-bold text-sm">
                                       {investment.amount.toLocaleString()} MAD
                                     </div>
                                     <div className="flex items-center justify-end space-x-1.5 mt-0.5">

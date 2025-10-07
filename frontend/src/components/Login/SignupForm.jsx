@@ -201,6 +201,7 @@ const SignupForm = ({ onSwitchToLogin }) => {
                     const cred = credentialResponse.credential || '';
                     localStorage.setItem('googleCredential', cred);
                     const payload = parseJwt(cred);
+                    console.log('Google Signup - Payload:', payload);
                     if (payload) {
                       const profile = {
                         name: payload.name,
@@ -210,16 +211,21 @@ const SignupForm = ({ onSwitchToLogin }) => {
                         given_name: payload.given_name,
                         family_name: payload.family_name
                       };
+                      console.log('Google Signup - Profile created:', profile);
+                      console.log('Google Signup - Picture URL:', profile.picture);
                       localStorage.setItem('googleProfile', JSON.stringify(profile));
                       const unified = {
                         fullName: profile.name,
                         email: profile.email,
                         avatar: profile.picture
                       };
+                      console.log('Google Signup - Unified profile:', unified);
                       localStorage.setItem('userProfileData', JSON.stringify(unified));
                       updateUserProfile(unified);
                     }
-                  } catch { /* ignore */ }
+                  } catch (err) { 
+                    console.error('Google Signup Error:', err);
+                  }
                   setIsLoggedIn(true);
                   navigate('/dashboard');
                 }}

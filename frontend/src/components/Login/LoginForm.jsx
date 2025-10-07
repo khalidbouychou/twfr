@@ -140,6 +140,7 @@ const LoginForm = ({ onSwitchToSignup }) => {
                     const cred = credentialResponse.credential || '';
                     localStorage.setItem('googleCredential', cred);
                     const payload = parseJwt(cred);
+                    console.log('Google Login - Payload:', payload);
                     if (payload) {
                       const profile = {
                         name: payload.name,
@@ -149,16 +150,21 @@ const LoginForm = ({ onSwitchToSignup }) => {
                         given_name: payload.given_name,
                         family_name: payload.family_name
                       };
+                      console.log('Google Login - Profile created:', profile);
+                      console.log('Google Login - Picture URL:', profile.picture);
                       localStorage.setItem('googleProfile', JSON.stringify(profile));
                       const unified = {
                         fullName: profile.name,
                         email: profile.email,
                         avatar: profile.picture
                       };
+                      console.log('Google Login - Unified profile:', unified);
                       localStorage.setItem('userProfileData', JSON.stringify(unified));
                       updateUserProfile(unified);
                     }
-                  } catch { /* ignore */ }
+                  } catch (err) { 
+                    console.error('Google Login Error:', err);
+                  }
                   setIsLoggedIn(true);
                   navigate('/dashboard');
                 }}

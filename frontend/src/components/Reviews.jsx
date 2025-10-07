@@ -2,28 +2,28 @@ import React from 'react';
 
 const reviews = [
   {
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+    avatar: '/assets/avatars/1.jpg',
     name: 'Hector Gibbons',
     role: 'Investisseur particulier',
     rating: 5,
     text: `Blown away by how polished this experience is. Les recommandations sont claires et l’interface est ultra fluide.`,
   },
   {
-    avatar: 'https://randomuser.me/api/portraits/men/44.jpg',
+    avatar: '/assets/avatars/2.jpg',
     name: 'Mark Edwards',
     role: 'Entrepreneur',
     rating: 4,
     text: `Vraiment satisfait des insights. J’ai trouvé des opportunités adaptées à mon profil en quelques minutes.`,
   },
   {
-    avatar: 'https://randomuser.me/api/portraits/women/55.jpg',
+    avatar: '/assets/avatars/3.jpg',
     name: 'Sofia Ramos',
     role: 'Analyste',
     rating: 5,
     text: `Des suggestions pertinentes et un vrai gain de temps. J’aime particulièrement la clarté des explications.`,
   },
   {
-    avatar: 'https://randomuser.me/api/portraits/men/12.jpg',
+    avatar: '/assets/avatars/mediumavatar.jpg',
     name: 'Yassin M.',
     role: 'Étudiant',
     rating: 5,
@@ -56,7 +56,15 @@ function StarRating({ rating }) {
 
 const ReviewCard = ({ r }) => (
   <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4 min-w-[320px] max-w-[360px]">
-    <img src={r.avatar} alt={r.name} className="w-10 h-10 rounded-full object-cover mt-1" />
+    <img 
+      src={r.avatar} 
+      alt={r.name} 
+      className="w-10 h-10 rounded-full object-cover mt-1"
+      onError={(e) => {
+        e.currentTarget.onerror = null;
+        e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + r.name;
+      }}
+    />
     <div className="flex-1">
       <div className="flex items-center justify-between">
         <div>

@@ -503,7 +503,7 @@ const SimulationsPage = ({
                           value={currentAmount}
                           placeholder={product.minInvestment.toString()}
                           disabled={!isSelected}
-                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#3CD4AB] text-sm lg:text-base disabled:bg-gray-100"
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#3CD4AB] text-sm lg:text-base disabled:bg-gray-100 text-gray-900 placeholder-gray-400"
                           onChange={(e) => handleAmountChange(productName, e.target.value)}
                         />
                         {isSelected && currentAmount && parseFloat(currentAmount) < product.minInvestment && (

@@ -129,27 +129,46 @@ const Navbar = () => {
   // Get avatar from multiple possible sources including Google profile
   const getAvatarSrc = () => {
     // First check userProfileData (unified context)
-    if (userProfileData?.avatar) return userProfileData?.avatar;
-    if (userProfileData?.picture) return userProfileData?.picture;
-    if (userProfileData?.imageUrl) return userProfileData?.imageUrl;
+    if (userProfileData?.avatar) {
+      console.log('Navbar - Avatar from context:', userProfileData.avatar);
+      return userProfileData.avatar;
+    }
+    if (userProfileData?.picture) {
+      console.log('Navbar - Picture from context:', userProfileData.picture);
+      return userProfileData.picture;
+    }
+    if (userProfileData?.imageUrl) {
+      console.log('Navbar - ImageUrl from context:', userProfileData.imageUrl);
+      return userProfileData.imageUrl;
+    }
     
     // Check Google profile in localStorage
     try {
       const googleProfile = JSON.parse(localStorage.getItem('googleProfile') || '{}');
-      if (googleProfile.picture) return googleProfile.picture;
+      if (googleProfile.picture) {
+        console.log('Navbar - Picture from googleProfile:', googleProfile.picture);
+        return googleProfile.picture;
+      }
     } catch (e) {
-      console.error('Error parsing Google profile:', e);
+      console.error('Navbar - Error parsing Google profile:', e);
     }
     
     // Check alternative profile data in localStorage
     try {
       const profileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
-      if (profileData.avatar) return profileData.avatar;
-      if (profileData.picture) return profileData.picture;
+      if (profileData.avatar) {
+        console.log('Navbar - Avatar from userProfileData:', profileData.avatar);
+        return profileData.avatar;
+      }
+      if (profileData.picture) {
+        console.log('Navbar - Picture from userProfileData:', profileData.picture);
+        return profileData.picture;
+      }
     } catch (e) {
-      console.error('Error parsing profile data:', e);
+      console.error('Navbar - Error parsing profile data:', e);
     }
     
+    console.log('Navbar - Using fallback avatar');
     return fallbackAvatar;
   };
   
@@ -257,7 +276,13 @@ const Navbar = () => {
                   src={avatarSrc}
                   alt="Avatar"
                   className="w-9 h-9 rounded-full object-cover border border-white/20 hover:border-[#89559F] transition-colors"
-                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackAvatar; }}
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { 
+                    console.error('Navbar Desktop - Avatar failed to load:', avatarSrc);
+                    e.currentTarget.onerror = null; 
+                    e.currentTarget.src = fallbackAvatar; 
+                  }}
                 />
               </button>
             </DropdownMenuTrigger>
@@ -389,8 +414,11 @@ const Navbar = () => {
                   <img 
                     src={avatarSrc} 
                     alt="Avatar" 
-                    className="w-8 h-8 rounded-full object-cover border border-white/20" 
+                    className="w-8 h-8 rounded-full object-cover border border-white/20"
+                    crossOrigin="anonymous"
+                    referrerPolicy="no-referrer"
                     onError={(e) => { 
+                      console.error('Navbar Mobile - Avatar failed to load:', avatarSrc);
                       e.currentTarget.onerror = null; 
                       e.currentTarget.src = fallbackAvatar; 
                     }} 

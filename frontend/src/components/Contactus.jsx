@@ -128,7 +128,7 @@ const Contactus = () => {
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
                       placeholder="Votre nom complet"
                       required
                     />
@@ -144,7 +144,7 @@ const Contactus = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
                       placeholder="Votre numéro"
                       required
                     />
@@ -162,7 +162,7 @@ const Contactus = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
                     placeholder="votre@email.com"
                     required
                   />
@@ -179,7 +179,7 @@ const Contactus = () => {
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
                     placeholder="Sujet de votre message"
                     required
                   />
@@ -227,7 +227,7 @@ const Contactus = () => {
                     value={formData.message}
                     onChange={handleChange}
                     rows="4"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CD4AB] focus:border-transparent transition-all duration-200 resize-none text-gray-900 placeholder-gray-400"
                     placeholder="Votre message..."
                     required
                   />

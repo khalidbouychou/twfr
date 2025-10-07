@@ -327,7 +327,10 @@ const Header = ({
                   src={userData.avatar}
                   alt={userData.name}
                   className="w-8 h-8 rounded-full object-cover border border-white/20"
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
                   onError={(e) => {
+                    console.error('Avatar failed to load:', userData.avatar);
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=User';
                   }}
@@ -714,7 +717,10 @@ const Header = ({
                   src={userData.avatar}
                   alt={userData.name}
                   className="w-8 h-8 rounded-full object-cover border border-white/20"
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
                   onError={(e) => {
+                    console.error('Avatar failed to load:', userData.avatar);
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=User';
                   }}

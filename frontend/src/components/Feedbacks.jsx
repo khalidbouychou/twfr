@@ -5,43 +5,43 @@ import 'swiper/css';
 const reviews = [
   {
     name: 'Ahmed B.',
-    avatar: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706721/tawfir-ai/1.jpg',
+    avatar: '/assets/avatars/1.jpg',
     text: `Grâce à TawfirAI, j'ai pu comprendre où investir mon argent et optimiser mon épargne.
 La simulation m'a permis de mieux cerner mes objectifs financiers et de choisir des produits adaptés à mon profil. C'est une application vraiment intuitive et sécurisée !`,
   },
   {
     name: 'Zineb A.',
-    avatar: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706722/tawfir-ai/2.jpg',
+    avatar: '/assets/avatars/2.jpg',
     text: `"J'étais un peu sceptique au départ, mais après avoir utilisé TawfirAI, je vois clairement la différence. Les recommandations sont personnalisées, et le parcours est facile à suivre. Je me sens plus confiante dans mes choix financiers."`,
   },
   {
     name: 'Mohamed M.',
-    avatar: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706723/tawfir-ai/mediumavatar.jpg',
+    avatar: '/assets/avatars/mediumavatar.jpg',
     text: "Tout s'est bien passé, équipe compétente. Je recommande sans hésitation.",
   },
   {
     name: 'Fatima K.',
-    avatar: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706722/tawfir-ai/3.jpg',
+    avatar: '/assets/avatars/3.jpg',
     text: `"J'ai toujours eu peur des investissements, mais l'interface simple et les explications claires de TawfirAI m'ont donné confiance. Je recommande cette application à tous ceux qui veulent se lancer dans l'épargne et l'investissement sans stress."`,
   },
   {
     name: 'Youssef M.',
-    avatar: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706721/tawfir-ai/1.jpg',
+    avatar: '/assets/avatars/1.jpg',
     text: `"En tant qu'entrepreneur, il est difficile de trouver le temps pour gérer mes finances. TawfirAI m'a permis de faire des choix intelligents sans y passer des heures. La fonctionnalité de suivi en temps réel est un vrai plus."`,
   },
   {
     name: 'Khalid T.',
-    avatar: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706722/tawfir-ai/2.jpg',
+    avatar: '/assets/avatars/2.jpg',
     text: `"Les conseils de TawfirAI sont top ! J'ai pu diversifier mon portefeuille en fonction de mes objectifs à long terme. Le tout, avec une sécurité maximale grâce à l'authentification biométrique. Un service vraiment complet."`,
   },
   {
     name: 'Samira L.',
-    avatar: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706722/tawfir-ai/3.jpg',
+    avatar: '/assets/avatars/3.jpg',
     text: `"Je n'avais jamais investi auparavant, mais TawfirAI m'a guidée à chaque étape. L'application est facile à utiliser et j'ai enfin commencé à voir mes investissements croître."`,
   },
   {
     name: 'Rachid B.',
-    avatar: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706722/tawfir-ai/2.jpg',
+    avatar: '/assets/avatars/2.jpg',
     text: `"TawfirAI m'a permis d'optimiser mon épargne retraite. J'apprécie la personnalisation des recommandations et le suivi automatique de mes investissements."`,
   },
 ];
@@ -73,7 +73,15 @@ const Feedbacks = () => {
                   {review.text}
                 </div>
                 <div className="flex items-center gap-2 rounded-md px-4 py-2">
-                  <img src={review.avatar} alt={review.name} className="w-10 h-10 rounded-full" />
+                  <img 
+                    src={review.avatar} 
+                    alt={review.name} 
+                    className="w-10 h-10 rounded-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + review.name;
+                    }}
+                  />
                   <span className="text-white font-semibold">{review.name}</span>
                 </div>
               </div>
