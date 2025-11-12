@@ -107,32 +107,32 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
     const safeInvested = Number(invested) || 0;
     const safePerformance = Number(performance) || 0;
     
-    let advice = "Voici mes conseils personnalisés : ";
+    let advice = "Voici mes conseils personnalisés :\n\n";
     
     if (safeBalance < 5000) {
-      advice += "1) Constituez d'abord une épargne de sécurité, ";
+      advice += "1) Constituez d'abord une épargne de sécurité\n";
     }
     if (safeCount < 3) {
-      advice += "2) Diversifiez votre portefeuille sur au moins 3-5 produits différents, ";
+      advice += "2) Diversifiez votre portefeuille sur au moins 3-5 produits différents\n";
     }
     if (safePerformance < 0) {
-      advice += "3) Réévaluez votre stratégie et considérez des investissements plus stables, ";
+      advice += "3) Réévaluez votre stratégie et considérez des investissements plus stables\n";
     }
     
-    advice += "4) Investissez régulièrement (DCA), 5) Gardez une vision long terme. Voulez-vous des détails sur un point spécifique ?";
+    advice += "4) Investissez régulièrement (DCA)\n5) Gardez une vision long terme\n\nVoulez-vous des détails sur un point spécifique ?";
     return advice;
   };
 
   const getDiversificationAdvice = (investments) => {
     const sectors = [...new Set(investments?.map(inv => inv.category) || [])];
-    return `Vous investissez dans ${sectors.length} secteur(s). Pour une diversification optimale, visez 4-6 secteurs différents : Finance, Technologie, Immobilier, Matières premières, Santé, et Énergie. Cela réduit les risques sectoriels.`;
+    return `Vous investissez dans ${sectors.length} secteur(s).\n\nPour une diversification optimale, visez 4-6 secteurs différents :\n• Finance\n• Technologie\n• Immobilier\n• Matières premières\n• Santé\n• Énergie\n\nCela réduit les risques sectoriels.`;
   };
 
   const getRiskManagementAdvice = (invested, performance) => {
     const safeInvested = Number(invested) || 0;
     const safePerformance = Number(performance) || 0;
     
-    return `Avec ${safeInvested.toLocaleString()} MAD investis et une performance de ${safePerformance.toFixed(2)}%, voici mes conseils de gestion des risques : 1) Ne jamais investir plus de 5-10% dans un seul actif, 2) Adapter l'allocation selon votre âge (100 - âge = % actions), 3) Rééquilibrer votre portefeuille trimestriellement.`;
+    return `Avec ${safeInvested.toLocaleString()} MAD investis et une performance de ${safePerformance.toFixed(2)}%, voici mes conseils de gestion des risques :\n\n1) Ne jamais investir plus de 5-10% dans un seul actif\n2) Adapter l'allocation selon votre âge (100 - âge = % actions)\n3) Rééquilibrer votre portefeuille trimestriellement`;
   };
 
   const getAdvancedResponse = async (message, context) => {
@@ -227,7 +227,7 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
                     : 'bg-white/10 text-white border border-white/20'
                 }`}
               >
-                <p className="text-sm">{message.content}</p>
+                <p className="text-sm whitespace-pre-line">{message.content}</p>
                 <span className={`text-xs mt-1 block ${
                   message.type === 'user' ? 'text-[#0F0F19]/70' : 'text-white/60'
                 }`}>
