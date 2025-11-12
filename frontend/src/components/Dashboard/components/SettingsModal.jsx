@@ -111,22 +111,74 @@ const SettingsModal = ({
 
       setIsUploading(true);
       
-      // Convert to base64
+      // Create image element to compress
+      const img = new Image();
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result;
-        setFormData(prev => ({
-          ...prev,
-          avatar: base64String
-        }));
-        setAvatarPreview(base64String);
-        setIsUploading(false);
-        showNotification('Image chargée avec succès', 'success');
+      
+      reader.onload = (event) => {
+        img.onload = () => {
+          // Create canvas for compression
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Calculate new dimensions (max 400x400 for profile pictures)
+          let width = img.width;
+          let height = img.height;
+          const maxSize = 400;
+          
+          if (width > height) {
+            if (width > maxSize) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Draw and compress
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Convert to base64 with compression (0.8 quality for JPEG)
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+          
+          // Check compressed size
+          const sizeInBytes = (compressedBase64.length * 3) / 4;
+          const sizeInKB = sizeInBytes / 1024;
+          
+          if (sizeInKB > 500) {
+            setIsUploading(false);
+            showNotification('L\'image compressée est toujours trop grande. Essayez une image plus petite.', 'error');
+            return;
+          }
+          
+          setFormData(prev => ({
+            ...prev,
+            avatar: compressedBase64
+          }));
+          setAvatarPreview(compressedBase64);
+          setIsUploading(false);
+          showNotification(`Image chargée avec succès (${Math.round(sizeInKB)} KB)`, 'success');
+        };
+        
+        img.onerror = () => {
+          setIsUploading(false);
+          showNotification('Erreur lors du chargement de l\'image', 'error');
+        };
+        
+        img.src = event.target.result;
       };
+      
       reader.onerror = () => {
         setIsUploading(false);
-        showNotification('Erreur lors du chargement de l\'image', 'error');
+        showNotification('Erreur lors de la lecture du fichier', 'error');
       };
+      
       reader.readAsDataURL(file);
     }
   };
@@ -140,29 +192,51 @@ const SettingsModal = ({
         return;
       }
 
+      // Check if avatar is base64 and too large (> 500KB for safety)
+      let avatarToSave = formData.avatar;
+      if (formData.avatar && formData.avatar.startsWith('data:image/')) {
+        const base64Length = formData.avatar.length;
+        const sizeInBytes = (base64Length * 3) / 4;
+        const sizeInKB = sizeInBytes / 1024;
+        
+        if (sizeInKB > 500) {
+          showNotification('L\'image est trop volumineuse. Veuillez utiliser une image plus petite (< 500 KB)', 'error');
+          return;
+        }
+      }
+
       // Update userProfileData in localStorage
       const currentProfile = JSON.parse(localStorage.getItem('userProfileData') || '{}');
       const updatedProfile = {
         ...currentProfile,
         name: formData.name.trim(),
         fullName: formData.name.trim(),
-        avatar: formData.avatar || currentProfile.avatar,
-        picture: formData.avatar || currentProfile.picture,
-        imageUrl: formData.avatar || currentProfile.imageUrl
+        avatar: avatarToSave || currentProfile.avatar,
+        picture: avatarToSave || currentProfile.picture,
+        imageUrl: avatarToSave || currentProfile.imageUrl
       };
 
-      localStorage.setItem('userProfileData', JSON.stringify(updatedProfile));
+      try {
+        localStorage.setItem('userProfileData', JSON.stringify(updatedProfile));
+      } catch (storageError) {
+        if (storageError.name === 'QuotaExceededError') {
+          showNotification('Espace de stockage insuffisant. L\'image est trop grande.', 'error');
+          return;
+        }
+        throw storageError;
+      }
 
       // Update userContext in localStorage for unified state management
       try {
         const userContext = JSON.parse(localStorage.getItem('userContext') || '{}');
         if (Object.keys(userContext).length > 0) {
           userContext.fullname = formData.name.trim();
-          userContext.avatar = formData.avatar || userContext.avatar;
+          userContext.avatar = avatarToSave || userContext.avatar;
           localStorage.setItem('userContext', JSON.stringify(userContext));
         }
       } catch (e) {
         console.error('Error updating userContext:', e);
+        // Don't fail the whole operation if this fails
       }
 
       // Also update Google profile if exists
@@ -170,13 +244,14 @@ const SettingsModal = ({
         const googleProfile = JSON.parse(localStorage.getItem('googleProfile') || '{}');
         if (Object.keys(googleProfile).length > 0) {
           googleProfile.name = formData.name.trim();
-          if (formData.avatar) {
-            googleProfile.picture = formData.avatar;
+          if (avatarToSave) {
+            googleProfile.picture = avatarToSave;
           }
           localStorage.setItem('googleProfile', JSON.stringify(googleProfile));
         }
       } catch (e) {
         console.error('Error updating Google profile:', e);
+        // Don't fail the whole operation if this fails
       }
 
       // Show success message

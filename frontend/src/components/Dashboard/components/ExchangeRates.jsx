@@ -62,10 +62,11 @@ const ExchangeRates = () => {
     return (
       <div className="p-6 bg-white/5 border border-white/10 rounded-xl backdrop-blur-sm">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
-            <FaExchangeAlt className="text-white text-sm" />
-          </div>
-          <h3 className="text-xl font-bold text-white">Taux de Change</h3>
+          <div className="w-8 h-8 flex items-center justify-center">
+          {/* <FaExchangeAlt className="text-white text-sm" /> */}
+          <svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 24 24" fill="none" stroke="#f2d026" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-candlestick-icon lucide-chart-candlestick"><path d="M9 5v4"/><rect width="4" height="6" x="7" y="9" rx="1"/><path d="M9 15v2"/><path d="M17 3v2"/><rect width="4" height="8" x="15" y="5" rx="1"/><path d="M17 13v3"/><path d="M3 3v16a2 2 0 0 0 2 2h16"/></svg>
+        </div>
+          {/* <h3 className="text-xl font-bold text-white">Taux de Change</h3> */}
         </div>
         <div className="text-center py-6">
           <FaExclamationTriangle className="text-red-400 text-xl mx-auto mb-2" />
@@ -80,8 +81,9 @@ const ExchangeRates = () => {
   return (
     <div className="p-6 bg-white/5 border border-white/10 rounded-xl backdrop-blur-sm">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
-          <FaExchangeAlt className="text-white text-sm" />
+        <div className="w-8 h-8 flex items-center justify-center">
+          {/* <FaExchangeAlt className="text-white text-sm" /> */}
+          <svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 24 24" fill="none" stroke="#f2d026" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-candlestick-icon lucide-chart-candlestick"><path d="M9 5v4"/><rect width="4" height="6" x="7" y="9" rx="1"/><path d="M9 15v2"/><path d="M17 3v2"/><rect width="4" height="8" x="15" y="5" rx="1"/><path d="M17 13v3"/><path d="M3 3v16a2 2 0 0 0 2 2h16"/></svg>
         </div>
         <h3 className="text-xl font-bold text-white">Taux de Change</h3>
       </div>

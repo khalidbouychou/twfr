@@ -123,10 +123,12 @@ const NewsPage = ({
             
             <div className="p-6 bg-white/5 border border-white/10 rounded-xl backdrop-blur-sm">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-r from-[#3CD4AB] to-[#2AB896] rounded-lg flex items-center justify-center">
+                {/* <div className="w-8 h-8 bg-gradient-to-r from-[#3CD4AB] to-[#2AB896] rounded-lg flex items-center justify-center">
                   <FaBitcoin className="text-white text-sm" />
-                </div>
-                <h3 className="text-xl font-bold text-white">
+                </div> */}
+ <div className="w-8 h-8 flex items-center justify-center">
+          {/* <FaExchangeAlt className="text-white text-sm" /> */}
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 24 24" fill="none" stroke="#f2d026" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bitcoin-icon lucide-bitcoin"><path d="M11.767 19.089c4.924.868 6.14-6.025 1.216-6.894m-1.216 6.894L5.86 18.047m5.908 1.042-.347 1.97m1.563-8.864c4.924.869 6.14-6.025 1.215-6.893m-1.215 6.893-3.94-.694m5.155-6.2L8.29 4.26m5.908 1.042.348-1.97M7.48 20.364l3.126-17.727"/></svg>        </div>                <h3 className="text-xl font-bold text-white">
                   Marché Crypto
                 </h3>
               </div>

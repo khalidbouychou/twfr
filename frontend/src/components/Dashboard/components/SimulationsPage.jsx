@@ -334,7 +334,10 @@ const SimulationsPage = ({
                 className="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm lg:text-base"
                 title="Investir dans les produits recommandés"
               >
-                💰 Investir
+                <div className="flex " >
+                  <svg  xmlns="http://www.w3.org/2000/svg" width="50" height="35" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-squares-exclude-icon lucide-squares-exclude"><path d="M16 12v2a2 2 0 0 1-2 2H9a1 1 0 0 0-1 1v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h0"/><path d="M4 16a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1h-5a2 2 0 0 0-2 2v2"/></svg>
+                  <h3 className="inline-block ml-2 text-white font-medium">Investir</h3>
+                </div>
               </button>
             )}
           </div>

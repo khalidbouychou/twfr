@@ -1666,6 +1666,25 @@ useEffect(() => {
         <style>{`
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+          
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(60, 212, 171, 0.3);
+            border-radius: 4px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(60, 212, 171, 0.5);
+          }
+          .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(60, 212, 171, 0.3) rgba(255, 255, 255, 0.05);
+          }
         `}</style>
         
         {/* Header */}
@@ -1712,8 +1731,8 @@ useEffect(() => {
         />
 
         {/* Main Content */}
-        <div className={`p-1 sm:p-2 lg:p-3 pt-28 sm:pt-32 lg:pt-16 pb-20 lg:pb-6 transition-all duration-200 ${isSidebarHovered ? 'lg:ml-64' : 'lg:ml-16'} h-screen overflow-y-auto`}>
-          <div className="p-1 sm:p-2 lg:p-3 bg-[#0F0F19] border border-[#89559F]/20 rounded-lg shadow-sm min-h-full">
+        <div className={`p-1 sm:p-2 lg:p-3 2xl:p-6 3xl:p-8 pt-28 sm:pt-32 lg:pt-16 2xl:pt-20 3xl:pt-24 pb-20 lg:pb-6 2xl:pb-8 3xl:pb-10 transition-all duration-200 ${isSidebarHovered ? 'lg:ml-64 2xl:ml-80 3xl:ml-96' : 'lg:ml-16 2xl:ml-20 3xl:ml-24'} h-screen overflow-y-auto`}>
+          <div className="p-1 sm:p-2 lg:p-3 2xl:p-6 3xl:p-8 bg-[#0F0F19] border border-[#89559F]/20 rounded-lg shadow-sm min-h-full">
             {/* Render different pages based on currentPage */}
             {currentPage === "dashboard" && (
               <div>
@@ -1726,7 +1745,7 @@ useEffect(() => {
                 />
 
                 {/* Profil d'Investisseur et Répartition des Investissements */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 lg:gap-3 mb-2 lg:mb-3">
+                <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2 3xl:grid-cols-2 gap-2 lg:gap-3 2xl:gap-6 3xl:gap-8 mb-2 lg:mb-3 2xl:mb-6 3xl:mb-8">
                   {/* Profil d'Investisseur - Radar Chart */}
                   <RadarChart 
                     radarData={radarData}
@@ -1740,16 +1759,20 @@ useEffect(() => {
                 </div>
 
                 {/* Tableau détaillé par produit avec valeur actuelle et performance */}
-                <div className="flex flex-col">
+                <div className="flex flex-col 2xl:flex-row gap-2 lg:gap-3 2xl:gap-6 3xl:gap-8">
                   {/* Portfolio Performance Chart */}
-                  <PortfolioPerformanceChart 
-                    userInvestments={userInvestments}
-                  />
+                  <div className="flex-1 h-[400px] 2xl:h-[500px] 3xl:h-[600px] overflow-y-auto custom-scrollbar">
+                    <PortfolioPerformanceChart 
+                      userInvestments={userInvestments}
+                    />
+                  </div>
 
                   {/* Transactions History */}
-                  <TransactionsHistory 
-                    transactionsHistory={transactionsHistory}
-                  />
+                  <div className="flex-1 h-[400px] 2xl:h-[500px] 3xl:h-[600px] overflow-y-auto custom-scrollbar">
+                    <TransactionsHistory 
+                      transactionsHistory={transactionsHistory}
+                    />
+                  </div>
                 </div>
 
               </div>
@@ -1770,7 +1793,7 @@ useEffect(() => {
                 </div>
 
                 {/* Main Content Grid */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 lg:gap-3 xl:gap-4">
+                <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2 3xl:grid-cols-2 gap-2 lg:gap-3 xl:gap-4 2xl:gap-6 3xl:gap-8">
                   {/* Sector Breakdown - Enhanced Container */}
                   <div className="transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
                     <SectorBreakdown 
@@ -1779,34 +1802,34 @@ useEffect(() => {
                   </div>
 
                   {/* Investment History - Enhanced Design */}
-                  <div className="group relative overflow-hidden rounded-xl p-3 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+                  <div className="group relative overflow-hidden rounded-xl p-3 2xl:p-5 3xl:p-6 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
                     <div className="absolute inset-0  bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm"></div>
                     
                     {/* Header with Icon */}
-                    <div className="relative flex items-center justify-between mb-1.5">
+                    <div className="relative flex items-center justify-between mb-1.5 2xl:mb-3 3xl:mb-4">
                       <div className="flex items-center space-x-2">
       
-                        <h3 className="text-lg font-bold text-gray-50">
+                        <h3 className="text-lg 2xl:text-2xl 3xl:text-3xl font-bold text-gray-50">
                           Historique d'Investissements
                         </h3>
                       </div>
                       
                       {/* Scroll Controls - Enhanced */}
                       {calculateInvestmentHistoryWithReturns().length > 3 && (
-                        <div className="flex gap-1.5">
+                        <div className="flex gap-1.5 2xl:gap-2 3xl:gap-3">
                           <button
                             onClick={() => scrollInvestments(-1)}
-                            className="group/btn p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-[#3CD4AB]/50 transition-all duration-200"
+                            className="group/btn p-1.5 2xl:p-2 3xl:p-3 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-[#3CD4AB]/50 transition-all duration-200"
                           >
-                            <svg className="w-3.5 h-3.5 transform group-hover/btn:-translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 2xl:w-5 2xl:h-5 3xl:w-6 3xl:h-6 transform group-hover/btn:-translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
                             </svg>
                           </button>
                           <button
                             onClick={() => scrollInvestments(1)}
-                            className="group/btn p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-[#3CD4AB]/50 transition-all duration-200"
+                            className="group/btn p-1.5 2xl:p-2 3xl:p-3 rounded-lg bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-[#3CD4AB]/50 transition-all duration-200"
                           >
-                            <svg className="w-3.5 h-3.5 transform group-hover/btn:translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 2xl:w-5 2xl:h-5 3xl:w-6 3xl:h-6 transform group-hover/btn:translate-y-0.5 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
                             </svg>
                           </button>
@@ -1818,44 +1841,44 @@ useEffect(() => {
                     <div className="relative">
                       <div
                         ref={invListRef}
-                        className={`${calculateInvestmentHistoryWithReturns().length > 3 ? "max-h-48 overflow-y-auto" : ""}`}
+                        className={`${calculateInvestmentHistoryWithReturns().length > 3 ? "max-h-48 2xl:max-h-80 3xl:max-h-96 overflow-y-auto" : ""}`}
                         style={{ 
                           scrollBehavior: "smooth",
                           scrollbarWidth: "none",
                           msOverflowStyle: "none"
                         }}
                       >
-                        <div className="space-y-2">
+                        <div className="space-y-2 2xl:space-y-3 3xl:space-y-4">
                           {calculateInvestmentHistoryWithReturns().map(
                             (investment) => (
                               <div
                                 key={investment.id}
                                 data-inv-item
-                                className="group/item relative overflow-hidden rounded-lg bg-white/5 border border-white/10 p-2.5 hover:bg-white/10 hover:border-[#3CD4AB]/30 transition-all duration-200"
+                                className="group/item relative overflow-hidden rounded-lg bg-white/5 border border-white/10 p-2.5 2xl:p-4 3xl:p-5 hover:bg-white/10 hover:border-[#3CD4AB]/30 transition-all duration-200"
                               >
                                 
                                 <div className="relative flex justify-between items-center">
-                                  <div className="flex items-center space-x-2">
+                                  <div className="flex items-center space-x-2 2xl:space-x-3 3xl:space-x-4">
                                     <div className="flex-shrink-0">
-                                      <span className="inline-block w-2 h-2 rounded-full bg-[#3CD4AB]"></span>
+                                      <span className="inline-block w-2 h-2 2xl:w-3 2xl:h-3 3xl:w-4 3xl:h-4 rounded-full bg-[#3CD4AB]"></span>
                                     </div>
                                     <div>
-                                      <span className="text-white text-sm font-semibold">
+                                      <span className="text-white text-sm 2xl:text-base 3xl:text-lg font-semibold">
                                         {investment.name}
                                       </span>
-                                      <div className="text-white/60 text-xs mt-0.5">
+                                      <div className="text-white/60 text-xs 2xl:text-sm 3xl:text-base mt-0.5">
                                         {investment.date}
                                       </div>
                                     </div>
                                   </div>
                                   
                                   <div className="text-right">
-                                    <div className="text-white font-bold text-sm">
+                                    <div className="text-white font-bold text-sm 2xl:text-base 3xl:text-lg">
                                       {investment.amount.toLocaleString()} MAD
                                     </div>
-                                    <div className="flex items-center justify-end space-x-1.5 mt-0.5">
+                                    <div className="flex items-center justify-end space-x-1.5 2xl:space-x-2 3xl:space-x-3 mt-0.5">
                                       <div
-                                        className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
+                                        className={`text-xs 2xl:text-sm 3xl:text-base font-semibold px-1.5 2xl:px-2 3xl:px-3 py-0.5 2xl:py-1 3xl:py-1.5 rounded-full ${
                                           investment.return.startsWith("+")
                                             ? "text-[#3CD4AB] bg-[#3CD4AB]/10"
                                             : "text-red-400 bg-red-400/10"
@@ -1863,7 +1886,7 @@ useEffect(() => {
                                       >
                                         {investment.return}
                                       </div>
-                                      <div className="text-white/60 text-xs">
+                                      <div className="text-white/60 text-xs 2xl:text-sm 3xl:text-base">
                                         ({investment.currentValue.toLocaleString()} MAD)
                                       </div>
                                     </div>
