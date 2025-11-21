@@ -74,6 +74,7 @@ const Esg = () => {
             q1 : [
                 {
                     question : "1 - Souhaitez-vous éviter les entreprises très polluantes ?",
+                   
                     options : [
                         {
                             label : "Oui, à exclure totalement",
@@ -93,6 +94,7 @@ const Esg = () => {
             q2 : [
                 {
                     question : "2 - Privilégiez-vous les entreprises engagées dans la transition énergétique ?",
+                
                     type : "radio",
                     options : [
                         {
@@ -116,6 +118,7 @@ const Esg = () => {
             q1 : [
                 {
                     question : "1 - Accordez-vous de l'importance à la diversité et à l'inclusion ?",
+                  
                     type : "radio",
                     options : [
                         {
@@ -136,6 +139,7 @@ const Esg = () => {
             q2 : [
                 {
                     question : "2 - Voulez-vous soutenir les entreprises avec de bonnes conditions de travail ?",
+                 
                     type : "radio",
                     options : [
                         {
@@ -159,6 +163,8 @@ const Esg = () => {
             q1 : [
                 {
                     question : "1 - Voulez-vous éviter celles impliquées dans des scandales éthiques ?",
+                
+                    type : "radio",
                     options : [
                         {
                             label : "Oui, exclusion automatique",
@@ -178,6 +184,7 @@ const Esg = () => {
             q2 : [
                 {
                     question : "2 - Préférez-vous investir dans des entreprises avec une gouvernance transparente ?",
+                
                     options : [
                         {
                             label : "Oui, indispensable",
@@ -213,23 +220,18 @@ const Esg = () => {
                 </div>
             </div>
             
-            <div className="space-y-6">
+            <div className="space-y-2">
                 {lstquestion.map((category, categoryIndex) => (
-                    <div key={`category-${categoryIndex}`} className="space-y-4">
+                    <div key={`category-${categoryIndex}`}  className="space-y-4 ">
                         {/* Category Title */}
                         <div className="flex items-center gap-2 pb-2 border-b-2 border-[#3CD4AB]/50">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3CD4AB] to-[#2ba885] flex items-center justify-center shadow-lg">
-                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
                             <h3 className="font-light text-white text-base sm:text-lg">
                                 {category.title}
                             </h3>
                         </div>
 
                         {/* Questions Container */}
-                        <div className="space-y-3">
+                        <div className="space-y-1">
                             {/* Q1 Questions */}
                             {category.q1.map((question, q1Index) => (
                                 <div key={`q1-${categoryIndex}-${q1Index}`} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all duration-300">
