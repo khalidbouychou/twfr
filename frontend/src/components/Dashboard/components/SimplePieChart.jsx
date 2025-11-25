@@ -5,12 +5,12 @@ const SimplePieChart = ({ pieChartData, setCurrentPage }) => {
   const totalPortfolioValue = pieChartData.reduce((sum, item) => sum + item.total, 0);
 
   return (
-    <div className="w-full h-fit  border border-gray-800/50 rounded-3xl p-6 lg:p-8 shadow-xl flex flex-col">
+    <div className="w-full h-fit border border-gray-800/50 rounded-xl p-3 lg:p-4 2xl:p-6 shadow-xl flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-3 lg:mb-4">
         <div>
-          <h3 className="text-xl font-bold text-white tracking-tight">Répartition</h3>
-          <p className="text-sm text-gray-400 mt-1">Vue d'ensemble de votre portefeuille</p>
+          <h3 className="text-sm lg:text-base font-bold text-white tracking-tight">Répartition</h3>
+          <p className="text-xs text-gray-400 mt-0.5">Vue d'ensemble de votre portefeuille</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 rounded-full border border-emerald-500/20">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -19,7 +19,7 @@ const SimplePieChart = ({ pieChartData, setCurrentPage }) => {
       </div>
 
       {/* Chart Section */}
-      <div className="relative w-full h-[300px] xl:h-[350px] shrink-0">
+      <div className="relative w-full h-[200px] lg:h-[240px] xl:h-[280px] 2xl:h-[300px] shrink-0">
         {pieChartData.length === 0 ? (
            // Empty state
            <div className="flex flex-col items-center justify-center h-full text-center">
@@ -98,15 +98,15 @@ const SimplePieChart = ({ pieChartData, setCurrentPage }) => {
 
       {/* Legend / List */}
       {pieChartData.length > 0 && (
-        <div className="mt-8 space-y-4">
+        <div className="mt-3 lg:mt-4 space-y-2 lg:space-y-3">
             {pieChartData.map((item, idx) => {
                 const percent = ((item.total / totalPortfolioValue) * 100).toFixed(1);
                 
                 return (
-                    <div key={idx} className="flex items-center justify-between group p-2 rounded-xl hover:bg-white/5 transition-colors">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-800/50 group-hover:bg-gray-800 transition-colors">
-                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                    <div key={idx} className="flex items-center justify-between group p-1.5 lg:p-2 rounded-lg hover:bg-white/5 transition-colors">
+                        <div className="flex items-center gap-2 lg:gap-3">
+                            <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-lg flex items-center justify-center bg-gray-800/50 group-hover:bg-gray-800 transition-colors">
+                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                             </div>
                             <div>
                                 <div className="text-white font-medium text-sm">{item.name}</div>

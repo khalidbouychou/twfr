@@ -1,0 +1,18 @@
+# Dev container for Vite React app
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install deps first for better caching
+COPY package.json package-lock.json* ./
+RUN npm install
+
+# Copy the rest (won't be used heavily because of bind mount, but helpful initially)
+COPY . .
+
+ENV HOST=0.0.0.0 \
+    CHOKIDAR_USEPOLLING=1
+
+EXPOSE 5173 24678
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

@@ -15,3 +15,4 @@ export { default as SettingsModal } from './SettingsModal';
 export { default as ExchangeRates } from './ExchangeRates';
 export { default as InvestmentsPage } from './InvestmentsPage';
 export { default as AIAssistant } from './AIAssistant';
+export { default as PerformanceGraph } from './PerformanceGraph';

@@ -266,40 +266,52 @@ const SimulationsPage = ({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row w-full gap-4 lg:gap-8 justify-center mt-4 lg:mt-8 px-4 lg:px-0 h-full overflow-y-auto" >
-      <div className="bg-white/5 border border-white/20 rounded-xl p-4 lg:p-6 w-full lg:max-w-2xl">
-        <h3 className="text-lg lg:text-xl font-semibold text-white mb-4 lg:mb-6">Simulation d'investissement</h3>
+    <div className="flex flex-col lg:flex-row w-full gap-6 lg:gap-8 justify-center mt-6 lg:mt-8 px-4 lg:px-0 h-full overflow-y-auto">
+      <div className="bg-white/5 border border-white/20 rounded-2xl p-6 lg:p-8 w-full lg:max-w-2xl backdrop-blur-sm">
+        <h3 className="text-2xl lg:text-3xl font-bold text-white mb-6 lg:mb-8">Simulation d'investissement</h3>
         
         {/* User Context Info */}
         {validators.hasCompleteProfile() && (
-          <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6">
-            <h4 className="text-blue-400 font-medium mb-2 text-sm lg:text-base">📊 Basé sur votre profil</h4>
-            <div className="text-xs lg:text-sm text-white/80 space-y-1">
-              <p>• Solde disponible: {currentBalance.toLocaleString()} MAD</p>
-              <p>• Total investi: {totalInvested.toLocaleString()} MAD</p>
-              <p>• Performance actuelle: {globalROI.toFixed(2)}%</p>
-              <p>• Profil de risque: {profileType || 'Non défini'}</p>
+          <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-xl p-4 lg:p-5 mb-6 lg:mb-8">
+            <h4 className="text-blue-300 font-semibold mb-3 text-base lg:text-lg">Basé sur votre profil</h4>
+            <div className="grid grid-cols-2 gap-3 text-sm lg:text-base">
+              <div className="bg-white/10 rounded-lg p-3 border border-white/10">
+                <div className="text-white/60 text-xs mb-1">Solde disponible</div>
+                <div className="text-white font-semibold">{currentBalance.toLocaleString()} MAD</div>
+              </div>
+              <div className="bg-white/10 rounded-lg p-3 border border-white/10">
+                <div className="text-white/60 text-xs mb-1">Total investi</div>
+                <div className="text-white font-semibold">{totalInvested.toLocaleString()} MAD</div>
+              </div>
+              <div className="bg-white/10 rounded-lg p-3 border border-white/10">
+                <div className="text-white/60 text-xs mb-1">Performance actuelle</div>
+                <div className="text-white font-semibold">{globalROI.toFixed(2)}%</div>
+              </div>
+              <div className="bg-white/10 rounded-lg p-3 border border-white/10">
+                <div className="text-white/60 text-xs mb-1">Profil de risque</div>
+                <div className="text-white font-semibold capitalize">{profileType || 'Non défini'}</div>
+              </div>
             </div>
           </div>
         )}
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div>
-            <label className="block text-white text-sm font-medium mb-2">Capital initial (MAD)</label>
+            <label className="block text-white text-sm font-semibold mb-2">Capital initial (MAD)</label>
             <input
               type="number"
               value={form.initialCapital}
               onChange={(e) => handleChange('initialCapital', e.target.value)}
-              className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:border-white/60 focus:outline-none transition-colors"
+              className="w-full bg-white/10 border border-white/30 rounded-xl px-4 py-3.5 text-white placeholder-white/50 focus:border-[#3CD4AB] focus:ring-2 focus:ring-[#3CD4AB]/30 focus:outline-none transition-all"
               placeholder="10000"
               min={0}
             />
           </div>
           <div>
-            <label className="block text-white text-sm font-medium mb-2">Durée</label>
+            <label className="block text-white text-sm font-semibold mb-2">Durée</label>
             <select
               value={form.duration}
               onChange={(e) => handleChange('duration', e.target.value)}
-              className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors [&>option]:text-black [&>option]:bg-white"
+              className="w-full bg-white/10 border border-white/30 rounded-xl px-4 py-3.5 text-white focus:border-[#3CD4AB] focus:ring-2 focus:ring-[#3CD4AB]/30 focus:outline-none transition-all [&>option]:text-black [&>option]:bg-white"
             >
               <option value="6" className="text-black bg-white">6 mois</option>
               <option value="12" className="text-black bg-white">1 an</option>
@@ -308,22 +320,22 @@ const SimulationsPage = ({
             </select>
           </div>
           <div>
-            <label className="block text-white text-sm font-medium mb-2">Profil de risque</label>
+            <label className="block text-white text-sm font-semibold mb-2">Profil de risque</label>
             <select
               value={form.riskProfile}
               onChange={(e) => handleChange('riskProfile', e.target.value)}
-              className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white focus:border-white/60 focus:outline-none transition-colors [&>option]:text-black [&>option]:bg-white"
+              className="w-full bg-white/10 border border-white/30 rounded-xl px-4 py-3.5 text-white focus:border-[#3CD4AB] focus:ring-2 focus:ring-[#3CD4AB]/30 focus:outline-none transition-all [&>option]:text-black [&>option]:bg-white"
             >
               {riskProfiles.map((r) => (
                 <option key={r.value} value={r.value} className="text-black bg-white">{r.label}</option>
               ))}
             </select>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+          <div className="flex flex-col sm:flex-row gap-3 mt-6">
             <button
               onClick={handleSimulate}
               disabled={!form.initialCapital || parseFloat(form.initialCapital) <= 0}
-              className="flex-1 bg-[#3CD4AB] text-white font-medium py-3 px-4 rounded-lg hover:bg-[#89559F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
+              className="flex-1 bg-gradient-to-r from-[#3CD4AB] to-emerald-500 text-white font-semibold py-3.5 px-6 rounded-xl hover:from-[#2bb894] hover:to-emerald-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md text-base"
             >
               Lancer la simulation
             </button>
@@ -331,87 +343,106 @@ const SimulationsPage = ({
             {result && currentBalance >= parseFloat(form.initialCapital) && (
               <button
                 onClick={openInvestmentPopup}
-                className="px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm lg:text-base"
+                className="px-6 py-3.5 bg-gradient-to-r from-purple-500 to-[#89559F] hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md text-base"
                 title="Investir dans les produits recommandés"
               >
-                <div className="flex " >
-                  <svg  xmlns="http://www.w3.org/2000/svg" width="50" height="35" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-squares-exclude-icon lucide-squares-exclude"><path d="M16 12v2a2 2 0 0 1-2 2H9a1 1 0 0 0-1 1v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h0"/><path d="M4 16a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1h-5a2 2 0 0 0-2 2v2"/></svg>
-                  <h3 className="inline-block ml-2 text-white font-medium">Investir</h3>
-                </div>
+                Investir maintenant
               </button>
             )}
           </div>
           
           {currentBalance < parseFloat(form.initialCapital) && form.initialCapital && (
-            <p className="text-red-400 text-sm mt-2">
-              ⚠️ Solde insuffisant. Solde disponible: {currentBalance.toLocaleString()} MAD
-            </p>
+            <div className="bg-red-500/20 border border-red-400/30 rounded-xl p-3 mt-4">
+              <p className="text-red-300 text-sm">
+                Solde insuffisant. Solde disponible: {currentBalance.toLocaleString()} MAD
+              </p>
+            </div>
           )}
         </div>
       </div>
 
       {result && (
-        <div className="bg-white/10 border border-white/20 rounded-xl p-4 lg:p-6 w-full lg:w-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-            <h4 className="text-base lg:text-lg font-semibold text-white">Résultats & recommandations</h4>
-            {result.basedOnCurrentPerformance && (
-              <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs">
-                ✨ Optimisé par vos performances
-              </span>
-            )}
-          </div>
-          
-          <div className="bg-white/10 rounded-lg p-4 mb-4">
-            <div className="grid grid-cols-2 gap-4 text-sm text-white/80">
-              <p>Profil: <span className="text-white">{result.profileLabel}</span></p>
-              <p>Rendement projeté: <span className="text-white">{result.projectedAnnualReturn}%</span></p>
-              {result.userROIBonus > 0 && (
-                <p className="col-span-2 text-green-400">
-                  +1% bonus basé sur vos performances actuelles ({globalROI.toFixed(2)}%)
-                </p>
+        <div className="bg-white/5 border border-white/20 rounded-2xl p-6 lg:p-8 w-full lg:w-auto backdrop-blur-sm">
+          {/* Header */}
+          <div className="mb-6">
+            <h4 className="text-xl lg:text-2xl font-bold text-white mb-2">Résultats & recommandations</h4>
+            <div className="flex items-center gap-3 text-sm text-white/60">
+              <span>{result.profileLabel}</span>
+              <span>•</span>
+              <span>Rendement: {result.projectedAnnualReturn}%</span>
+              {result.basedOnCurrentPerformance && (
+                <>
+                  <span>•</span>
+                  <span className="text-green-400">Optimisé</span>
+                </>
               )}
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 mb-4">
-            <div className="bg-[#191930] rounded-lg p-4 text-center border border-red-500/30">
-              <div className="text-red-300 text-xs mb-1">Scénario pessimiste</div>
-              <div className="text-2xl font-bold text-red-400">{result.pessimistic.toLocaleString()} MAD</div>
-              <div className="text-red-300/70 text-xs mt-1">
-                +{((result.pessimistic - parseFloat(form.initialCapital)) / parseFloat(form.initialCapital) * 100).toFixed(1)}%
-              </div>
-            </div>
-            <div className="bg-[#191930] rounded-lg p-4 text-center border border-[#3CD4AB]/30">
-              <div className="text-[#3CD4AB]/70 text-xs mb-1">Scénario attendu</div>
-              <div className="text-2xl font-bold text-[#3CD4AB]">{result.expected.toLocaleString()} MAD</div>
-              <div className="text-[#3CD4AB]/70 text-xs mt-1">
-                +{((result.expected - parseFloat(form.initialCapital)) / parseFloat(form.initialCapital) * 100).toFixed(1)}%
-              </div>
-            </div>
-            <div className="bg-[#191930] rounded-lg p-4 text-center border border-green-500/30">
-              <div className="text-green-300 text-xs mb-1">Scénario optimiste</div>
-              <div className="text-2xl font-bold text-green-400">{result.optimistic.toLocaleString()} MAD</div>
-              <div className="text-green-300/70 text-xs mt-1">
-                +{((result.optimistic - parseFloat(form.initialCapital)) / parseFloat(form.initialCapital) * 100).toFixed(1)}%
-              </div>
-            </div>
-          </div>
-          
-          {!result.canAfford && (
-            <div className="bg-orange-500/20 border border-orange-500/30 rounded-lg p-4 mb-4">
-              <p className="text-orange-400 text-sm">
-                ⚠️ Montant supérieur à votre solde actuel ({currentBalance.toLocaleString()} MAD)
+
+          {/* Performance Bonus Alert */}
+          {result.userROIBonus > 0 && (
+            <div className="bg-green-500/10 border border-green-400/20 rounded-xl p-3 mb-6">
+              <p className="text-green-300 text-sm">
+                +1% bonus basé sur vos performances actuelles ({globalROI.toFixed(2)}%)
               </p>
             </div>
           )}
           
-          <div className="mt-4">
-            <div className="text-white/80 font-medium mb-2">Produits recommandés pour votre profil ({result.profileLabel}) :</div>
-            <div className="flex flex-wrap gap-2">
+          {/* Scenario Cards - Simplified */}
+          <div className="space-y-3 mb-6">
+            {/* Expected Scenario - Main highlight */}
+            <div className="bg-[#3CD4AB]/10 border-l-4 border-[#3CD4AB] rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-white/60 text-xs mb-1">Scénario attendu</div>
+                  <div className="text-2xl font-bold text-[#3CD4AB]">{result.expected.toLocaleString()} MAD</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[#3CD4AB] text-xl font-bold">
+                    +{((result.expected - parseFloat(form.initialCapital)) / parseFloat(form.initialCapital) * 100).toFixed(1)}%
+                  </div>
+                  <div className="text-white/50 text-xs">Gain projeté</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pessimistic and Optimistic in a row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-red-500/10 border border-red-400/20 rounded-lg p-3">
+                <div className="text-red-300/70 text-xs mb-1">Pessimiste</div>
+                <div className="text-lg font-bold text-red-400">{result.pessimistic.toLocaleString()}</div>
+                <div className="text-red-300/70 text-xs mt-1">
+                  +{((result.pessimistic - parseFloat(form.initialCapital)) / parseFloat(form.initialCapital) * 100).toFixed(1)}%
+                </div>
+              </div>
+              <div className="bg-green-500/10 border border-green-400/20 rounded-lg p-3">
+                <div className="text-green-300/70 text-xs mb-1">Optimiste</div>
+                <div className="text-lg font-bold text-green-400">{result.optimistic.toLocaleString()}</div>
+                <div className="text-green-300/70 text-xs mt-1">
+                  +{((result.optimistic - parseFloat(form.initialCapital)) / parseFloat(form.initialCapital) * 100).toFixed(1)}%
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Insufficient Balance Warning */}
+          {!result.canAfford && (
+            <div className="bg-orange-500/10 border border-orange-400/20 rounded-lg p-3 mb-6">
+              <p className="text-orange-300 text-sm">
+                Montant supérieur à votre solde actuel ({currentBalance.toLocaleString()} MAD)
+              </p>
+            </div>
+          )}
+          
+          {/* Recommended Products - Simplified List */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+            <div className="text-white/80 text-sm font-medium mb-3">Produits recommandés</div>
+            <div className="space-y-2">
               {result.products.map((product, idx) => (
-                <span key={idx} className="bg-[#3CD4AB]/20 text-[#3CD4AB] px-3 py-1 rounded-full text-sm">
-                  {product}
-                </span>
+                <div key={idx} className="flex items-center gap-2 text-white/70 text-sm">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#3CD4AB]"></div>
+                  <span>{product}</span>
+                </div>
               ))}
             </div>
           </div>
@@ -420,44 +451,63 @@ const SimulationsPage = ({
 
       {/* Investment Popup */}
       {showInvestmentPopup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 lg:p-4">
-          <div className="bg-white rounded-xl max-w-6xl w-full max-h-[95vh] lg:max-h-[90vh] overflow-y-auto mx-2 lg:mx-0">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-white/10">
             
-            {/* Products Selection Step */}
-            <div className="p-4 lg:p-6">
-              <div className="flex items-center justify-between mb-4 lg:mb-6">
-                <h3 className="text-lg lg:text-2xl font-bold text-gray-800">Sélectionnez vos investissements</h3>
+            {/* Header - Fixed */}
+            <div className="bg-gradient-to-r from-[#3CD4AB]/10 to-emerald-500/10 border-b border-white/10 p-6 lg:p-8 flex-shrink-0">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-2xl lg:text-3xl font-bold text-white mb-1">Sélectionnez vos investissements</h3>
+                  <p className="text-white/60 text-sm">Choisissez les produits et définissez les montants</p>
+                </div>
                 <button 
                   onClick={() => setShowInvestmentPopup(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="text-white/60 hover:text-white hover:bg-white/10 w-10 h-10 rounded-full transition-all duration-200 flex items-center justify-center"
                 >
-                  ×
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
               
-              {/* Capital and Total Summary */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                  <div>
-                    <span className="text-sm lg:text-base text-gray-700">Capital initial: </span>
-                    <span className="font-bold text-[#3CD4AB] text-base lg:text-lg">{parseFloat(form.initialCapital).toLocaleString()} MAD</span>
+              {/* Capital Summary Bar */}
+              <div className="grid grid-cols-3 gap-3 lg:gap-4">
+                <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                  <div className="text-white/50 text-xs mb-1">Capital initial</div>
+                  <div className="text-white font-bold text-lg">{parseFloat(form.initialCapital).toLocaleString()}</div>
+                  <div className="text-white/40 text-xs">MAD</div>
+                </div>
+                <div className={`border rounded-lg p-3 ${getTotalSelectedAmount() > parseFloat(form.initialCapital) ? 'bg-red-500/10 border-red-400/30' : 'bg-[#3CD4AB]/10 border-[#3CD4AB]/30'}`}>
+                  <div className="text-white/50 text-xs mb-1">Total sélectionné</div>
+                  <div className={`font-bold text-lg ${getTotalSelectedAmount() > parseFloat(form.initialCapital) ? 'text-red-400' : 'text-[#3CD4AB]'}`}>
+                    {getTotalSelectedAmount().toLocaleString()}
                   </div>
-                  <div>
-                    <span className="text-sm lg:text-base text-gray-700">Total sélectionné: </span>
-                    <span className={`font-bold text-base lg:text-lg ${getTotalSelectedAmount() > parseFloat(form.initialCapital) ? 'text-red-500' : 'text-gray-800'}`}>
-                      {getTotalSelectedAmount().toLocaleString()} MAD
-                    </span>
+                  <div className="text-white/40 text-xs">MAD</div>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                  <div className="text-white/50 text-xs mb-1">Restant</div>
+                  <div className={`font-bold text-lg ${(parseFloat(form.initialCapital) - getTotalSelectedAmount()) < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {(parseFloat(form.initialCapital) - getTotalSelectedAmount()).toLocaleString()}
                   </div>
-                  <div>
-                    <span className="text-sm lg:text-base text-gray-700">Restant: </span>
-                    <span className={`font-bold text-base lg:text-lg ${(parseFloat(form.initialCapital) - getTotalSelectedAmount()) < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-                      {(parseFloat(form.initialCapital) - getTotalSelectedAmount()).toLocaleString()} MAD
-                    </span>
-                  </div>
+                  <div className="text-white/40 text-xs">MAD</div>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mb-4 lg:mb-6">
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto flex-1 p-6 lg:p-8">
+              {/* Warning Message */}
+              {getTotalSelectedAmount() > parseFloat(form.initialCapital) && (
+                <div className="bg-red-500/10 border border-red-400/30 rounded-lg p-3 mb-6">
+                  <p className="text-red-300 text-sm">
+                    Le montant total dépasse votre capital. Ajustez les montants avant de continuer.
+                  </p>
+                </div>
+              )}
+
+              {/* Product Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {result?.products.map((productName, index) => {
                   const product = getProductDetails(productName);
                   const isSelected = selectedProductsForSelection[productName];
@@ -466,39 +516,57 @@ const SimulationsPage = ({
                   return (
                     <div 
                       key={index} 
-                      className={`border-2 rounded-lg p-3 lg:p-4 transition-all ${
+                      onClick={() => !isSelected && handleProductCheckbox(productName, true)}
+                      className={`relative border rounded-xl p-4 transition-all duration-200 cursor-pointer ${
                         isSelected 
-                          ? 'border-[#3CD4AB] bg-[#3CD4AB]/5' 
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-[#3CD4AB] bg-[#3CD4AB]/5 shadow-lg shadow-[#3CD4AB]/10' 
+                          : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
                       }`}
                     >
-                      {/* Checkbox and Product Header */}
-                      <div className="flex items-start mb-3">
-                        <input
-                          type="checkbox"
-                          checked={isSelected || false}
-                          onChange={(e) => handleProductCheckbox(productName, e.target.checked)}
-                          className="mt-1 mr-3 w-5 h-5 text-[#3CD4AB] rounded focus:ring-[#3CD4AB] cursor-pointer"
+                      {/* Selection Indicator */}
+                      <div className="absolute top-4 right-4">
+                        <div 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleProductCheckbox(productName, !isSelected);
+                          }}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                            isSelected 
+                              ? 'border-[#3CD4AB] bg-[#3CD4AB]' 
+                              : 'border-white/30 bg-transparent'
+                          }`}
+                        >
+                          {isSelected && (
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Product Info */}
+                      <div className="flex items-start gap-3 mb-4 pr-8">
+                        <img 
+                          src={product.avatar} 
+                          alt={product.title}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-white/10"
                         />
                         <div className="flex-1">
-                          <div className="flex items-center mb-2">
-                            <img 
-                              src={product.avatar} 
-                              alt={product.title}
-                              className="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover mr-2 lg:mr-3"
-                            />
-                            <div>
-                              <h4 className="font-semibold text-gray-800 text-sm lg:text-base">{product.title}</h4>
-                              <p className="text-green-600 font-medium text-xs lg:text-sm">ROI: {product.roi}%</p>
-                            </div>
+                          <h4 className="font-semibold text-white text-base mb-1">{product.title}</h4>
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-400 text-sm font-medium">ROI {product.roi}%</span>
+                            <span className="text-white/30">•</span>
+                            <span className="text-white/50 text-xs">Min. {product.minInvestment.toLocaleString()}</span>
                           </div>
                         </div>
                       </div>
                       
                       {/* Amount Input */}
-                      <div className={isSelected ? '' : 'opacity-50 pointer-events-none'}>
-                        <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
-                          Montant à investir (Min: {product.minInvestment.toLocaleString()} MAD)
+                      <div className={`transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <label className="block text-white/70 text-xs font-medium mb-2">
+                          Montant à investir (MAD)
                         </label>
                         <input
                           type="number"
@@ -506,11 +574,11 @@ const SimulationsPage = ({
                           value={currentAmount}
                           placeholder={product.minInvestment.toString()}
                           disabled={!isSelected}
-                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#3CD4AB] text-sm lg:text-base disabled:bg-gray-100 text-gray-900 placeholder-gray-400"
+                          className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:border-[#3CD4AB] focus:ring-2 focus:ring-[#3CD4AB]/30 transition-all disabled:opacity-50"
                           onChange={(e) => handleAmountChange(productName, e.target.value)}
                         />
                         {isSelected && currentAmount && parseFloat(currentAmount) < product.minInvestment && (
-                          <p className="text-red-500 text-xs mt-1">
+                          <p className="text-red-400 text-xs mt-1.5">
                             Minimum requis: {product.minInvestment.toLocaleString()} MAD
                           </p>
                         )}
@@ -519,39 +587,31 @@ const SimulationsPage = ({
                   );
                 })}
               </div>
+            </div>
 
-              {/* Footer with Actions */}
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 border-t gap-3">
-                <div className="text-gray-600 text-sm lg:text-base">
-                  Produits sélectionnés: {getSelectedProductsCount()} / {result?.products.length}
+            {/* Footer - Fixed */}
+            <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-t border-white/10 p-6 lg:p-8 flex-shrink-0">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="text-white/80 text-sm">
+                  <span className="text-[#3CD4AB] font-bold text-lg">{getSelectedProductsCount()}</span>
+                  <span className="text-white/60"> / {result?.products.length} produits sélectionnés</span>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={() => setShowInvestmentPopup(false)}
-                    className="px-4 lg:px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm lg:text-base"
+                    className="px-6 py-3 bg-white/5 border border-white/20 text-white rounded-xl hover:bg-white/10 transition-all font-medium"
                   >
                     Annuler
                   </button>
                   <button
                     onClick={handleAddToCart}
                     disabled={!canAddToCart()}
-                    className="px-4 lg:px-6 py-2 bg-gradient-to-r from-[#3CD4AB] to-emerald-500 hover:from-[#2bb894] hover:to-emerald-600 text-white rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base font-semibold flex items-center justify-center gap-2"
+                    className="px-6 py-3 bg-gradient-to-r from-[#3CD4AB] to-emerald-500 hover:from-[#2bb894] hover:to-emerald-600 text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg shadow-[#3CD4AB]/20"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    Ajouter au panier ({getSelectedProductsCount()})
+                    Ajouter au panier
                   </button>
                 </div>
               </div>
-              
-              {getTotalSelectedAmount() > parseFloat(form.initialCapital) && (
-                <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
-                  <p className="text-red-600 text-sm">
-                    ⚠️ Le montant total sélectionné dépasse votre capital initial. Veuillez ajuster les montants.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -559,12 +619,12 @@ const SimulationsPage = ({
 
       {/* Alert/Toast */}
       {showAlert && (
-        <div className="fixed top-2 right-2 lg:top-4 lg:right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 lg:px-6 py-3 lg:py-4 rounded-lg shadow-lg z-50 max-w-sm lg:max-w-md mx-2 animate-fade-in">
-          <div className="flex items-start justify-between">
-            <span className="text-xs lg:text-sm pr-2">{alertMessage}</span>
+        <div className="fixed top-4 right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 max-w-md mx-2 animate-fade-in border border-green-400">
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-sm font-medium">{alertMessage}</span>
             <button 
               onClick={() => setShowAlert(false)}
-              className="ml-2 text-white hover:text-gray-200 text-lg lg:text-xl"
+              className="ml-2 text-white hover:bg-white/20 w-7 h-7 rounded-full transition-all flex items-center justify-center text-xl"
             >
               ×
             </button>
@@ -574,48 +634,48 @@ const SimulationsPage = ({
       
       {/* Recent Simulations Section */}
       {recentSimulations && recentSimulations.length > 0 && (
-        <div className="bg-white/5 border border-white/20 rounded-xl p-4 lg:p-6 w-full mt-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
-            <h3 className="text-lg lg:text-xl font-semibold text-white">Historique des simulations</h3>
+        <div className="bg-white/5 border border-white/20 rounded-2xl p-6 lg:p-8 w-full mt-6 backdrop-blur-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+            <h3 className="text-xl lg:text-2xl font-bold text-white">Historique des simulations</h3>
             
             {/* Date Filter */}
             <div className="flex gap-2">
               <button
                 onClick={() => handleDateFilterChange("all")}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   simulationDateFilter === "all"
-                    ? "bg-[#3CD4AB] text-white"
-                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                    ? "bg-gradient-to-r from-[#3CD4AB] to-emerald-500 text-white shadow-sm"
+                    : "bg-white/10 text-white/70 hover:bg-white/20 border border-white/20"
                 }`}
               >
                 Tout
               </button>
               <button
                 onClick={() => handleDateFilterChange("today")}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   simulationDateFilter === "today"
-                    ? "bg-[#3CD4AB] text-white"
-                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                    ? "bg-gradient-to-r from-[#3CD4AB] to-emerald-500 text-white shadow-sm"
+                    : "bg-white/10 text-white/70 hover:bg-white/20 border border-white/20"
                 }`}
               >
                 Aujourd'hui
               </button>
               <button
                 onClick={() => handleDateFilterChange("week")}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   simulationDateFilter === "week"
-                    ? "bg-[#3CD4AB] text-white"
-                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                    ? "bg-gradient-to-r from-[#3CD4AB] to-emerald-500 text-white shadow-sm"
+                    : "bg-white/10 text-white/70 hover:bg-white/20 border border-white/20"
                 }`}
               >
                 7 jours
               </button>
               <button
                 onClick={() => handleDateFilterChange("month")}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   simulationDateFilter === "month"
-                    ? "bg-[#3CD4AB] text-white"
-                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                    ? "bg-gradient-to-r from-[#3CD4AB] to-emerald-500 text-white shadow-sm"
+                    : "bg-white/10 text-white/70 hover:bg-white/20 border border-white/20"
                 }`}
               >
                 30 jours
@@ -625,51 +685,51 @@ const SimulationsPage = ({
           
           {/* Loading State */}
           {isFilteringSimulations ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#3CD4AB]"></div>
-                <p className="text-white/60 text-sm">Chargement des simulations...</p>
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center gap-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/20 border-t-[#3CD4AB]"></div>
+                <p className="text-white/60 text-sm font-medium">Chargement des simulations...</p>
               </div>
             </div>
           ) : (
             <>
               {/* Filtered Simulations List */}
               {getFilteredSimulations && getFilteredSimulations().length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {getFilteredSimulations().map((sim, index) => (
                     <div 
                       key={index} 
-                      className="bg-white/10 border border-white/20 rounded-lg p-4 hover:bg-white/15 transition-colors"
+                      className="bg-gradient-to-r from-white/5 to-blue-500/10 border border-white/20 rounded-xl p-5 hover:bg-white/10 transition-all duration-200"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-white font-medium">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-white font-bold text-lg">
                               {sim.initialCapital?.toLocaleString()} MAD
                             </span>
-                            <span className="text-white/50">•</span>
-                            <span className="text-white/70 text-sm">
+                            <span className="text-white/30">•</span>
+                            <span className="text-white/70 text-sm font-medium">
                               {sim.duration} mois
                             </span>
-                            <span className="text-white/50">•</span>
-                            <span className="text-white/70 text-sm capitalize">
+                            <span className="text-white/30">•</span>
+                            <span className="bg-gradient-to-r from-blue-500/30 to-purple-500/30 text-blue-300 px-3 py-1 rounded-lg text-xs font-medium capitalize border border-blue-400/30">
                               {sim.riskProfile}
                             </span>
                           </div>
-                          <div className="text-white/50 text-xs">
+                          <div className="text-white/50 text-sm">
                             {new Date(sim.createdAt).toLocaleString('fr-FR')}
                           </div>
                         </div>
-                        <div className="flex gap-4 text-sm">
+                        <div className="flex gap-6">
                           <div className="text-center">
-                            <div className="text-white/60 text-xs mb-1">Attendu</div>
-                            <div className="text-[#3CD4AB] font-medium">
+                            <div className="text-white/60 text-xs mb-1 font-medium">Attendu</div>
+                            <div className="text-[#3CD4AB] font-bold text-base">
                               {sim.result?.expected?.toLocaleString()} MAD
                             </div>
                           </div>
                           <div className="text-center">
-                            <div className="text-white/60 text-xs mb-1">Optimiste</div>
-                            <div className="text-green-400 font-medium">
+                            <div className="text-white/60 text-xs mb-1 font-medium">Optimiste</div>
+                            <div className="text-green-400 font-bold text-base">
                               {sim.result?.optimistic?.toLocaleString()} MAD
                             </div>
                           </div>
@@ -680,26 +740,28 @@ const SimulationsPage = ({
                 </div>
               ) : (
                 /* No Data Message */
-                <div className="bg-white/5 border border-white/10 rounded-lg p-8 text-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <svg 
-                      className="w-16 h-16 text-white/30" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
-                      />
-                    </svg>
+                <div className="bg-white/5 border border-white/20 rounded-xl p-12 text-center">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-20 h-20 bg-gradient-to-br from-white/10 to-white/5 rounded-full flex items-center justify-center border border-white/20">
+                      <svg 
+                        className="w-10 h-10 text-white/40" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                        />
+                      </svg>
+                    </div>
                     <div>
-                      <p className="text-white/70 font-medium mb-1">
+                      <p className="text-white font-semibold text-lg mb-2">
                         Aucune simulation trouvée
                       </p>
-                      <p className="text-white/50 text-sm">
+                      <p className="text-white/60">
                         {simulationDateFilter === "today" && "Aucune simulation créée aujourd'hui"}
                         {simulationDateFilter === "week" && "Aucune simulation créée cette semaine"}
                         {simulationDateFilter === "month" && "Aucune simulation créée ce mois-ci"}

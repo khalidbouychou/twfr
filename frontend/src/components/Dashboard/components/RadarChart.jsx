@@ -4,9 +4,9 @@ import { RadarChart as RChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 
 const RadarChart = ({ radarData }) => {
   return (
-    <div className="p-2 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white font-semibold">Profil d'Investisseur</h3>
+    <div className="p-3 lg:p-4 bg-white/5 border border-white/10 rounded-lg shadow backdrop-blur-sm flex flex-col h-full">
+      <div className="flex items-center justify-between mb-2 lg:mb-3">
+        <h3 className="text-sm lg:text-base font-semibold text-white">Profil d'Investisseur</h3>
       </div>
       <div className="w-full flex-1">
         <ResponsiveContainer width="100%" height="100%">

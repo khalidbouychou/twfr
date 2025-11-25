@@ -45,7 +45,8 @@ import {
   NotificationDetailsPopup,
   SettingsModal,
   InvestmentsPage,
-  AIAssistant
+  AIAssistant,
+  PerformanceGraph
 } from './components';
 import Chat from './Chat';
 
@@ -1542,123 +1543,123 @@ useEffect(() => {
   }, [userResults]);
 
   // Radar Chart: compute behavioral profile from current investments and/or user results
-  const radarData = useMemo(() => {
-    const invs = Array.isArray(userInvestments) ? userInvestments : [];
-    const totalInvested = invs.reduce((sum, inv) => sum + (Number(inv.valueInvested ?? inv.investedAmount ?? inv.amount ?? 0) || 0), 0);
+  // const radarData = useMemo(() => {
+  //   const invs = Array.isArray(userInvestments) ? userInvestments : [];
+  //   const totalInvested = invs.reduce((sum, inv) => sum + (Number(inv.valueInvested ?? inv.investedAmount ?? inv.amount ?? 0) || 0), 0);
 
-    // Category heuristics
-    const getCategory = (name = "") => {
-      const n = String(name).toLowerCase();
-      if (/(epargne|livret|compte|deposit|épargne)/i.test(n)) return "epargne";
-      if (/(obligat|bond|etat|état)/i.test(n)) return "obligations";
-      if (/(opcvm|fonds|fund)/i.test(n)) return "opcvm";
-      if (/(action|equity|stock|tech|indice)/i.test(n)) return "actions";
-      return "autres";
-    };
+  //   // Category heuristics
+  //   const getCategory = (name = "") => {
+  //     const n = String(name).toLowerCase();
+  //     if (/(epargne|livret|compte|deposit|épargne)/i.test(n)) return "epargne";
+  //     if (/(obligat|bond|etat|état)/i.test(n)) return "obligations";
+  //     if (/(opcvm|fonds|fund)/i.test(n)) return "opcvm";
+  //     if (/(action|equity|stock|tech|indice)/i.test(n)) return "actions";
+  //     return "autres";
+  //   };
 
-    // Weighted scores (0-100)
-    // Risque: actions 90, opcvm 60, obligations 30, epargne 10, autres 50
-    const riskWeights = { actions: 90, opcvm: 60, obligations: 30, epargne: 10, autres: 50 };
-    // Liquidité: epargne 90, obligations 60, opcvm 50, actions 30, autres 50
-    const liqWeights = { epargne: 90, obligations: 60, opcvm: 50, actions: 30, autres: 50 };
-    // Horizon (long): actions 85, opcvm 70, obligations 60, epargne 30, autres 50
-    const horizonWeights = { actions: 85, opcvm: 70, obligations: 60, epargne: 30, autres: 50 };
+  //   // Weighted scores (0-100)
+  //   // Risque: actions 90, opcvm 60, obligations 30, epargne 10, autres 50
+  //   const riskWeights = { actions: 90, opcvm: 60, obligations: 30, epargne: 10, autres: 50 };
+  //   // Liquidité: epargne 90, obligations 60, opcvm 50, actions 30, autres 50
+  //   const liqWeights = { epargne: 90, obligations: 60, opcvm: 50, actions: 30, autres: 50 };
+  //   // Horizon (long): actions 85, opcvm 70, obligations 60, epargne 30, autres 50
+  //   const horizonWeights = { actions: 85, opcvm: 70, obligations: 60, epargne: 30, autres: 50 };
 
-    const weighted = invs.reduce(
-      (acc, inv) => {
-        const amt = Number(inv.valueInvested ?? inv.investedAmount ?? inv.amount ?? 0) || 0;
-        const cat = getCategory(inv.nameProduct || inv.name || "");
-        acc.risk += amt * (riskWeights[cat] ?? 50);
-        acc.liq += amt * (liqWeights[cat] ?? 50);
-        acc.horizon += amt * (horizonWeights[cat] ?? 50);
-        return acc;
-      },
-      { risk: 0, liq: 0, horizon: 0 }
-    );
+  //   const weighted = invs.reduce(
+  //     (acc, inv) => {
+  //       const amt = Number(inv.valueInvested ?? inv.investedAmount ?? inv.amount ?? 0) || 0;
+  //       const cat = getCategory(inv.nameProduct || inv.name || "");
+  //       acc.risk += amt * (riskWeights[cat] ?? 50);
+  //       acc.liq += amt * (liqWeights[cat] ?? 50);
+  //       acc.horizon += amt * (horizonWeights[cat] ?? 50);
+  //       return acc;
+  //     },
+  //     { risk: 0, liq: 0, horizon: 0 }
+  //   );
 
-    const avg = (v) => (totalInvested > 0 ? Math.round(v / totalInvested) : 50);
-    let Risque = avg(weighted.risk);
-    let Liquidité = avg(weighted.liq);
-    let Horizon = avg(weighted.horizon);
+  //   const avg = (v) => (totalInvested > 0 ? Math.round(v / totalInvested) : 50);
+  //   let Risque = avg(weighted.risk);
+  //   let Liquidité = avg(weighted.liq);
+  //   let Horizon = avg(weighted.horizon);
 
-    // Diversification: based on number of distinct products and categories
-    const distinctNames = new Set(invs.map((i) => i.nameProduct || i.name).filter(Boolean));
-    const distinctCats = new Set(invs.map((i) => getCategory(i.nameProduct || i.name)).filter(Boolean));
-    const Diversification = Math.max(0, Math.min(100, (distinctNames.size * 15) + (distinctCats.size * 10)));
+  //   // Diversification: based on number of distinct products and categories
+  //   const distinctNames = new Set(invs.map((i) => i.nameProduct || i.name).filter(Boolean));
+  //   const distinctCats = new Set(invs.map((i) => getCategory(i.nameProduct || i.name)).filter(Boolean));
+  //   const Diversification = Math.max(0, Math.min(100, (distinctNames.size * 15) + (distinctCats.size * 10)));
 
-    // Confiance: proxy by unrealized profit ratio (current - invested)
-    const totalCurrent = invs.reduce((s, i) => s + (Number(i.currentValue ?? 0) || 0), 0);
-    const totalProfit = Math.max(0, totalCurrent - totalInvested);
-    const profitRatio = totalInvested > 0 ? totalProfit / totalInvested : 0;
-    const Confiance = Math.max(10, Math.min(100, Math.round(40 + profitRatio * 200))); // center ~40, up with gains
+  //   // Confiance: proxy by unrealized profit ratio (current - invested)
+  //   const totalCurrent = invs.reduce((s, i) => s + (Number(i.currentValue ?? 0) || 0), 0);
+  //   const totalProfit = Math.max(0, totalCurrent - totalInvested);
+  //   const profitRatio = totalInvested > 0 ? totalProfit / totalInvested : 0;
+  //   const Confiance = Math.max(10, Math.min(100, Math.round(40 + profitRatio * 200))); // center ~40, up with gains
 
-    // If userResults has riskProfile, nudge risk and horizon
-    const riskLevel = userResults?.riskProfile?.riskLevel || "";
-    if (/agressif/i.test(riskLevel)) {
-      Risque = Math.min(100, Risque + 15);
-      Horizon = Math.min(100, Horizon + 10);
-      Liquidité = Math.max(0, Liquidité - 10);
-    } else if (/prudent|conservateur/i.test(riskLevel)) {
-      Risque = Math.max(0, Risque - 15);
-      Liquidité = Math.min(100, Liquidité + 10);
-    }
+  //   // If userResults has riskProfile, nudge risk and horizon
+  //   const riskLevel = userResults?.riskProfile?.riskLevel || "";
+  //   if (/agressif/i.test(riskLevel)) {
+  //     Risque = Math.min(100, Risque + 15);
+  //     Horizon = Math.min(100, Horizon + 10);
+  //     Liquidité = Math.max(0, Liquidité - 10);
+  //   } else if (/prudent|conservateur/i.test(riskLevel)) {
+  //     Risque = Math.max(0, Risque - 15);
+  //     Liquidité = Math.min(100, Liquidité + 10);
+  //   }
 
-    return [
-      { metric: "Risque", value: Risque },
-      { metric: "Liquidité", value: Liquidité },
-      { metric: "Horizon", value: Horizon },
-      { metric: "Diversification", value: Diversification },
-      { metric: "Confiance", value: Confiance }
-    ];
-  }, [userInvestments, userResults]);
+  //   return [
+  //     { metric: "Risque", value: Risque },
+  //     { metric: "Liquidité", value: Liquidité },
+  //     { metric: "Horizon", value: Horizon },
+  //     { metric: "Diversification", value: Diversification },
+  //     { metric: "Confiance", value: Confiance }
+  //   ];
+  // }, [userInvestments, userResults]);
 
   // Interactive Area Chart state: day / month / year
-  const [areaRange, setAreaRange] = useState("month");
+  // const [areaRange, setAreaRange] = useState("month");
   
   // Pie Chart data for products investment and ROI
   const [pieChartData, setPieChartData] = useState([]);
   
-  const areaSeries = useMemo(() => {
-    const investedTotal = portfolioData?.totalInvested || 0;
-    const profitsTotal = calculateTotalProfits();
+  // const areaSeries = useMemo(() => {
+  //   const investedTotal = portfolioData?.totalInvested || 0;
+  //   const profitsTotal = calculateTotalProfits();
 
-    const now = new Date();
-    const makePoint = (dateLabel, idx, count) => {
-      const investBase = investedTotal * (0.8 + (idx / Math.max(1, count - 1)) * 0.4); // 80% -> 120%
-      const roiBase = profitsTotal * (0.5 + (idx / Math.max(1, count - 1)) * 0.8); // 50% -> 130%
-      return {
-        date: dateLabel,
-        invested: Math.max(0, Math.round(investBase)),
-        roi: Math.max(0, Math.round(roiBase))
-      };
-    };
+  //   const now = new Date();
+  //   const makePoint = (dateLabel, idx, count) => {
+  //     const investBase = investedTotal * (0.8 + (idx / Math.max(1, count - 1)) * 0.4); // 80% -> 120%
+  //     const roiBase = profitsTotal * (0.5 + (idx / Math.max(1, count - 1)) * 0.8); // 50% -> 130%
+  //     return {
+  //       date: dateLabel,
+  //       invested: Math.max(0, Math.round(investBase)),
+  //       roi: Math.max(0, Math.round(roiBase))
+  //     };
+  //   };
 
-    if (areaRange === "day") {
-      const points = 30;
-      return Array.from({ length: points }, (_, i) => {
-        const d = new Date(now);
-        d.setDate(now.getDate() - (points - 1 - i));
-        const label = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
-        return makePoint(label, i, points);
-      });
-    }
-    if (areaRange === "year") {
-      const points = 5;
-      return Array.from({ length: points }, (_, i) => {
-        const d = new Date(now);
-        d.setFullYear(now.getFullYear() - (points - 1 - i));
-        const label = d.getFullYear().toString();
-        return makePoint(label, i, points);
-      });
-    }
-    // default: month (last 12 months)
-    const points = 12;
-    return Array.from({ length: points }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - (points - 1 - i), 1);
-      const label = d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
-      return makePoint(label.charAt(0).toUpperCase() + label.slice(1), i, points);
-    });
-  }, [areaRange, portfolioData?.totalInvested, calculateTotalProfits]);
+  //   if (areaRange === "day") {
+  //     const points = 30;
+  //     return Array.from({ length: points }, (_, i) => {
+  //       const d = new Date(now);
+  //       d.setDate(now.getDate() - (points - 1 - i));
+  //       const label = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+  //       return makePoint(label, i, points);
+  //     });
+  //   }
+  //   if (areaRange === "year") {
+  //     const points = 5;
+  //     return Array.from({ length: points }, (_, i) => {
+  //       const d = new Date(now);
+  //       d.setFullYear(now.getFullYear() - (points - 1 - i));
+  //       const label = d.getFullYear().toString();
+  //       return makePoint(label, i, points);
+  //     });
+  //   }
+  //   // default: month (last 12 months)
+  //   const points = 12;
+  //   return Array.from({ length: points }, (_, i) => {
+  //     const d = new Date(now.getFullYear(), now.getMonth() - (points - 1 - i), 1);
+  //     const label = d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
+  //     return makePoint(label.charAt(0).toUpperCase() + label.slice(1), i, points);
+  //   });
+  // }, [areaRange, portfolioData?.totalInvested, calculateTotalProfits]);
 
   return (
     <>
@@ -1746,9 +1747,9 @@ useEffect(() => {
 
                 {/* Profil d'Investisseur et Répartition des Investissements */}
                 <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2 3xl:grid-cols-2 gap-2 lg:gap-3 2xl:gap-6 3xl:gap-8 mb-2 lg:mb-3 2xl:mb-6 3xl:mb-8">
-                  {/* Profil d'Investisseur - Radar Chart */}
-                  <RadarChart 
-                    radarData={radarData}
+                  {/* Graphiques de performance */}
+                  <PerformanceGraph 
+                    portfolioData={portfolioData}
                   />
 
                   {/* Répartition des Investissements - Simple Pie Chart */}
@@ -1759,16 +1760,16 @@ useEffect(() => {
                 </div>
 
                 {/* Tableau détaillé par produit avec valeur actuelle et performance */}
-                <div className="flex flex-col 2xl:flex-row gap-2 lg:gap-3 2xl:gap-6 3xl:gap-8">
+                <div className="flex flex-col gap-4">
                   {/* Portfolio Performance Chart */}
-                  <div className="flex-1 h-[400px] 2xl:h-[500px] 3xl:h-[600px] overflow-y-auto custom-scrollbar">
+                  <div className="w-full h-[400px] sm:h-[450px] lg:h-[500px] 2xl:h-[550px] 3xl:h-[600px] overflow-y-auto custom-scrollbar">
                     <PortfolioPerformanceChart 
                       userInvestments={userInvestments}
                     />
                   </div>
 
                   {/* Transactions History */}
-                  <div className="flex-1 h-[400px] 2xl:h-[500px] 3xl:h-[600px] overflow-y-auto custom-scrollbar">
+                  <div className="w-full h-[400px] sm:h-[450px] lg:h-[500px] 2xl:h-[550px] 3xl:h-[600px] overflow-y-auto custom-scrollbar">
                     <TransactionsHistory 
                       transactionsHistory={transactionsHistory}
                     />
