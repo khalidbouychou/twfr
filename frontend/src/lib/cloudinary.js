@@ -1,8 +1,8 @@
 // Cloudinary configuration
 export const cloudinaryConfig = {
-  cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "dkfrrfxa1",
-  apiKey: import.meta.env.VITE_CLOUDINARY_API_KEY || "575644558498264",
-  apiSecret: import.meta.env.VITE_CLOUDINARY_API_SECRET || "tIbvrejZjv7e2M6WVMTRcL0ZDYw"
+  cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "",
+  apiKey: import.meta.env.VITE_CLOUDINARY_API_KEY || "",
+  apiSecret: import.meta.env.VITE_CLOUDINARY_API_SECRET || ""
 };
 
 // Image URL builder
