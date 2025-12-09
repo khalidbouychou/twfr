@@ -1,5 +1,5 @@
 import React from 'react';
-import { useExchangeRates } from '../../../hooks/useExchangeRates';
+import { useExchangeRates } from '../../../hooks/useExchangeRates.jsx';
 import { 
   FaDollarSign, 
   FaSpinner, 

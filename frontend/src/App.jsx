@@ -13,7 +13,6 @@ import News from "./components/News";
 import Footer from "./components/Footer";
 import Contactus from "./components/Contactus";
 import UserDashboard from './components/Dashboard/UserDashboard';
-import DataSharingDemo from './components/Dashboard/DataSharingDemo';
 import { UserContext } from './components/Context/UserContext.jsx';
 import { CartProvider } from './components/Context/CartContext.jsx';
 import Login from './components/Login/Login';
@@ -21,14 +20,9 @@ import Stepper from './components/Profiling/Stepper';
 import TawfirStats from "./components/TawfirState";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Loader from "./components/Loader";
-import { 
-  // VisionMission, 
-  // FiveStepSimulation, 
-  AIRecommendation, 
-  UXPrinciples, 
-  // LaunchExpansion, 
-  SecurityCompliance 
-} from './components/newsections';
+import AIRecommendation from './components/newsections/AIRecommendation';
+import UXPrinciples from './components/newsections/UXPrinciples';
+import SecurityCompliance from './components/newsections/SecurityCompliance';
 
 
 const LandingPage = () => (
@@ -36,14 +30,11 @@ const LandingPage = () => (
     <Navbar />
     <HeroSection />
     <MainSections />
-    {/* <VisionMission /> */}
-    {/* <FiveStepSimulation /> */}
     <HowItWorks />
     <Products />
     <UXPrinciples />
     <AIRecommendation />
     <TawfirStats/>
-    {/* <LaunchExpansion /> */}
     <SecurityCompliance />
     <News />
     <Reviews />
@@ -93,7 +84,6 @@ const App = () => {
         <CartProvider>
           <BrowserRouter>
             <Routes>
-              {/* <Route path="/test" element={<Test/>} /> */}
               {/* Public routes */}
                 <Route path="/login" element={<RedirectIfAuth><Login /></RedirectIfAuth>} />
               <Route path="/" element={<LandingPage />} />

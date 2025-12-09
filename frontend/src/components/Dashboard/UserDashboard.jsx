@@ -1,53 +1,30 @@
 import React, { useState, useEffect, useRef, useMemo, useContext, useCallback } from "react";
-import { UserContext } from "../Context/UserContext";
-import { useNavigate, Link } from "react-router-dom";
-import { LogOut, UserRoundCog, BotMessageSquare } from "lucide-react";
-import { useNewsData } from "../../hooks/useNewsData";
-import { useMarketQuotes } from "../../hooks/useMarketQuotes";
-import Dashboardchart from "../Charts/Dashboardchart";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  BarChart,
-  Bar,
-  AreaChart,
-  Area
-} from "recharts";
+import { UserContext } from "../Context/UserContext.jsx";
+import { useNavigate } from "react-router-dom";
+import {  BotMessageSquare } from "lucide-react";
+import { useNewsData } from "../../hooks/useNewsData.jsx";
+import { useMarketQuotes } from "../../hooks/useMarketQuotes.jsx";
 import { RecommendationEngine, ROICalculator } from "../Algo";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "../ui/chart.jsx";
 import { useUserContext } from "../Context/useUserContext";
-import { RadarChart as RChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
-import { Progress } from "../ui/progress";
 
-// Import new components
-import {
-  Sidebar,
-  Header,
-  InvestmentStats,
-  PortfolioPerformanceChart,
-  TransactionsHistory,
-  RadarChart,
-  SimplePieChart,
-  NotificationHistory,
-  PortfolioSummary,
-  SimulationsPage,
-  SectorBreakdown,
-  NewsPage,
-  NotificationDetailsPopup,
-  SettingsModal,
-  InvestmentsPage,
-  AIAssistant,
-  PerformanceGraph
-} from './components';
+
+// Import dashboard components individually to avoid barrel file
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
+import InvestmentStats from './components/InvestmentStats';
+import PortfolioPerformanceChart from './components/PortfolioPerformanceChart';
+import TransactionsHistory from './components/TransactionsHistory';
+import SimplePieChart from './components/SimplePieChart';
+import NotificationHistory from './components/NotificationHistory';
+import PortfolioSummary from './components/PortfolioSummary';
+import SimulationsPage from './components/SimulationsPage';
+import SectorBreakdown from './components/SectorBreakdown';
+import NewsPage from './components/NewsPage';
+import NotificationDetailsPopup from './components/NotificationDetailsPopup';
+import SettingsModal from './components/SettingsModal';
+import InvestmentsPage from './components/InvestmentsPage';
+import AIAssistant from './components/AIAssistant';
+import PerformanceGraph from './components/PerformanceGraph';
 import Chat from './Chat';
 
 const UserDashboard = () => {
@@ -67,11 +44,9 @@ const UserDashboard = () => {
     try {
       const profileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
       if (profileData.avatar) {
-        console.log('Avatar from userProfileData:', profileData.avatar);
         return profileData.avatar;
       }
       if (profileData.picture) {
-        console.log('Picture from userProfileData:', profileData.picture);
         return profileData.picture;
       }
     } catch (e) {
@@ -82,7 +57,6 @@ const UserDashboard = () => {
     try {
       const googleProfile = JSON.parse(localStorage.getItem('googleProfile') || '{}');
       if (googleProfile.picture) {
-        console.log('Picture from googleProfile:', googleProfile.picture);
         return googleProfile.picture;
       }
     } catch (e) {
@@ -91,19 +65,15 @@ const UserDashboard = () => {
     
     // Finally check userProfileData from context (unified context)
     if (userProfileData?.avatar) {
-      console.log('Avatar from context:', userProfileData.avatar);
       return userProfileData.avatar;
     }
     if (userProfileData?.picture) {
-      console.log('Picture from context:', userProfileData.picture);
       return userProfileData.picture;
     }
     if (userProfileData?.imageUrl) {
-      console.log('ImageUrl from context:', userProfileData.imageUrl);
       return userProfileData.imageUrl;
     }
     
-    console.log('Using fallback avatar');
     return fallbackAvatar;
   }, [userProfileData, profileUpdateTrigger, fallbackAvatar]);
   
@@ -113,6 +83,7 @@ const UserDashboard = () => {
       const profileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
       return profileData.fullName || profileData.name || userProfileData?.fullName || userProfileData?.name || "Utilisateur";
     } catch (e) {
+      console.error(e)
       return userProfileData?.fullName || userProfileData?.name || "Utilisateur";
     }
   }, [userProfileData, profileUpdateTrigger]);
@@ -198,12 +169,12 @@ const UserDashboard = () => {
       }
     }
     return {
-      totalInvested: 0, // Start at 0
-      globalPerformance: 0, // Start at 0
-      dailyVariation: 0, // Start at 0
-      monthlyGrowth: 0, // Start at 0
-      portfolioBreakdown: [], // Start empty
-      products: [] // Start empty, will be populated with real investments
+      totalInvested: 0, 
+      globalPerformance: 0, 
+      dailyVariation: 0, 
+      monthlyGrowth: 0, 
+      portfolioBreakdown: [], 
+      products: []
     };
   });
 

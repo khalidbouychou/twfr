@@ -5,25 +5,21 @@ const sections = [
     img: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706749/tawfir-ai/svg_team.svg',
     title: 'Qui sommes-nous ?',
     desc: "Découvrez la vision et l'expertise de Tawfir.AI dans le domaine de l'épargne intelligente",
-    // bg: 'bg-[#89559F]',
   },
   {
     img: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706747/tawfir-ai/saving.svg',
     title: 'Pourquoi épargner ?',
     desc: "Comprendre les bénéfices concrets de l'épargne pour sécuriser votre avenir financier",
-    // bg: 'bg-[#3CD4AB]',
   },
   {
     img: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706746/tawfir-ai/tawfir.svg',
     title: 'Pourquoi Tawfir.AI ?',
     desc: "Notre approche unique, nos valeurs et notre engagement envers votre réussite financière",
-    // bg: 'bg-[#89559F]',
   },
   {
     img: 'https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706744/tawfir-ai/free.svg',
     title: 'Application gratuite',
     desc: "Accès complet sans frais pour tous les utilisateurs",
-    // bg: 'bg-[#3CD4AB]',
   },
 ];
 

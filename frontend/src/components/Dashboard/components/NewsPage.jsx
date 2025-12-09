@@ -18,7 +18,7 @@ const NewsPage = ({
   marketQuotes 
 }) => {
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full">
       <div className="mb-4">
         <h1 className="text-3xl font-bold text-white">Actualités</h1>
       </div>

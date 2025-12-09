@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef , useContext } from 'react';
-// import { Link, useNavigate } from 'react-router-dom';
 import { Link} from 'react-router-dom';
 import {UserContext}  from './Context/UserContext.jsx'
 import { PopupModal } from 'react-calendly';
@@ -437,7 +436,7 @@ const Navbar = () => {
 
       {/* Calendly Modal */}
       <PopupModal
-        url={import.meta.env.VITE_CALENDLY_URL || ''}
+        url={import.meta.env.VITE_CALENDLY_URL}
         onModalClose={() => setIsCalendlyOpen(false)}
         onEventScheduled={handleCalendlyScheduled}
         open={isCalendlyOpen}

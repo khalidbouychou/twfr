@@ -104,7 +104,6 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
   const getPersonalizedAdvice = (balance, count, invested, performance) => {
     const safeBalance = Number(balance) || 0;
     const safeCount = Number(count) || 0;
-    const safeInvested = Number(invested) || 0;
     const safePerformance = Number(performance) || 0;
     
     let advice = "Voici mes conseils personnalisés : ";

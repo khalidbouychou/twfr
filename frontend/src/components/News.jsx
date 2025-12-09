@@ -4,8 +4,6 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation, Autoplay } from 'swiper/modules';
 
-const FINNHUB_TOKEN = 'd1ofk41r01qjadrjqv70d1ofk41r01qjadrjqv7g';
-
 const News = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +13,7 @@ const News = () => {
     const loadNews = async () => {
       try {
         // Try Finnhub first
-        const newsUrl = `https://finnhub.io/api/v1/news?category=general&token=${FINNHUB_TOKEN}`;
+        const newsUrl = `https://finnhub.io/api/v1/news?category=general&token=${import.meta.env.VITE_FINNHUB_TOKEN}`;
         const response = await fetch(newsUrl);
         
         if (response.ok) {

@@ -31,12 +31,6 @@ const Esg = () => {
                 answer: value,
                 category: lstquestion[categoryIndex].title
             }
-            console.log("ESG Select Answer:", {
-                category: lstquestion[categoryIndex].title,
-                question: question.question,
-                answer: value,
-                allAnswers: newAnswers
-            })
             return newAnswers
         })
     }
@@ -64,7 +58,6 @@ const Esg = () => {
         const isSame = JSON.stringify(prevForStep) === JSON.stringify(validAnswers)
         if (!isSame) {
             updateStepAnswers(4, validAnswers) // Step 4 for ESG
-            console.log("ESG All Answers Updated:", validAnswers)
         }
     }, [esgAnswers, stepAnswers, updateStepAnswers])
 

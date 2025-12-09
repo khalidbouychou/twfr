@@ -188,8 +188,6 @@ const SimulationsPage = ({
         const productDetails = getProductDetails(productName);
         const amount = parseFloat(investmentAmounts[productName]);
         
-        console.log('Preparing to add to cart:', productName, 'Amount:', amount);
-        
         productsToAdd.push({
           product: {
             id: productName,
@@ -205,8 +203,6 @@ const SimulationsPage = ({
         });
       }
     });
-    
-    console.log('Total products to add:', productsToAdd.length);
     
     // Add all products to cart in a single operation
     if (productsToAdd.length > 0) {

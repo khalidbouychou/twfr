@@ -9,38 +9,24 @@ import {
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip, 
-  Legend
+  Tooltip
 } from 'recharts';
 import { 
-  IoTrendingUp, 
-  IoShieldCheckmark, 
-  IoTime, 
-  IoStar,
-  IoInformationCircle,
   IoCheckmarkCircle,
-  IoWarning,
-  IoCash,
-  IoPieChart,
-  IoBarChart,
   IoCalculator,
   IoArrowForward,
   IoArrowBack
 } from 'react-icons/io5';
 import { ROICalculator } from '../Algo';
 import { useUserContext } from '../Context/useUserContext';
-import { useCart } from '../Context/CartContext';
 
 const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) => {
   const { addUserInvestment } = useUserContext();
-  const { addMultipleToCart } = useCart();
   const [selectedView, setSelectedView] = useState('summary'); // 'summary', 'scenarios', 'simulation'
   const [selectedScenario, setSelectedScenario] = useState(0);
   const [investmentAmounts, setInvestmentAmounts] = useState({});
   const [simulationPeriod, setSimulationPeriod] = useState(5);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState({}); // Track which products are selected for cart
-  const [showCartSuccessAlert, setShowCartSuccessAlert] = useState(false);
 
   // Load recommendations from localStorage if no userResults
   const [localRecommendations, setLocalRecommendations] = useState(null);
@@ -251,78 +237,6 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
     // Call the original handler
     if (onInvestmentDecision) {
       onInvestmentDecision(decision);
-    }
-  };
-
-  // Handle product checkbox toggle
-  const handleProductCheckboxToggle = (productId, checked) => {
-    setSelectedProducts(prev => ({
-      ...prev,
-      [productId]: checked
-    }));
-    if (!checked) {
-      // Clear amount when unchecking
-      setInvestmentAmounts(prev => {
-        const updated = { ...prev };
-        delete updated[productId];
-        return updated;
-      });
-    }
-  };
-
-  // Get selected products count
-  const getSelectedProductsCount = () => {
-    return Object.values(selectedProducts).filter(Boolean).length;
-  };
-
-  // Get total selected amount
-  const getTotalSelectedAmount = () => {
-    return Object.entries(selectedProducts).reduce((total, [productId, isSelected]) => {
-      if (isSelected && investmentAmounts[productId]) {
-        return total + parseFloat(investmentAmounts[productId]);
-      }
-      return total;
-    }, 0);
-  };
-
-  // Handle add to cart
-  const handleAddToCart = () => {
-    const productsToAdd = [];
-    
-    Object.entries(selectedProducts).forEach(([productId, isSelected]) => {
-      if (isSelected && investmentAmounts[productId]) {
-        const product = recommendations.matchedProducts.find(p => p.id === productId);
-        if (product) {
-          const amount = parseFloat(investmentAmounts[productId]);
-          productsToAdd.push({
-            product: {
-              id: productId,
-              name: product.nom_produit,
-              image: product.avatar,
-              min: product.montant_minimum || 1000,
-              risk: product.risque || 5,
-              roi: {
-                annual: product.rendement_annuel_moyen || product.roi_annuel || 5
-              }
-            },
-            amount: amount
-          });
-        }
-      }
-    });
-
-    if (productsToAdd.length > 0) {
-      addMultipleToCart(productsToAdd);
-      setShowCartSuccessAlert(true);
-      
-      // Clear selections
-      setSelectedProducts({});
-      setInvestmentAmounts({});
-      
-      // Hide alert after 3 seconds
-      setTimeout(() => {
-        setShowCartSuccessAlert(false);
-      }, 3000);
     }
   };
 

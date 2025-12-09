@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { UserContext } from '../Context/UserContext';
+import { UserContext } from '../Context/UserContext.jsx';
 import { GoogleLogin } from '@react-oauth/google';
 
 
@@ -27,7 +27,6 @@ const LoginForm = ({ onSwitchToSignup }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Connexion:', formData);
   };
 
   const parseJwt = (token) => {
@@ -140,7 +139,6 @@ const LoginForm = ({ onSwitchToSignup }) => {
                     const cred = credentialResponse.credential || '';
                     localStorage.setItem('googleCredential', cred);
                     const payload = parseJwt(cred);
-                    console.log('Google Login - Payload:', payload);
                     if (payload) {
                       const profile = {
                         name: payload.name,
@@ -150,8 +148,6 @@ const LoginForm = ({ onSwitchToSignup }) => {
                         given_name: payload.given_name,
                         family_name: payload.family_name
                       };
-                      console.log('Google Login - Profile created:', profile);
-                      console.log('Google Login - Picture URL:', profile.picture);
                       localStorage.setItem('googleProfile', JSON.stringify(profile));
                       const unified = {
                         fullName: profile.name,
@@ -197,11 +193,6 @@ const LoginForm = ({ onSwitchToSignup }) => {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      {/* <div className="mt-6 text-center text-sm text-gray-500">
-        <p>En continuant, vous acceptez nos Conditions d'Utilisation et Politique de Confidentialité</p>
-      </div> */}
     </div>
   );
 };

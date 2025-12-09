@@ -13,7 +13,6 @@ export default function Dashboardchart({ userInvestments: propInvestments }) {
   
   // Use context data if available, otherwise fall back to props
   const userInvestments = contextInvestments?.length > 0 ? contextInvestments : propInvestments;
-  console.log("Dashboardchart - investments from context:", userInvestments);
   
   const [selectedProduct, setSelectedProduct] = useState("all");
 

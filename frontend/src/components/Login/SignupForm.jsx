@@ -6,7 +6,7 @@ import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
-import { UserContext } from '../Context/UserContext';
+import { UserContext } from '../Context/UserContext.jsx';
 
 
 const SignupForm = ({ onSwitchToLogin }) => {
@@ -32,7 +32,6 @@ const SignupForm = ({ onSwitchToLogin }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Inscription:', formData);
   };
 
   const parseJwt = (token) => {
@@ -201,7 +200,6 @@ const SignupForm = ({ onSwitchToLogin }) => {
                     const cred = credentialResponse.credential || '';
                     localStorage.setItem('googleCredential', cred);
                     const payload = parseJwt(cred);
-                    console.log('Google Signup - Payload:', payload);
                     if (payload) {
                       const profile = {
                         name: payload.name,
@@ -211,15 +209,12 @@ const SignupForm = ({ onSwitchToLogin }) => {
                         given_name: payload.given_name,
                         family_name: payload.family_name
                       };
-                      console.log('Google Signup - Profile created:', profile);
-                      console.log('Google Signup - Picture URL:', profile.picture);
                       localStorage.setItem('googleProfile', JSON.stringify(profile));
                       const unified = {
                         fullName: profile.name,
                         email: profile.email,
                         avatar: profile.picture
                       };
-                      console.log('Google Signup - Unified profile:', unified);
                       localStorage.setItem('userProfileData', JSON.stringify(unified));
                       updateUserProfile(unified);
                     }

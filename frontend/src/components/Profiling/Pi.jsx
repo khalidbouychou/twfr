@@ -31,11 +31,6 @@ const Pi = () => {
           q: lstquestion[questionIndex].question,
           answer: [optionValue]
         }
-        console.log("PI Checkbox Answer:", {
-          question: lstquestion[questionIndex].question,
-          selectedOptions: [optionValue],
-          allAnswers: newAnswers
-        })
         return newAnswers
       });
       
@@ -99,11 +94,6 @@ const Pi = () => {
                 )
             }
             
-            console.log("PI Checkbox Answer:", {
-                question: lstquestion[questionIndex].question,
-                selectedOptions: newAnswers[questionIndex].answer,
-                allAnswers: newAnswers
-            })
             return newAnswers
         });
 
@@ -132,11 +122,6 @@ const Pi = () => {
                 q: lstquestion[questionIndex].question,
                 answer: value
             }
-            console.log("PI Select Answer:", {
-                question: lstquestion[questionIndex].question,
-                answer: value,
-                allAnswers: newAnswers
-            })
             return newAnswers
         })
     }
@@ -148,11 +133,6 @@ const Pi = () => {
                 q: lstquestion[questionIndex].question,
                 answer: value
             }
-            console.log("PI Radio Answer:", {
-                question: lstquestion[questionIndex].question,
-                answer: value,
-                allAnswers: newAnswers
-            })
             return newAnswers
         })
     }
@@ -181,7 +161,6 @@ const Pi = () => {
         const isSame = JSON.stringify(prevForStep) === JSON.stringify(validAnswers)
         if (!isSame) {
             updateStepAnswers(3, validAnswers) // Step 3 for PI
-            console.log("PI All Answers Updated:", validAnswers)
         }
     }, [piAnswers, stepAnswers, updateStepAnswers])
 

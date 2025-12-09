@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
-const API_KEY = 'pub_b1bf302734f24ad3b8bdae575237c3f1';
-const NEWS_URL = `https://newsdata.io/api/1/news?category=business,world&language=fr,en&apikey=${API_KEY}`;
+const NEWS_URL = `https://newsdata.io/api/1/news?category=business,world&language=fr,en&apikey=${import.meta.env.VITE_API_KEY_NEWS_DATA}`;
 
 const variants = {
   enter: (direction) => ({
@@ -39,7 +38,7 @@ const Features = () => {
         return res.json();
       })
       .then((data) => {
-        setNewsItems(Array.isArray(data.results) ? data.results.slice(0, 7) : []); // Show up to 7 news
+        setNewsItems(Array.isArray(data.results) ? data.results.slice(0, 9) : []); // Show up to 9 news
         setLoading(false);
       })
       .catch(() => {

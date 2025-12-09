@@ -8,9 +8,9 @@ const __dirname = path.dirname(__filename);
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: 'dkfrrfxa1',
-  api_key: '575644558498264',
-  api_secret: 'tIbvrejZjv7e2M6WVMTRcL0ZDYw'
+    cloud_name: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME, 
+    api_key:  import.meta.env.VITE_CLOUDINARY_API_KEY,
+    api_secret: import.meta.env.VITE_CLOUDINARY_API_SECRET
 });
 
 async function uploadVideo() {

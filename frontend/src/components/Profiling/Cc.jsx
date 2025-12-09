@@ -26,11 +26,6 @@ const Cc = ({ allAnswers }) => {
                 q: lstquestion[questionIndex].question,
                 answer: value
             }
-            console.log("CC Radio Answer:", {
-                question: lstquestion[questionIndex].question,
-                answer: value,
-                allAnswers: newAnswers
-            })
             return newAnswers
         })
     }
@@ -44,11 +39,6 @@ const Cc = ({ allAnswers }) => {
                 q: lstquestion[questionIndex].question,
                 answer: value
             }
-            console.log("CC Select Answer:", {
-                question: lstquestion[questionIndex].question,
-                answer: value,
-                allAnswers: newAnswers
-            })
             return newAnswers
         })
     }

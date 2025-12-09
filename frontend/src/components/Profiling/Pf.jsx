@@ -20,11 +20,6 @@ const Pf = () => {
                 q: lstquestion[questionIndex].question,
                 answer: value
             }
-            console.log("PF Select Answer:", {
-                question: lstquestion[questionIndex].question,
-                answer: value,
-                allAnswers: newAnswers
-            })
             return newAnswers
         })
     }
@@ -55,11 +50,6 @@ const Pf = () => {
                 )
             }
             
-            console.log("PF Checkbox Answer:", {
-                question: lstquestion[questionIndex].question,
-                selectedOptions: newAnswers[questionIndex].answer,
-                allAnswers: newAnswers
-            })
             return newAnswers
         })
     }
@@ -89,7 +79,6 @@ const Pf = () => {
         const isSame = JSON.stringify(prevForStep) === JSON.stringify(validAnswers)
         if (!isSame) {
             updateStepAnswers(2, validAnswers) // Step 2 for PF
-            console.log("PF All Answers Updated:", validAnswers)
         }
     }, [pfAnswers, stepAnswers, updateStepAnswers])
 

@@ -31,12 +31,7 @@ export const CartProvider = ({ children }) => {
   }, [cartItems]);
 
   const addToCart = (product, amount) => {
-    console.log('CartContext - Adding product:', product.id, 'Amount:', amount);
-    console.log('CartContext - Current cart items:', cartItems);
-    
     const existingItemIndex = cartItems.findIndex(item => item.id === product.id);
-    
-    console.log('CartContext - Existing item index:', existingItemIndex);
     
     if (existingItemIndex >= 0) {
       // Update existing item
@@ -45,7 +40,6 @@ export const CartProvider = ({ children }) => {
         ...updatedCart[existingItemIndex],
         amount: parseFloat(updatedCart[existingItemIndex].amount) + parseFloat(amount)
       };
-      console.log('CartContext - Updated existing item. New cart:', updatedCart);
       setCartItems(updatedCart);
     } else {
       // Add new item
@@ -54,16 +48,12 @@ export const CartProvider = ({ children }) => {
         amount: parseFloat(amount),
         addedAt: new Date().toISOString()
       }];
-      console.log('CartContext - Added new item. New cart:', newCart);
       setCartItems(newCart);
     }
   };
 
   // Add multiple products to cart in a single state update
   const addMultipleToCart = (productsArray) => {
-    console.log('CartContext - Adding multiple products:', productsArray);
-    console.log('CartContext - Current cart items:', cartItems);
-    
     setCartItems(prevCart => {
       let updatedCart = [...prevCart];
       
@@ -85,9 +75,7 @@ export const CartProvider = ({ children }) => {
           });
         }
       });
-      
-      console.log('CartContext - Final cart after adding multiple:', updatedCart);
-      return updatedCart;
+            return updatedCart;
     });
   };
 

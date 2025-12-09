@@ -27,7 +27,6 @@ const Contactus = () => {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Form Data Submitted: ', formData);
       // Reset form after successful submission
       setFormData({
         fullName: '',
