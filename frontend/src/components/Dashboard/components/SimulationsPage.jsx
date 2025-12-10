@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSharedData } from '../../Context/useSharedData.js';
+import { useSharedData } from '../../Context/useSharedData.jsx';
 import { useCart } from '../../Context/CartContext';
 
 // Mock product data with avatars and ROI information

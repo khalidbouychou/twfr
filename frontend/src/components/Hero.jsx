@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { CloudinaryVideo } from "../lib/cloudinary-components";
 
 const Hero = () => {
@@ -15,8 +16,8 @@ const Hero = () => {
           Obtenez des recommandations d'investissement personnalisées basées sur vos objectifs financiers et votre profil de risque
           </p>
           <div className="flex flex-col sm:flex-row gap-3 lg:gap-4 mt-6 lg:mt-8 items-center justify-center lg:justify-start">
-            <a
-              href="/simulation"
+            <Link
+              to="/simulation"
               className="px-6 sm:px-8 py-3 sm:py-4 bg-[#3CD4AB] text-white font-semibold rounded-full text-base lg:text-lg shadow-2xl hover:bg-[#89559F] hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] flex items-center gap-2"
             >
               <svg
@@ -34,7 +35,7 @@ const Hero = () => {
                 />
               </svg>
               Démarrer la simulation
-            </a>
+            </Link>
             <a
               href="#contact"
               className="px-6 sm:px-8 py-3 sm:py-4 text-white font-semibold rounded-full text-base lg:text-lg shadow-2xl border border-white bg-[#0F0F19] hover:bg-[#f0f0f0] hover:text-[#89559f] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3CD4AB] flex items-center gap-2"

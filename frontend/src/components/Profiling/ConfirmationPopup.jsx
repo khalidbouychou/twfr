@@ -1,8 +1,10 @@
 import React, { useContext, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { UserContext } from '../Context/UserContext.jsx'
 import { RecommendationEngine } from '../Algo'
 
 const ConfirmationPopup = () => {
+    const navigate = useNavigate()
     const { 
         userAnswers, 
         showConfirmationPopup, 
@@ -13,6 +15,7 @@ const ConfirmationPopup = () => {
     const [activeStep, setActiveStep] = useState(0)
     const [showThankYou, setShowThankYou] = useState(false)
     const [recommendationResults, setRecommendationResults] = useState(null)
+
 
     if (!showConfirmationPopup) return null
 
@@ -63,7 +66,7 @@ const ConfirmationPopup = () => {
     }
 
     const handleGoToDashboard = () => {
-        window.location.href = '/dashboard'
+        navigate('/dashboard');
     }
 
     // Thank you popup

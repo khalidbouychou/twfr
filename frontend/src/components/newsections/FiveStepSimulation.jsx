@@ -73,12 +73,12 @@ const FiveStepSimulation = () => {
         </div>
 
         <div className="mt-16 text-center">
-          <a
-            href="/simulation"
+          <Link
+            to="/simulation"
             className="inline-block px-8 py-4 bg-[#3CD4AB] text-white font-bold text-lg rounded-full shadow-lg hover:bg-[#2ab88f] hover:shadow-2xl transition-all duration-300"
           >
             Commencer la Simulation
-          </a>
+          </Link>
         </div>
       </div>
     </section>

@@ -315,11 +315,11 @@ const FinancialProfilingStepper = () => {
                 Suivant
               </ActionButton>
             ) : (
-              <a href="/dashboard">
+              <Link to="/dashboard">
                 <ActionButton primary>
                   Dashboard
                 </ActionButton>
-              </a>
+              </Link>
             )}
           </div>
         </div>

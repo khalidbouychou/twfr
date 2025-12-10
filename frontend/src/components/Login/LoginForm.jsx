@@ -4,14 +4,15 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { UserContext } from '../Context/UserContext.jsx';
+import { AuthContext } from '../Context/AuthContext.jsx';
 import { GoogleLogin } from '@react-oauth/google';
 
 
 const LoginForm = ({ onSwitchToSignup }) => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const { setIsLoggedIn, updateUserProfile } = useContext(UserContext);
+  const [errorMessage, setErrorMessage] = useState('');
+  const { login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -27,6 +28,24 @@ const LoginForm = ({ onSwitchToSignup }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const result = login(formData.email, formData.password);
+    if (result.success) {
+      // Store user profile data for navbar/dashboard display
+      setTimeout(() => {
+        const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        if (storedUser) {
+          localStorage.setItem('userProfileData', JSON.stringify({
+            fullName: storedUser.fullName,
+            email: storedUser.email,
+            avatar: storedUser.avatar,
+            phone: storedUser.phone
+          }));
+        }
+      }, 0);
+      navigate('/dashboard');
+    } else {
+      setErrorMessage(result.message);
+    }
   };
 
   const parseJwt = (token) => {
@@ -75,6 +94,8 @@ const LoginForm = ({ onSwitchToSignup }) => {
                   onChange={handleInputChange}
                   className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400 focus:border-[#3CD4AB]"
                   required
+                  onInvalid={(e) => e.target.setCustomValidity('L\'email est obligatoire')}
+                  onInput={(e) => e.target.setCustomValidity('')}
                 />
               </div>
             </div>
@@ -95,6 +116,8 @@ const LoginForm = ({ onSwitchToSignup }) => {
                   onChange={handleInputChange}
                   className="pl-10 pr-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400 focus:border-[#3CD4AB]"
                   required
+                  onInvalid={(e) => e.target.setCustomValidity('Le mot de passe est obligatoire')}
+                  onInput={(e) => e.target.setCustomValidity('')}
                 />
                 <button
                   type="button"
@@ -106,15 +129,15 @@ const LoginForm = ({ onSwitchToSignup }) => {
               </div>
             </div>
 
+            {/* Error Message */}
+            {errorMessage && (
+              <div className="p-3 bg-red-500/20 border border-red-500/40 rounded-lg text-red-400 text-sm">
+                {errorMessage}
+              </div>
+            )}
+
             {/* Submit Button */}
             <Button
-              onClick={(e) => {
-                e.preventDefault();
-                localStorage.setItem('isLogin', 'true');
-                setIsLoggedIn(true);
-                navigate('/dashboard');
-              }}
-            
               type="submit"
               className="w-full bg-gradient-to-r from-[#3CD4AB] to-[#3CD4AB]/80 hover:from-[#3CD4AB]/90 hover:to-[#3CD4AB] text-white font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
             >
@@ -135,7 +158,7 @@ const LoginForm = ({ onSwitchToSignup }) => {
               <GoogleLogin
                 onSuccess={(credentialResponse) => {
                   try {
-                    localStorage.setItem('isLogin', 'true');
+                    localStorage.setItem('isLoggedIn', 'true');
                     const cred = credentialResponse.credential || '';
                     localStorage.setItem('googleCredential', cred);
                     const payload = parseJwt(cred);
@@ -156,12 +179,12 @@ const LoginForm = ({ onSwitchToSignup }) => {
                       };
                       console.log('Google Login - Unified profile:', unified);
                       localStorage.setItem('userProfileData', JSON.stringify(unified));
-                      updateUserProfile(unified);
+                      // updateUserProfile(unified);
                     }
                   } catch (err) { 
                     console.error('Google Login Error:', err);
                   }
-                  setIsLoggedIn(true);
+                  // setIsLoggedIn(true);
                   navigate('/dashboard');
                 }}
                 onError={() => {

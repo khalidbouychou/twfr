@@ -1,5 +1,5 @@
 import React from 'react';
-import { getImageUrl, getVideoUrl } from './cloudinary.js';
+import { getImageUrl, getVideoUrl } from './cloudinary.jsx';
 
 // React component for Cloudinary images
 export const CloudinaryImage = ({ src, alt, className, options = {}, ...props }) => {

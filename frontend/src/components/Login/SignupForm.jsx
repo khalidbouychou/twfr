@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
-import { useNavigate } from 'react-router-dom';
-import { useContext } from 'react';
-import { UserContext } from '../Context/UserContext.jsx';
+import { AuthContext } from '../Context/AuthContext.jsx';
 
 
 const SignupForm = ({ onSwitchToLogin }) => {
-  const [showPassword, setShowPassword] = useState(false);
+  // const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -19,8 +17,9 @@ const SignupForm = ({ onSwitchToLogin }) => {
     lastName: '',
     phone: ''
   });
-  const navigate = useNavigate();
-  const { setIsLoggedIn, updateUserProfile } = useContext(UserContext);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const { signup } = useContext(AuthContext);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -32,6 +31,29 @@ const SignupForm = ({ onSwitchToLogin }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setErrorMessage('Les mots de passe ne correspondent pas');
+      return;
+    }
+    
+    const result = signup(formData.email, formData.password, formData.lastName, formData.phone);
+    if (result.success) {
+      // Clear form
+      setFormData({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        firstName: '',
+        lastName: '',
+        phone: ''
+      });
+      // Switch to login form
+      onSwitchToLogin();
+    } else {
+      setErrorMessage(result.message);
+    }
   };
 
   const parseJwt = (token) => {
@@ -64,6 +86,12 @@ const SignupForm = ({ onSwitchToLogin }) => {
         {/* Form */}
         <div className="px-8 py-4 space-y-4">
           <form onSubmit={handleSubmit} className="space-y-3">
+            {/* Error Message */}
+            {errorMessage && (
+              <div className="p-3 bg-red-500/20 border border-red-500/40 rounded-lg text-red-400 text-sm">
+                {errorMessage}
+              </div>
+            )}
             {/* Firstname lastname Fields */}
               <div className="space-y-1">
                 <Label htmlFor="lastName" className="text-gray-300 text-sm">
@@ -80,6 +108,8 @@ const SignupForm = ({ onSwitchToLogin }) => {
                     onChange={handleInputChange}
                     className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400 focus:border-[#3CD4AB] h-9"
                     required
+                    onInvalid={(e) => e.target.setCustomValidity('Le nom et prénom sont obligatoires')}
+                    onInput={(e) => e.target.setCustomValidity('')}
                   />
                 </div>
               </div>
@@ -102,6 +132,8 @@ const SignupForm = ({ onSwitchToLogin }) => {
                   onChange={handleInputChange}
                   className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400 focus:border-[#3CD4AB] h-9"
                   required
+                  onInvalid={(e) => e.target.setCustomValidity('Le numéro de téléphone est obligatoire')}
+                  onInput={(e) => e.target.setCustomValidity('')}
                 />
               </div>
             </div>
@@ -123,6 +155,8 @@ const SignupForm = ({ onSwitchToLogin }) => {
                   onChange={handleInputChange}
                   className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400 focus:border-[#3CD4AB] h-9"
                   required
+                  onInvalid={(e) => e.target.setCustomValidity('L\'email est obligatoire')}
+                  onInput={(e) => e.target.setCustomValidity('')}
                 />
               </div>
             </div>
@@ -143,6 +177,8 @@ const SignupForm = ({ onSwitchToLogin }) => {
                   onChange={handleInputChange}
                   className="pl-10 pr-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400 focus:border-[#3CD4AB] h-9"
                   required
+                  onInvalid={(e) => e.target.setCustomValidity('Le mot de passe est obligatoire')}
+                  onInput={(e) => e.target.setCustomValidity('')}
                 />
                 <button
                   type="button"
@@ -170,6 +206,8 @@ const SignupForm = ({ onSwitchToLogin }) => {
                   onChange={handleInputChange}
                   className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400 focus:border-[#3CD4AB] h-9"
                   required
+                  onInvalid={(e) => e.target.setCustomValidity('Veuillez confirmer votre mot de passe')}
+                  onInput={(e) => e.target.setCustomValidity('')}
                 />
               </div>
             </div>
@@ -196,7 +234,7 @@ const SignupForm = ({ onSwitchToLogin }) => {
               <GoogleLogin
                 onSuccess={(credentialResponse) => {
                   try {
-                    localStorage.setItem('isLogin', 'true');
+                    localStorage.setItem('isLoggedIn', 'true');
                     const cred = credentialResponse.credential || '';
                     localStorage.setItem('googleCredential', cred);
                     const payload = parseJwt(cred);
@@ -216,13 +254,12 @@ const SignupForm = ({ onSwitchToLogin }) => {
                         avatar: profile.picture
                       };
                       localStorage.setItem('userProfileData', JSON.stringify(unified));
-                      updateUserProfile(unified);
                     }
                   } catch (err) { 
                     console.error('Google Signup Error:', err);
                   }
-                  setIsLoggedIn(true);
-                  navigate('/dashboard');
+                  // Switch to login form
+                  onSwitchToLogin();
                 }}
                 onError={() => {
                   // Google Signup Failed - error handled silently

@@ -248,12 +248,12 @@ const DrivenInvestmentRecommendations = ({ userResults, onInvestmentDecision }) 
           <p className="text-gray-400 mb-6">
             Pour recevoir des recommandations personnalisées, complétez d'abord votre profil financier.
           </p>
-          <a 
-            href="/profiling" 
+          <Link 
+            to="/simulation" 
             className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
           >
             Compléter le Profil
-          </a>
+          </Link>
         </div>
       </div>
     );

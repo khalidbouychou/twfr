@@ -175,11 +175,22 @@ const initialUnifiedState = {
 };
 
 export const UserProvider = ({ children }) => {
-  // Unified state (persisted)
+  // Unified state (persisted) - only load from storage if user is actually logged in
   const [userContext, setUserContext] = useState(() => {
     try {
-      const stored = localStorage.getItem('userContext');
-      return stored ? JSON.parse(stored) : initialUnifiedState;
+      // Check if user is logged in first
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+      
+      // Only restore userContext if user is logged in
+      if (isLoggedIn) {
+        const stored = localStorage.getItem('userContext');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          return parsed;
+        }
+      }
+      
+      return initialUnifiedState;
     } catch {
       return initialUnifiedState;
     }
@@ -230,13 +241,23 @@ export const UserProvider = ({ children }) => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  // Reset userContext when user logs out
+  useEffect(() => {
+    const isLoggedInAuth = localStorage.getItem('isLoggedIn') === 'true';
+    
+    // If user is not logged in but userContext has data, reset it
+    if (!isLoggedInAuth && userContext.fullname) {
+      setUserContext(initialUnifiedState);
+    }
+  }, [userContext.fullname]);
+
   // Initialize from Google profile if context is empty but Google data exists
   useEffect(() => {
     if (!userContext.fullname || !userContext.avatar) {
       try {
         const googleProfile = JSON.parse(localStorage.getItem('googleProfile') || '{}');
         const userProfileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
-        const isLogin = localStorage.getItem('isLogin') === 'true';
+        const isLogin = localStorage.getItem('isLoggedIn') === 'true';
         
         if ((googleProfile.name || userProfileData.fullName) && isLogin) {
           setUserContext((prev) => ({
@@ -451,7 +472,7 @@ export const UserProvider = ({ children }) => {
       localStorage.removeItem('userResults');
       localStorage.removeItem('userInvestments');
       localStorage.setItem('isProfileComplete', 'false');
-      localStorage.removeItem('isLogin');
+      localStorage.removeItem('isLoggedIn');
       localStorage.removeItem('googleProfile');
       localStorage.removeItem('googleCredential');
     } catch {
@@ -461,7 +482,7 @@ export const UserProvider = ({ children }) => {
 
   const setIsLoggedIn = useCallback((val) => {
     setUserContext((prev) => ({ ...prev, isLogin: Boolean(val) }));
-    try { localStorage.setItem('isLogin', String(Boolean(val))); } catch { /* ignore */ }
+    try { localStorage.setItem('isLoggedIn', String(Boolean(val))); } catch { /* ignore */ }
   }, []);
 
   // Step answers handling mapped into unified userAnswers
@@ -531,7 +552,7 @@ export const UserProvider = ({ children }) => {
     try {
       localStorage.setItem('userProfileData', JSON.stringify(profileData));
       localStorage.setItem('isProfileComplete', 'true');
-      localStorage.setItem('isLogin', 'true');
+      localStorage.setItem('isLoggedIn', 'true');
     } catch {
       // ignore
     }

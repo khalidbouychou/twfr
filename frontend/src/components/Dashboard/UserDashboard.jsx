@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useContext, useCallback } from "react";
 import { UserContext } from "../Context/UserContext.jsx";
+import { AuthContext } from "../Context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import {  BotMessageSquare } from "lucide-react";
 import { useNewsData } from "../../hooks/useNewsData.jsx";
@@ -136,27 +137,32 @@ const UserDashboard = () => {
   });
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   
+  const isRemoteUpdate = useRef(false);
+
   // Sync local balance with context balance (only when context changes)
   useEffect(() => {
     if (accountBalance >= 0 && accountBalance !== userBalance) {
+      isRemoteUpdate.current = true;
       setUserBalance(accountBalance);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountBalance]);
-  
-  // Wrapped setter that updates both local and context
-  const updateBalance = useCallback((value) => {
-    if (typeof value === 'function') {
-      setUserBalance(prev => {
-        const newValue = value(prev);
-        updateAccountBalance(newValue, 'set');
-        return newValue;
-      });
-    } else {
-      setUserBalance(value);
-      updateAccountBalance(value, 'set');
+
+  // Sync context balance when local balance changes (user action)
+  useEffect(() => {
+    if (isRemoteUpdate.current) {
+      isRemoteUpdate.current = false;
+      return;
     }
-  }, [updateAccountBalance]);
+    if (userBalance !== accountBalance) {
+      updateAccountBalance(userBalance, 'set');
+    }
+  }, [userBalance, accountBalance, updateAccountBalance]);
+  
+  // Wrapped setter that updates local state
+  const updateBalance = useCallback((value) => {
+    setUserBalance(value);
+  }, []);
 
   const [recommendationEngine] = useState(new RecommendationEngine());
   const [portfolioData, setPortfolioData] = useState(() => {
@@ -374,62 +380,62 @@ useEffect(() => {
     if (transactionsHistory.length === 0) {
       const now = Date.now();
       const sampleTransactions = [
-        {
-          id: now - 30 * 24 * 60 * 60 * 1000, // 30 days ago
-          type: "invest",
-          amount: 5000,
-          method: "Actions Tech Global",
-          date: new Date(now - 30 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
-        },
-        {
-          id: now - 25 * 24 * 60 * 60 * 1000, // 25 days ago
-          type: "invest",
-          amount: 3000,
-          method: "Obligations d'État",
-          date: new Date(now - 25 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
-        },
-        {
-          id: now - 20 * 24 * 60 * 60 * 1000, // 20 days ago
-          type: "invest",
-          amount: 2500,
-          method: "Fonds Euro Diversifié",
-          date: new Date(now - 20 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
-        },
-        {
-          id: now - 15 * 24 * 60 * 60 * 1000, // 15 days ago
-          type: "invest",
-          amount: 4000,
-          method: "OPCVM Actions Maroc",
-          date: new Date(now - 15 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
-        },
-        {
-          id: now - 12 * 24 * 60 * 60 * 1000, // 12 days ago
-          type: "invest",
-          amount: 1800,
-          method: "Immobilier REIT",
-          date: new Date(now - 12 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
-        },
-        {
-          id: now - 8 * 24 * 60 * 60 * 1000, // 8 days ago
-          type: "invest",
-          amount: 3500,
-          method: "Actions Tech Global",
-          date: new Date(now - 8 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
-        },
-        {
-          id: now - 5 * 24 * 60 * 60 * 1000, // 5 days ago
-          type: "invest",
-          amount: 2200,
-          method: "Matières Premières",
-          date: new Date(now - 5 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
-        },
-        {
-          id: now - 2 * 24 * 60 * 60 * 1000, // 2 days ago
-          type: "invest",
-          amount: 2800,
-          method: "Fonds Euro Diversifié",
-          date: new Date(now - 2 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
-        }
+        // {
+        //   id: now - 30 * 24 * 60 * 60 * 1000, // 30 days ago
+        //   type: "invest",
+        //   amount: 5000,
+        //   method: "Actions Tech Global",
+        //   date: new Date(now - 30 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        // },
+        // {
+        //   id: now - 25 * 24 * 60 * 60 * 1000, // 25 days ago
+        //   type: "invest",
+        //   amount: 3000,
+        //   method: "Obligations d'État",
+        //   date: new Date(now - 25 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        // },
+        // {
+        //   id: now - 20 * 24 * 60 * 60 * 1000, // 20 days ago
+        //   type: "invest",
+        //   amount: 2500,
+        //   method: "Fonds Euro Diversifié",
+        //   date: new Date(now - 20 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        // },
+        // {
+        //   id: now - 15 * 24 * 60 * 60 * 1000, // 15 days ago
+        //   type: "invest",
+        //   amount: 4000,
+        //   method: "OPCVM Actions Maroc",
+        //   date: new Date(now - 15 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        // },
+        // {
+        //   id: now - 12 * 24 * 60 * 60 * 1000, // 12 days ago
+        //   type: "invest",
+        //   amount: 1800,
+        //   method: "Immobilier REIT",
+        //   date: new Date(now - 12 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        // },
+        // {
+        //   id: now - 8 * 24 * 60 * 60 * 1000, // 8 days ago
+        //   type: "invest",
+        //   amount: 3500,
+        //   method: "Actions Tech Global",
+        //   date: new Date(now - 8 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        // },
+        // {
+        //   id: now - 5 * 24 * 60 * 60 * 1000, // 5 days ago
+        //   type: "invest",
+        //   amount: 2200,
+        //   method: "Matières Premières",
+        //   date: new Date(now - 5 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        // },
+        // {
+        //   id: now - 2 * 24 * 60 * 60 * 1000, // 2 days ago
+        //   type: "invest",
+        //   amount: 2800,
+        //   method: "Fonds Euro Diversifié",
+        //   date: new Date(now - 2 * 24 * 60 * 60 * 1000).toLocaleString("fr-FR")
+        // }
       ];
       setTransactionsHistory(sampleTransactions);
     }
@@ -443,17 +449,17 @@ useEffect(() => {
       const startingBalance = 10000; // Starting balance of 10,000 MAD
       setUserBalance(startingBalance);
       
-      // Add a welcome notification
-      const welcomeNotification = {
-        id: Date.now(),
-        type: 'welcome',
-        title: 'Bienvenue sur Tawfir AI! 🎉',
-        message: `Vous avez reçu ${startingBalance.toLocaleString()} MAD pour commencer votre parcours d'investissement.`,
-        time: new Date().toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' }),
-        isRead: false
-      };
+      // // Add a welcome notification
+      // const welcomeNotification = {
+      //   id: Date.now(),
+      //   type: 'welcome',
+      //   title: 'Bienvenue sur Tawfir AI! 🎉',
+      //   message: `Vous avez reçu ${startingBalance.toLocaleString()} MAD pour commencer votre parcours d'investissement.`,
+      //   time: new Date().toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' }),
+      //   isRead: false
+      // };
       
-      setNotifications(prev => [welcomeNotification, ...prev]);
+      setNotifications(prev => [...prev]);
       
       // Mark user as initialized
       localStorage.setItem('userInitialized', 'true');

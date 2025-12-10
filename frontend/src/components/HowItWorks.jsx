@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 const steps = [
   {
@@ -20,6 +20,9 @@ const steps = [
     desc: 'Analysez et optimisez vos investissements en temps réel.',
   },
 ];
+
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const HowItWorks = () => {
   return (
@@ -59,11 +62,11 @@ const HowItWorks = () => {
             </React.Fragment>
           ))}
         </div>
-        <a href="/simulation">
+        <Link to="/simulation">
           <button className="mt-4 sm:mt-6 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 bg-[#3CD4AB] text-white text-base sm:text-lg lg:text-xl font-bold rounded-full shadow-lg hover:bg-[#89559F] transition-colors duration-200">
             Démarrer votre simulation
           </button>
-        </a>
+        </Link>
       </div>
     </section>
   );

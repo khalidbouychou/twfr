@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef , useContext } from 'react';
-import { Link} from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {UserContext}  from './Context/UserContext.jsx'
+import { AuthContext } from './Context/AuthContext.jsx';
 import { PopupModal } from 'react-calendly';
 import emailjs from 'emailjs-com';
 import {
@@ -14,19 +15,36 @@ import { UserRoundCog, LogOut, Calculator, MessageCircle } from "lucide-react";
 
 
 const Navbar = () => {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProductsMenuOpen, setIsProductsMenuOpen] = useState(false);
   const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState('home');
   const productsDropdownRef = useRef(null);
-  const { isLoggedIn, userProfileData } = useContext(UserContext);
+  const { isLoggedIn, userProfileData, setIsLoggedIn, clearUserData } = useContext(UserContext);
+  const { isLoggedIn: authIsLoggedIn, logout } = useContext(AuthContext);
   const [isCalendlyOpen, setIsCalendlyOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(() => {
+    const stored = localStorage.getItem('currentUser');
+    return stored ? JSON.parse(stored) : null;
+  });
   
   // EmailJS env configuration
   const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
   const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
   const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+  // Sync currentUser from localStorage when authIsLoggedIn changes
+  useEffect(() => {
+    if (authIsLoggedIn) {
+      const stored = localStorage.getItem('currentUser');
+      if (stored) {
+        setCurrentUser(JSON.parse(stored));
+      }
+    } else {
+      setCurrentUser(null);
+    }
+  }, [authIsLoggedIn]);
 
   // Lock page scroll when Calendly is open
   useEffect(() => {
@@ -125,53 +143,33 @@ const Navbar = () => {
 
   const fallbackAvatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=User';
   
-  // Get avatar from multiple possible sources including Google profile
-  const getAvatarSrc = () => {
-    // First check userProfileData (unified context)
-    if (userProfileData?.avatar) {
-      console.log('Navbar - Avatar from context:', userProfileData.avatar);
-      return userProfileData.avatar;
+  // Priority: AuthContext currentUser > UserContext > localStorage
+  const getDisplayUser = () => {
+    if (authIsLoggedIn && currentUser) {
+      return {
+        name: currentUser.fullName || currentUser.name || 'Utilisateur',
+        avatar: currentUser.avatar || fallbackAvatar
+      };
     }
-    if (userProfileData?.picture) {
-      console.log('Navbar - Picture from context:', userProfileData.picture);
-      return userProfileData.picture;
+    if (isLoggedIn && userProfileData) {
+      return {
+        name: userProfileData.fullName || userProfileData.name || 'Utilisateur',
+        avatar: userProfileData.avatar || userProfileData.picture || fallbackAvatar
+      };
     }
-    if (userProfileData?.imageUrl) {
-      console.log('Navbar - ImageUrl from context:', userProfileData.imageUrl);
-      return userProfileData.imageUrl;
-    }
-    
-    // Check Google profile in localStorage
     try {
-      const googleProfile = JSON.parse(localStorage.getItem('googleProfile') || '{}');
-      if (googleProfile.picture) {
-        console.log('Navbar - Picture from googleProfile:', googleProfile.picture);
-        return googleProfile.picture;
-      }
-    } catch (e) {
-      console.error('Navbar - Error parsing Google profile:', e);
+      const stored = JSON.parse(localStorage.getItem('userProfileData') || '{}');
+      return {
+        name: stored.fullName || stored.name || 'Utilisateur',
+        avatar: stored.avatar || stored.picture || fallbackAvatar
+      };
+    } catch {
+      return { name: 'Utilisateur', avatar: fallbackAvatar };
     }
-    
-    // Check alternative profile data in localStorage
-    try {
-      const profileData = JSON.parse(localStorage.getItem('userProfileData') || '{}');
-      if (profileData.avatar) {
-        console.log('Navbar - Avatar from userProfileData:', profileData.avatar);
-        return profileData.avatar;
-      }
-      if (profileData.picture) {
-        console.log('Navbar - Picture from userProfileData:', profileData.picture);
-        return profileData.picture;
-      }
-    } catch (e) {
-      console.error('Navbar - Error parsing profile data:', e);
-    }
-    
-    console.log('Navbar - Using fallback avatar');
-    return fallbackAvatar;
   };
   
-  const avatarSrc = getAvatarSrc();
+  const displayUser = getDisplayUser();
+  const isUserLoggedIn = authIsLoggedIn || isLoggedIn;
 
   return (
     <nav className="top-0 w-full text-white">
@@ -266,19 +264,17 @@ const Navbar = () => {
             <span className="hidden xl:inline">Contactez un expert</span>
             <span className="xl:hidden">Expert</span>
           </button>
-         {console.log(isLoggedIn)}
-         {isLoggedIn ? (
+         {isUserLoggedIn ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="inline-flex items-center justify-center">
                 <img
-                  src={avatarSrc}
+                  src={displayUser.avatar}
                   alt="Avatar"
                   className="w-9 h-9 rounded-full object-cover border border-white/20 hover:border-[#89559F] transition-colors"
                   crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
                   onError={(e) => { 
-                    console.error('Navbar Desktop - Avatar failed to load:', avatarSrc);
                     e.currentTarget.onerror = null; 
                     e.currentTarget.src = fallbackAvatar; 
                   }}
@@ -288,11 +284,11 @@ const Navbar = () => {
             <DropdownMenuContent className="w-48 bg-[#0F0F19] border border-[#89559F]/30" align="end">
               <div className="p-3 border-b border-white/10">
                 <div className="text-white font-medium">
-                  {userProfileData?.fullName || userProfileData?.name || "Utilisateur"}
+                  {displayUser.name}
                 </div>
               </div>
               <DropdownMenuItem
-                onClick={() => window.location.href = '/dashboard'}
+                onClick={() => navigate('/dashboard')}
                 className="text-white hover:bg-white/10 cursor-pointer"
               >
                 <UserRoundCog className="w-4 h-4 mr-2" />
@@ -300,21 +296,10 @@ const Navbar = () => {
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/10" />
               <DropdownMenuItem
-                onClick={() => {
-                  // Clear authentication data
-                  localStorage.removeItem('isLogin');
-                  localStorage.removeItem('googleProfile');
-                  localStorage.removeItem('googleCredential');
-                  localStorage.removeItem('userProfileData');
-                  
-                  // Clear user personal data (name, avatar, etc.)
-                  localStorage.removeItem('userContext');
-                  localStorage.removeItem('userName');
-                  localStorage.removeItem('userAvatar');
-                  localStorage.removeItem('userEmail');
-                  localStorage.removeItem('fullName');
-                  
-                  window.location.href = '/login';
+                onClick={async () => {
+                  // Fully clear auth/local profile state then redirect home
+                  await logout();
+                  navigate('/') 
                 }}
                 className="text-red-400 hover:bg-red-400/10 cursor-pointer"
               >
@@ -407,17 +392,16 @@ const Navbar = () => {
               <MessageCircle className="w-4 h-4" />
               Contactez un expert
             </button>
-            {isLoggedIn ? (
+            {isUserLoggedIn ? (
               <Link to="/dashboard" className="w-full" onClick={closeMenu}>
                 <div className="flex items-center justify-center gap-3 w-full px-4 py-3 bg-white/5 rounded-lg border border-white/10">
                   <img 
-                    src={avatarSrc} 
+                    src={displayUser.avatar} 
                     alt="Avatar" 
                     className="w-8 h-8 rounded-full object-cover border border-white/20"
                     crossOrigin="anonymous"
                     referrerPolicy="no-referrer"
                     onError={(e) => { 
-                      console.error('Navbar Mobile - Avatar failed to load:', avatarSrc);
                       e.currentTarget.onerror = null; 
                       e.currentTarget.src = fallbackAvatar; 
                     }} 

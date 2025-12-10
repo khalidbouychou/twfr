@@ -1,6 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import React, { useMemo, useState } from "react";
-import { useSharedData } from "../Context/useSharedData.js";
+import { useSharedData } from "../Context/useSharedData.jsx";
 
 export default function Dashboardchart({ userInvestments: propInvestments }) {
   const { 

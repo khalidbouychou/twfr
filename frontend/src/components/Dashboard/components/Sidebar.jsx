@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Sidebar = ({ 
   sidebarOpen, 
@@ -108,36 +109,40 @@ const Sidebar = ({
     <>
       {/* Desktop Sidebar */}
       <aside
+        className={`fixed top-0 left-0 z-40 h-screen transition-all duration-300 bg-[#0F0F19] border-r border-white/10 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 ${isSidebarHovered ? "w-64" : "w-16"} hidden lg:block`}
         onMouseEnter={() => setIsSidebarHovered(true)}
         onMouseLeave={() => setIsSidebarHovered(false)}
-        className={`hidden lg:block fixed top-0 left-0 z-40 h-screen pt-5 2xl:pt-8 3xl:pt-10 transition-all duration-200 ${
-          isSidebarHovered ? "w-64 2xl:w-80 3xl:w-96" : "w-16 2xl:w-20 3xl:w-24"
-        } bg-[#0F0F19] border-r border-white/10`}
       >
-        <div className='flex items-center justify-center px-2 2xl:px-4 3xl:px-6 mb-4 2xl:mb-6 3xl:mb-8'>
-          <a href='/' className='cursor-pointer'>
-            <img 
-              src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" 
-              className={`${isSidebarHovered ? "w-10 h-10 2xl:w-14 2xl:h-14 3xl:w-16 3xl:h-16" : "w-8 h-8 2xl:w-10 2xl:h-10 3xl:w-12 3xl:h-12"} transition-all duration-200`} 
-              alt="TawfirAI Logo" 
-            />
-          </a>
-        </div>
-        <div className="h-full px-3 2xl:px-4 3xl:px-6 pb-4 2xl:pb-6 3xl:pb-8 overflow-y-auto bg-[#0F0F19]">
-          <ul className="space-y-2 2xl:space-y-3 3xl:space-y-4 pt-4 2xl:pt-6 3xl:pt-8">{menuItems.map((item) => (
+        <div className="h-full px-3 py-4 overflow-y-auto flex flex-col">
+          <Link to='/' className='cursor-pointer'>
+            <div className={`flex items-center mb-8 ${!isSidebarHovered && "justify-center"}`}>
+              <img 
+                src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" 
+                className="w-8 h-8" 
+                alt="TawfirAI Logo" 
+              />
+              {isSidebarHovered && (
+                <span className="ml-3 text-xl font-bold text-white">TawfirAI</span>
+              )}
+            </div>
+          </Link>
+          <ul className="space-y-2 pt-4">
+            {menuItems.map((item) => (
               <li key={item.id}>
                 <button
-                  onClick={() => item.isAIAssistant ? setShowAIAssistant(true) : handleNavigation(item.id)}
-                  className={`flex items-center w-full p-2 2xl:p-3 3xl:p-4 text-base 2xl:text-lg 3xl:text-xl font-normal rounded-lg transition-colors duration-200 ${
+                  onClick={() => handleItemClick(item.id, item.isAIAssistant)}
+                  className={`flex items-center w-full p-2 text-base font-normal rounded-lg transition-colors duration-200 ${
                     currentPage === item.id && !item.isAIAssistant
                       ? "bg-[#3CD4AB] text-[#0F0F19]"
                       : "text-white hover:bg-white/10 hover:text-[#3CD4AB]"
                   }`}
                 >
-                  <span className="w-6 h-6 2xl:w-8 2xl:h-8 3xl:w-10 3xl:h-10 flex items-center justify-center">
+                  <span className="w-6 h-6 flex items-center justify-center">
                     {item.icon}
                   </span>
-                  <span className={`ml-3 2xl:ml-4 3xl:ml-5 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}>
+                  <span className={`ml-3 transition-opacity duration-200 ${isSidebarHovered ? "opacity-100" : "opacity-0 pointer-events-none hidden"}`}> 
                     {item.label}
                   </span>
                 </button>
@@ -162,13 +167,13 @@ const Sidebar = ({
         }`}
       >
         <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <a href='/' className='cursor-pointer'>
+          <Link to='/' className='cursor-pointer'>
             <img 
               src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" 
               className="w-10 h-10" 
               alt="TawfirAI Logo" 
             />
-          </a>
+          </Link>
           <button
             onClick={() => setSidebarOpen(false)}
             className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"

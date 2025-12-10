@@ -301,8 +301,6 @@ const SettingsModal = ({
         setTimeout(() => {
           if (navigate) {
             navigate('/');
-          } else {
-            window.location.href = '/';
           }
         }, 1500);
         

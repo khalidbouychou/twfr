@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { RecommendationEngine } from '../Algo';
 
 const Resultat = ({ userAnswers, onBackToProfiling }) => {
@@ -324,12 +326,12 @@ const Resultat = ({ userAnswers, onBackToProfiling }) => {
               Modifier mon profil
             </button>
           )}
-          <a
-            href="/dashboard"
+          <Link
+            to="/dashboard"
             className="px-8 py-3 bg-[#3CD4AB] text-[#0F0F19] rounded-lg hover:bg-[#2bb894] transition-colors font-semibold text-center"
           >
             Aller au Dashboard
-          </a>
+          </Link>
         </div>
       </div>
     </div>

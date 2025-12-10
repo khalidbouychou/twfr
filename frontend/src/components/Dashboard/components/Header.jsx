@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { Link } from 'react-router-dom';
 import { LogOut, UserRoundCog, Wallet, TrendingUp, TrendingDown, Sparkles, ArrowDownToLine } from "lucide-react";
 import { useCart } from '../../Context/CartContext';
 import { Progress } from '../../ui/progress';
+import { AuthContext } from '../../Context/AuthContext.jsx';
 
 const Header = ({ 
   userData, 
@@ -29,6 +31,7 @@ const Header = ({
   const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
   const [showCartDropdown, setShowCartDropdown] = useState(false);
   const { cartItems, getCartCount, removeFromCart, getTotalAmount, clearCart } = useCart();
+  const { logout } = useContext(AuthContext);
   
   // Validation and confirmation states
   const [showInsufficientBalanceAlert, setShowInsufficientBalanceAlert] = useState(false);
@@ -167,13 +170,13 @@ const Header = ({
         <div className="lg:hidden">
           {/* Top Row - Logo (Centered) */}
           <div className="flex justify-center mb-3">
-            <a href='/' className='flex items-center cursor-pointer'>
+            <Link to='/' className='flex items-center cursor-pointer'>
               <img 
                 src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" 
                 className="w-8 h-8" 
                 alt="TawfirAI Logo" 
               />
-            </a>
+            </Link>
           </div>
 
           {/* Second Row - Cart, Notifications, Avatar (Centered) */}
@@ -352,21 +355,10 @@ const Header = ({
                     </button>
                     <button
                       onClick={() => {
-                        // Clear authentication data
-                        localStorage.removeItem('isLogin');
-                        localStorage.removeItem('googleProfile');
-                        localStorage.removeItem('googleCredential');
-                        localStorage.removeItem('userProfileData');
-                        
-                        // Clear user personal data (name, avatar, etc.)
-                        localStorage.removeItem('userContext');
-                        localStorage.removeItem('userName');
-                        localStorage.removeItem('userAvatar');
-                        localStorage.removeItem('userEmail');
-                        localStorage.removeItem('fullName');
-                        
-                        setIsLoggedIn(false);
+                        // Clear authentication and profile data (AuthContext + localStorage fallbacks)
+                        logout();
                         navigate("/");
+                       
                       }}
                       className="flex items-center gap-2 w-full p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
                     >
@@ -472,13 +464,13 @@ const Header = ({
         <div className="hidden lg:flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Logo */}
-            <a href='/' className='flex items-center cursor-pointer'>
+            <Link to='/' className='flex items-center cursor-pointer'>
               <img 
                 src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" 
                 className="w-8 h-8" 
                 alt="TawfirAI Logo" 
               />
-            </a>
+            </Link>
           </div>
           
           <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
@@ -750,21 +742,9 @@ const Header = ({
                     </button>
                     <button
                       onClick={() => {
-                        // Clear authentication data
-                        localStorage.removeItem('isLogin');
-                        localStorage.removeItem('googleProfile');
-                        localStorage.removeItem('googleCredential');
-                        localStorage.removeItem('userProfileData');
-                        
-                        // Clear user personal data (name, avatar, etc.)
-                        localStorage.removeItem('userContext');
-                        localStorage.removeItem('userName');
-                        localStorage.removeItem('userAvatar');
-                        localStorage.removeItem('userEmail');
-                        localStorage.removeItem('fullName');
-                        
-                        setIsLoggedIn(false);
-                        navigate("/");
+
+                        logout()
+                        // navigate("/login");
                       }}
                       className="flex items-center gap-2 w-full p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
                     >
@@ -903,7 +883,7 @@ const Header = ({
           <div className="bg-[#1a1a2e] rounded-2xl p-8 max-w-md w-full border border-white/10 shadow-2xl animate-fade-in">
             <div className="flex flex-col items-center text-center">
               <div className="w-20 h-20  flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-laptop-minimal-check-icon lucide-laptop-minimal-check"><path d="M2 20h20"/><path d="m9 10 2 2 4-4"/><rect x="3" y="4" width="18" height="12" rx="2"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-laptop-minimal-check-icon lucide-laptop-minimal-check"><path d="M2 20h20"/><path d="m9 10 2 2 4-4"/><rect x="3" y="4" width="18" height="12" rx="2"/></svg>
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">Investissement réussi!</h3>
               <p className="text-white/70 mb-4">Vos investissements ont été traités avec succès</p>

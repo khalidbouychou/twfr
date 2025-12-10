@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { Link } from "react-router-dom";
 import Headstepper from "./headstepper";
 import Navigation from "./navigation-btn";
 import Categories from "./categories";
@@ -153,15 +154,15 @@ const Stepper = () => {
       {/* Header */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <a href="/" className="text-gray-300 text-sm sm:text-base font-light hover:text-white transition-colors flex items-center gap-2 group">
+          <Link to="/" className="text-gray-300 text-sm sm:text-base font-light hover:text-white transition-colors flex items-center gap-2 group">
             <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Retour
-          </a>
-          <a href="/" className="hover:opacity-80 transition-opacity">
+          </Link>
+          <Link to="/" className="hover:opacity-80 transition-opacity">
             <img src="https://res.cloudinary.com/dkfrrfxa1/image/upload/v1758706711/tawfir-ai/logo.svg" alt="logo" className="w-10 h-10 sm:w-12 sm:h-12" />
-          </a>
+          </Link>
         </div>
       </div>
       
