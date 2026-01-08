@@ -1,156 +1,140 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { BotMessageSquare } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import {
+  BotMessageSquare,
+  Sparkles,
+  Database,
+  Globe,
+  RefreshCw,
+} from "lucide-react";
+import {
+  processRAGQuery,
+  getQuickResponse,
+} from "../../Ai_assistant/utils/ragOrchestrator";
 
-const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioData }) => {
+const AIAssistant = ({
+  isOpen,
+  onClose,
+  userBalance,
+  userInvestments,
+  portfolioData,
+}) => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      type: 'assistant',
-      content: 'Salut ! Je suis votre assistant IA pour les investissements. Comment puis-je vous aider aujourd\'hui ?',
-      timestamp: new Date()
-    }
+      type: "assistant",
+      content:
+        "Salut ! Je suis votre assistant Tawfir Ai. Je peux analyser votre portefeuille, vous donner des conseils personnalisés et répondre à vos questions sur l'investissement. Comment puis-je vous aider ?",
+      timestamp: new Date(),
+      sources: null,
+    },
   ]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [thinkingMessage, setThinkingMessage] = useState('');
+  const [thinkingStage, setThinkingStage] = useState("");
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleClearContext = () => {
+    setMessages([
+      {
+        id: 1,
+        type: "assistant",
+        content:
+          "Salut ! Je suis votre assistant Tawfir Ai. Je peux analyser votre portefeuille, vous donner des conseils personnalisés et répondre à vos questions sur l'investissement. Comment puis-je vous aider ?",
+        timestamp: new Date(),
+        sources: null,
+      },
+    ]);
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // AI responses with context-aware logic and realistic thinking process
+  // AI response generator using RAG pipeline
   const generateAIResponse = async (userMessage) => {
     setIsLoading(true);
-    
-    // Thinking messages rotation
-    const thinkingMessages = [
-      'Analysing your portfolio...',
-      'Calculating investment metrics...',
-      'Reviewing market conditions...',
-      'Processing your question...',
-      'Generating personalized advice...',
-      'Checking diversification strategy...',
-      'Evaluating risk factors...'
+
+    // Thinking stages for visual feedback
+    const thinkingStages = [
+      { stage: "🔍 Searching knowledge base...", icon: Database },
+      { stage: "🌐 Searching web if needed...", icon: Globe },
+      { stage: "🤖 Processing with LLM...", icon: Sparkles },
+      { stage: "✨ Generating response...", icon: BotMessageSquare },
     ];
-    
-    let currentThinkingIndex = 0;
-    setThinkingMessage(thinkingMessages[0]);
-    
-    // Simulate realistic AI thinking with changing messages
-    const thinkingInterval = setInterval(() => {
-      currentThinkingIndex = (currentThinkingIndex + 1) % thinkingMessages.length;
-      setThinkingMessage(thinkingMessages[currentThinkingIndex]);
-    }, 800);
-    
-    // Simulate processing delay (1.5-3 seconds)
-    const processingTime = 1500 + Math.random() * 1500;
-    await new Promise(resolve => setTimeout(resolve, processingTime));
-    
-    clearInterval(thinkingInterval);
-    
+
+    let stageIndex = 0;
+    setThinkingStage(thinkingStages[0].stage);
+
+    // Rotate through thinking stages
+    const stageInterval = setInterval(() => {
+      stageIndex = (stageIndex + 1) % thinkingStages.length;
+      setThinkingStage(thinkingStages[stageIndex].stage);
+    }, 1000);
+
     try {
-      // Context-aware responses based on user data
-      const totalInvested = userInvestments?.reduce((sum, inv) => sum + (parseFloat(inv.valueInvested) || 0), 0) || 0;
+      // Build user profile context
+      const totalInvested =
+        userInvestments?.reduce(
+          (sum, inv) => sum + (parseFloat(inv.valueInvested) || 0),
+          0
+        ) || 0;
       const investmentCount = userInvestments?.length || 0;
       const globalPerf = Number(portfolioData?.globalPerformance) || 0;
       const safeBalance = Number(userBalance) || 0;
-      
-      // Create context for the AI
-      const context = `
-        Utilisateur: Solde: ${safeBalance.toLocaleString()} MAD, 
-        Investissements: ${investmentCount} (total: ${totalInvested.toLocaleString()} MAD), 
-        Performance: ${globalPerf.toFixed(2)}%
-      `;
 
-      const message = userMessage.toLowerCase();
-      let response = '';
+      const userProfile = {
+        balance: safeBalance,
+        investmentCount: investmentCount,
+        totalInvested: totalInvested,
+        performance: globalPerf,
+      };
 
-      // Quick pattern matching for common queries
-      if (message.includes('solde') || message.includes('balance')) {
-        response = `Votre solde actuel est de ${safeBalance.toLocaleString()} MAD. ${safeBalance > 10000 ? 'Vous avez un bon solde pour diversifier vos investissements !' : 'Considérez augmenter votre solde pour plus d\'opportunités d\'investissement.'}`;
-      } else if (message.includes('investissement') || message.includes('invest')) {
-        response = `Vous avez actuellement ${investmentCount} investissement(s) pour un total de ${totalInvested.toLocaleString()} MAD. ${investmentCount < 3 ? 'Je recommande de diversifier davantage votre portefeuille.' : 'Votre portefeuille semble bien diversifié !'}`;
-      } else if (message.includes('performance') || message.includes('rendement')) {
-        response = `Votre performance globale est de ${globalPerf.toFixed(2)}%. ${globalPerf > 5 ? 'Excellente performance !' : globalPerf > 0 ? 'Performance positive, continuez ainsi !' : 'Les marchés peuvent fluctuer, restez patient sur le long terme.'}`;
-      } else if (message.includes('conseil') || message.includes('recommandation')) {
-        response = getPersonalizedAdvice(safeBalance, investmentCount, totalInvested, globalPerf);
-      } else if (message.includes('diversification')) {
-        response = getDiversificationAdvice(userInvestments);
-      } else if (message.includes('risque')) {
-        response = getRiskManagementAdvice(totalInvested, globalPerf);
-      } else if (message.includes('bonjour') || message.includes('salut') || message.includes('hello')) {
-        response = `Bonjour ! Ravi de vous aider avec vos investissements. Avec ${safeBalance.toLocaleString()} MAD de solde et ${investmentCount} investissement(s), que souhaitez-vous savoir ?`;
-      } else if (message.includes('merci')) {
-        response = `De rien ! Je suis là pour vous accompagner dans votre parcours d'investissement. N'hésitez pas si vous avez d'autres questions !`;
+      // Try quick response first for simple queries
+      const quickResponse = getQuickResponse(userMessage, userProfile);
+      if (quickResponse) {
+        clearInterval(stageInterval);
+        setIsLoading(false);
+        return {
+          content: quickResponse.response,
+          sources: null,
+          processingTime: 100,
+        };
+      }
+
+      // Use full RAG pipeline
+      const result = await processRAGQuery(userMessage, userProfile);
+
+      clearInterval(stageInterval);
+      setIsLoading(false);
+
+      if (result.success) {
+        return {
+          content: result.response,
+          sources: result.sources,
+          processingTime: result.processingTime,
+        };
       } else {
-        // Try to use a more sophisticated response
-        response = await getAdvancedResponse(userMessage, context);
+        return {
+          content: result.response,
+          sources: null,
+          error: true,
+        };
       }
-
+    } catch (error) {
+      clearInterval(stageInterval);
       setIsLoading(false);
-      return response;
-    } catch {
-      setIsLoading(false);
-      return `Je rencontre une petite difficulté technique. Pouvez-vous reformuler votre question ? En attendant, je peux vous aider avec vos investissements, analyser votre portefeuille, ou donner des conseils financiers.`;
+
+      // Always show simple user-friendly message
+      return {
+        content: "Attendez 2 minutes et réessayez.",
+        sources: null,
+        error: true,
+      };
     }
-  };
-
-  // Helper functions for more detailed responses
-  const getPersonalizedAdvice = (balance, count, invested, performance) => {
-    const safeBalance = Number(balance) || 0;
-    const safeCount = Number(count) || 0;
-    const safePerformance = Number(performance) || 0;
-    
-    let advice = "Voici mes conseils personnalisés : ";
-    
-    if (safeBalance < 5000) {
-      advice += "1) Constituez d'abord une épargne de sécurité, ";
-    }
-    if (safeCount < 3) {
-      advice += "2) Diversifiez votre portefeuille sur au moins 3-5 produits différents, ";
-    }
-    if (safePerformance < 0) {
-      advice += "3) Réévaluez votre stratégie et considérez des investissements plus stables, ";
-    }
-    
-    advice += "4) Investissez régulièrement (DCA), 5) Gardez une vision long terme. Voulez-vous des détails sur un point spécifique ?";
-    return advice;
-  };
-
-  const getDiversificationAdvice = (investments) => {
-    const sectors = [...new Set(investments?.map(inv => inv.category) || [])];
-    return `Vous investissez dans ${sectors.length} secteur(s). Pour une diversification optimale, visez 4-6 secteurs différents : Finance, Technologie, Immobilier, Matières premières, Santé, et Énergie. Cela réduit les risques sectoriels.`;
-  };
-
-  const getRiskManagementAdvice = (invested, performance) => {
-    const safeInvested = Number(invested) || 0;
-    const safePerformance = Number(performance) || 0;
-    
-    return `Avec ${safeInvested.toLocaleString()} MAD investis et une performance de ${safePerformance.toFixed(2)}%, voici mes conseils de gestion des risques : 1) Ne jamais investir plus de 5-10% dans un seul actif, 2) Adapter l'allocation selon votre âge (100 - âge = % actions), 3) Rééquilibrer votre portefeuille trimestriellement.`;
-  };
-
-  const getAdvancedResponse = async (message, context) => {
-    // Fallback to structured response based on keywords
-    const keywords = {
-      'stratégie': 'Pour développer une stratégie d\'investissement efficace, considérez votre horizon temporel, votre tolérance au risque, et vos objectifs financiers.',
-      'long terme': 'Les investissements long terme (>5 ans) permettent de lisser la volatilité et de bénéficier de la croissance composée.',
-      'actions': 'Les actions offrent un potentiel de croissance élevé mais avec plus de volatilité. Elles conviennent aux horizons longs.',
-      'obligations': 'Les obligations apportent stabilité et revenus réguliers, idéales pour diversifier un portefeuille.',
-      'immobilier': 'L\'investissement immobilier (REIT/SCPI) offre diversification et revenus locatifs avec une exposition aux marchés immobiliers.'
-    };
-
-    for (const [keyword, response] of Object.entries(keywords)) {
-      if (message.toLowerCase().includes(keyword)) {
-        return response + ' ' + context;
-      }
-    }
-
-    return `Merci pour votre question sur "${message}". En tant qu'assistant spécialisé en investissements, je peux vous aider à analyser votre portefeuille, définir une stratégie adaptée, ou expliquer les différents produits financiers. Que souhaitez-vous approfondir ?`;
   };
 
   const handleSendMessage = async () => {
@@ -158,29 +142,32 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
 
     const userMessage = {
       id: Date.now(),
-      type: 'user',
+      type: "user",
       content: inputMessage,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputMessage("");
 
-    // Generate AI response
-    const aiResponse = await generateAIResponse(inputMessage);
-    
+    // Generate AI response using RAG
+    const aiResponseData = await generateAIResponse(inputMessage);
+
     const assistantMessage = {
       id: Date.now() + 1,
-      type: 'assistant',
-      content: aiResponse,
-      timestamp: new Date()
+      type: "assistant",
+      content: aiResponseData.content,
+      timestamp: new Date(),
+      sources: aiResponseData.sources,
+      processingTime: aiResponseData.processingTime,
+      error: aiResponseData.error || false,
     };
 
-    setMessages(prev => [...prev, assistantMessage]);
+    setMessages((prev) => [...prev, assistantMessage]);
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -190,26 +177,59 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[#0F0F19] border border-white/20 rounded-xl w-full max-w-2xl h-[600px] mx-4 flex flex-col">
+      <div className="bg-[#0F0F19] border border-white/20 rounded-xl w-full max-w-2xl h-[900px] mx-4 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#0F0F19] border-2 border-[#3CD4AB] flex items-center justify-center">
-              <BotMessageSquare className="w-6 h-6 text-[#3CD4AB]" strokeWidth={2} />
+            <div className="w-10 h-10 rounded-full bg-[#0F0F19] border-2 border-[#3CD4AB] flex items-center justify-center relative">
+              <BotMessageSquare
+                className="w-6 h-6 text-[#3CD4AB]"
+                strokeWidth={2}
+              />
+              <Sparkles className="w-3 h-3 text-[#3CD4AB] absolute -top-1 -right-1 animate-pulse" />
             </div>
             <div>
-              <h3 className="text-white font-semibold">Assistant IA Tawfir</h3>
-              <p className="text-white/60 text-sm">Votre conseiller en investissements</p>
+              <div className="flex items-center gap-2">
+                <h3 className="text-white font-semibold">
+                  Assistant Tawfir Ai
+                </h3>
+                {/* <span className="px-2 py-0.5 text-[10px] bg-[#3CD4AB]/20 text-[#3CD4AB] rounded-full border border-[#3CD4AB]/30">
+                  RAG + LLM
+                </span> */}
+              </div>
+              <p className="text-white/60 text-xs">
+                Powered by Knowledge Base & Real-time Web Search
+              </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-white/60 hover:text-white transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleClearContext}
+              className="text-white/60 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+              title="Effacer la conversation"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </button>
+            <button
+              onClick={onClose}
+              className="text-white/60 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+              title="Fermer"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -217,74 +237,75 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${
+                message.type === "user" ? "justify-end" : "justify-start"
+              }`}
             >
               <div
                 className={`max-w-[80%] rounded-lg p-3 ${
-                  message.type === 'user'
-                    ? 'bg-[#3CD4AB] text-[#0F0F19]'
-                    : 'bg-white/10 text-white border border-white/20'
+                  message.type === "user"
+                    ? "bg-[#3CD4AB] text-[#0F0F19]"
+                    : message.error
+                    ? "bg-red-500/10 text-white border border-red-500/30"
+                    : "bg-white/10 text-white border border-white/20"
                 }`}
               >
-                <p className="text-sm">{message.content}</p>
-                <span className={`text-xs mt-1 block ${
-                  message.type === 'user' ? 'text-[#0F0F19]/70' : 'text-white/60'
-                }`}>
-                  {message.timestamp.toLocaleTimeString('fr-FR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                <p className="text-sm whitespace-pre-line">{message.content}</p>
+
+                <span
+                  className={`text-xs mt-1 block ${
+                    message.type === "user"
+                      ? "text-[#0F0F19]/70"
+                      : "text-white/60"
+                  }`}
+                >
+                  {message.timestamp.toLocaleTimeString("fr-FR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })}
                 </span>
               </div>
             </div>
           ))}
-          
-          {/* Enhanced Loading indicator with "Thinking..." */}
+
+          {/* Enhanced Loading indicator with RAG pipeline stages */}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white/10 text-white border border-white/20 rounded-lg p-4 relative overflow-hidden">
+              <div className="bg-white/10 text-white border border-white/20 rounded-lg p-4 relative overflow-hidden max-w-[80%]">
                 {/* Shimmer effect background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
-                
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#3CD4AB]/10 to-transparent animate-pulse"></div>
+
                 <div className="relative flex items-center gap-3">
                   {/* Robot thinking animation */}
                   <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-[#3CD4AB] animate-pulse" fill="currentColor" viewBox="0 0 24 24">
-                      {/* Mini robot head */}
-                      <rect x="7" y="8" width="10" height="8" rx="1.5" fill="currentColor"/>
-                      {/* Mini robot antenna */}
-                      <line x1="12" y1="4" x2="12" y2="8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                      <circle cx="12" cy="4" r="1" fill="currentColor"/>
-                      {/* Mini robot eyes */}
-                      <circle cx="10" cy="11" r="1" fill="white"/>
-                      <circle cx="14" cy="11" r="1" fill="white"/>
-                      {/* Mini robot mouth */}
-                      <rect x="11" y="13.5" width="2" height="0.5" fill="white"/>
-                      {/* Mini robot body */}
-                      <rect x="9" y="16" width="6" height="4" rx="0.5" fill="currentColor"/>
-                    </svg>
-                    
+                    <Sparkles className="w-5 h-5 text-[#3CD4AB] animate-pulse" />
+
                     {/* Thinking dots */}
                     <div className="flex space-x-1">
                       <div className="w-2 h-2 bg-[#3CD4AB] rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-[#3CD4AB] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-[#3CD4AB] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div
+                        className="w-2 h-2 bg-[#3CD4AB] rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-[#3CD4AB] rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
                     </div>
                   </div>
-                  
-                  {/* Thinking text with typewriter effect */}
+
+                  {/* Thinking text */}
                   <div className="flex items-center">
                     <span className="text-sm text-[#3CD4AB] font-medium animate-pulse">
-                      Thinking
+                      AI Thinking
                     </span>
-                    <span className="text-sm text-[#3CD4AB] ml-1 animate-ping">...</span>
                   </div>
                 </div>
-                
-                {/* Additional thinking indicators */}
-                <div className="mt-2 flex items-center gap-2">
+
+                {/* RAG Pipeline stage */}
+                <div className="mt-3 flex items-center gap-2">
                   <div className="flex space-x-1">
-                    {[...Array(8)].map((_, i) => (
+                    {[...Array(12)].map((_, i) => (
                       <div
                         key={i}
                         className="w-1 h-1 bg-white/30 rounded-full animate-pulse"
@@ -292,12 +313,14 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
                       ></div>
                     ))}
                   </div>
-                  <span className="text-xs text-white/50">{thinkingMessage}</span>
+                </div>
+                <div className="mt-1 text-xs text-white/50">
+                  {thinkingStage}
                 </div>
               </div>
             </div>
           )}
-          
+
           <div ref={messagesEndRef} />
         </div>
 
@@ -318,26 +341,38 @@ const AIAssistant = ({ isOpen, onClose, userBalance, userInvestments, portfolioD
               disabled={!inputMessage.trim() || isLoading}
               className="bg-[#3CD4AB] hover:bg-[#3CD4AB]/80 text-[#0F0F19] font-medium px-6 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                />
               </svg>
             </button>
           </div>
-          
+
           {/* Quick suggestions */}
           <div className="flex flex-wrap gap-2 mt-3">
             {[
-              'Analyser mon portefeuille', 
-              'Conseils diversification', 
-              'Stratégies long terme', 
-              'Gestion des risques',
-              'Comment investir 10000 MAD ?',
-              'Quand rééquilibrer ?'
+              "Analyser mon portefeuille",
+              "Conseils diversification",
+              "Actualités marché",
+              "Stratégies long terme",
+              "Gestion des risques",
+              "Performance actions",
+              "Taux de change MAD",
             ].map((suggestion) => (
               <button
                 key={suggestion}
                 onClick={() => setInputMessage(suggestion)}
-                className="px-3 py-1 text-xs bg-white/5 hover:bg-white/10 text-white/80 rounded-full border border-white/20 transition-colors hover:border-[#3CD4AB]/50"
+                disabled={isLoading}
+                className="px-3 py-1 text-xs bg-white/5 hover:bg-white/10 text-white/80 rounded-full border border-white/20 transition-colors hover:border-[#3CD4AB]/50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {suggestion}
               </button>
